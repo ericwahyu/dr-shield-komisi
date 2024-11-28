@@ -19,6 +19,12 @@
     <!-- Icons -->
     <link rel="stylesheet" href="https://site-assets.fontawesome.com/releases/v6.4.0/css/all.css">
     <!-- Script in Styles -->
+    {{-- favicon --}}
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('assets/image/favicon_io/apple-touch-icon.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('assets/image/favicon_io/favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('assets/image/favicon_io/favicon-16x16.png') }}">
+    <link rel="manifest" href="{{ asset('assets/image/favicon_io/site.webmanifest') }}">
+    
     <script src="https://site-assets.fontawesome.com/releases/v6.4.0/js/all.js" data-auto-add-css="false" data-auto-replace-svg="false"></script>
     <script src="https://cdn.jsdelivr.net/npm/@ryangjchandler/alpine-tooltip@1.x.x/dist/cdn.min.js" defer></script>
     <style>

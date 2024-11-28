@@ -22,7 +22,7 @@ return new class extends Migration
             $table->bigInteger('income_tax')->nullable()->comment('nominal DPP'); //DPP
             $table->bigInteger('value_tax')->nullable()->comment('nominal PPN'); //PPN
             $table->bigInteger('amount')->nullable()->comment('DPP + PPN'); //DPP + PPN
-            $table->bigInteger('due_date')->nullable()->comment('Masa jatuh tempo untuk invoice atap');
+            $table->bigInteger('due_date')->nullable()->comment('Masa jatuh tempo');
             $table->timestamps();
             $table->softDeletes();
         });

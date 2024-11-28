@@ -24,7 +24,7 @@
         <li class="menu-header small text-uppercase">
             <span class="menu-header-text" style="font-size: 15px;color: black;">DATA SALES</span>
         </li>
-        <li class="menu-item {{ Request::is('*sales/daftar*') ? 'active' : '' }}">
+        <li class="menu-item {{ Request::is('*sales/daftar*', '*sales/batas-bawah-target*') ? 'active' : '' }}">
             <a href="{{ route('sales.list') }}" class="menu-link">
                 <i class="fa-regular fa-home-alt fa-fw me-2"></i>
                 <div>Daftar Sales</div>
@@ -59,16 +59,22 @@
                 <i class="fa-regular fa-home-alt fa-fw me-2"></i>
                 <div>Persentase Pelanggan</div>
             </a>
-        </li>
-        <li class="menu-header small text-uppercase">
-            <span class="menu-header-text" style="font-size: 15px;color: black;">PESANAN</span>
-        </li>
-        <li class="menu-item {{ Request::is('*pesanan/buat*') ? 'active' : '' }}">
-            <a href="{{ route('create.order') }}" class="menu-link">
-                <i class="fa-regular fa-home-alt fa-fw me-2"></i>
-                <div>Buat Pesanan</div>
-            </a>
         </li> --}}
+        <li class="menu-header small text-uppercase">
+            <span class="menu-header-text" style="font-size: 15px;color: black;">FAKTUR</span>
+        </li>
+        <li class="menu-item {{ Request::is('*faktur/keramik*') ? 'active' : '' }}">
+            <a href="{{ route('ceramic.invoice') }}" class="menu-link">
+                <i class="fa-regular fa-home-alt fa-fw me-2"></i>
+                <div>Faktur Keramik</div>
+            </a>
+        </li>
+        <li class="menu-item {{ Request::is('*faktur/atap*') ? 'active' : '' }}">
+            <a href="{{ route('roof.invoice') }}" class="menu-link">
+                <i class="fa-regular fa-home-alt fa-fw me-2"></i>
+                <div>Faktur Atap</div>
+            </a>
+        </li>
         {{-- <li class="menu-item {{ Request::is('*pesanan/genteng*') ? 'active' : '' }}">
             <a href="{{ route('order.roof') }}" class="menu-link">
                 <i class="fa-regular fa-home-alt fa-fw me-2"></i>
@@ -86,17 +92,23 @@
                 <i class="fa-regular fa-home-alt fa-fw me-2"></i>
                 <div>Riwayat Pesanan</div>
             </a>
-        </li>
+        </li> --}}
         <li class="menu-header small text-uppercase">
-            <span class="menu-header-text" style="font-size: 15px;color: black;">PERHITUNGAN</span>
+            <span class="menu-header-text" style="font-size: 15px;color: black;">KOMISI</span>
         </li>
-        <li class="menu-item {{ Request::is('*perhitungan/genteng') ? 'active' : '' }}">
-            <a href="{{ route('calculation.roof') }}" class="menu-link">
+        <li class="menu-item {{ Request::is('*komisi/keramik*') ? 'active' : '' }}">
+            <a href="{{ route('ceramic.commission') }}" class="menu-link">
                 <i class="fa-regular fa-home-alt fa-fw me-2"></i>
-                <div>Genteng</div>
+                <div>Komisi Sales Keramik</div>
             </a>
         </li>
-        <li class="menu-item {{ Request::is('*perhitungan/UPVC') ? 'active' : '' }}">
+        <li class="menu-item {{ Request::is('*komisi/atap*') ? 'active' : '' }}">
+            <a href="{{ route('roof.commission') }}" class="menu-link">
+                <i class="fa-regular fa-home-alt fa-fw me-2"></i>
+                <div>Komisi Sales Atap</div>
+            </a>
+        </li>
+        {{-- <li class="menu-item {{ Request::is('*perhitungan/UPVC') ? 'active' : '' }}">
             <a href="{{ route('calculation.upvc') }}" class="menu-link">
                 <i class="fa-regular fa-home-alt fa-fw me-2"></i>
                 <div>UPVC</div>

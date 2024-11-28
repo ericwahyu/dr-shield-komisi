@@ -10,7 +10,7 @@
         <title>{{ env('APP_NAME') }}</title>
     @else
     @endif --}}
-    <title>@yield('title') | {{ env('APP_NAME') }}</title>
+    <title>@yield('title') | {{ config('app.name') }}</title>
 
     <!-- Favicon -->
     {{-- <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('assets/favicon/apple-touch-icon.png') }}"> --}}
@@ -44,6 +44,12 @@
 
     <!-- Custom -->
     <link rel="stylesheet" href="{{ asset('assets/admin/custom/custom.css') }}">
+
+    {{-- favicon --}}
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('assets/image/favicon_io/apple-touch-icon.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('assets/image/favicon_io/favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('assets/image/favicon_io/favicon-16x16.png') }}">
+    <link rel="manifest" href="{{ asset('assets/image/favicon_io/site.webmanifest') }}">
 
     @yield('styles')
 </head>
@@ -92,6 +98,26 @@
     <script src="{{ asset('assets/admin/custom/custom-minify.js') }}"></script>
 
     @stack('scripts')
+
+    <script type="text/javascript">
+        function convertToRupiah(objek) {
+            separator = ".";
+            a = objek.value;
+            b = a.replace(/[^\d]/g, "");
+            c = "";
+            panjang = b.length;
+            j = 0;
+            for (i = panjang; i > 0; i--) {
+                j = j + 1;
+                if (((j % 3) == 1) && (j != 1)) {
+                    c = b.substr(i - 1, 1) + separator + c;
+                } else {
+                    c = b.substr(i - 1, 1) + c;
+                }
+            }
+            objek.value = c;
+        }
+    </script>
 </body>
 
 </html>

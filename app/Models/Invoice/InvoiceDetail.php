@@ -12,4 +12,13 @@ class InvoiceDetail extends Model
     use HasFactory, HasUuids, SoftDeletes;
 
     protected $guarded = ['id'];
+
+    protected $casts = [
+        'date' => 'datetime'
+    ];
+
+    public function invoice()
+    {
+        return $this->belongsTo(Invoice::class, 'invoice_id', 'id');
+    }
 }

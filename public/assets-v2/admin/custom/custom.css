@@ -1,0 +1,49 @@
+/* Start Global */
+
+* {
+    font-family: 'Poppins', sans-serif;
+}
+
+.fw-bold {
+    font-weight: 800 !important;
+}
+
+.menu-vertical .menu-inner .menu-item.active>.menu-link {
+    font-weight: 600 !important;
+}
+
+th {
+    font-weight: 700 !important;
+}
+
+
+.bg-menu-theme .menu-inner>.menu-item.active>.menu-link, .bg-menu-theme.menu-horizontal .menu-inner>.menu-item.active>.menu-sub>.menu-item.active:not(:has(.menu-sub))>.menu-link {
+    color: #ff0000;
+    background-color: rgba(255, 0, 0, .25) !important;
+}
+
+.bg-menu-theme .menu-inner>.menu-item.active:before {
+    background: #ff0000;
+}
+
+html:not([dir=rtl]) .menu-toggle::after {
+    content: "";
+}
+
+.loading-screen {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1110;
+    overflow: hidden;
+    background-color: #FFFFFF;
+    opacity: 0.75;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}

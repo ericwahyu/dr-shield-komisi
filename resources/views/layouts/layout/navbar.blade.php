@@ -7,15 +7,15 @@
     <div class="navbar-nav-right d-flex align-items-center justify-content-between" id="navbar-collapse">
         <div class="navbar-nav">
             <div class="nav-item mb-0">
-                <small class="fw-normal d-block">Hai, Selamat <span id="selamat"></span></small>
-                {{-- <p class="fw-semibold fs-7 mb-0">{{ Auth::user()->name }} <span class="text-warning"> ({{ Str::replace('-',' ',Str::title(Auth::user()->getRoleNames()->first())) }})</span> --}}
+                <small class="fw-normal d-block">Hai, <span id="selamat"></span></small>
+                <p class="fw-semibold fs-7 mb-0">{{ Auth::user()?->name }} <span class="text-warning"> ({{ Str::replace('-',' ',Str::title(Auth::user()?->getRoleNames()?->first())) }})</span>
                     {{-- @if (Auth::user()->branch_id) | <span class="text-info">({{ Auth::user()->branch?->name }})</span>@endif --}}
                 </p>
             </div>
         </div>
         <div class="navbar-nav">
             <div class="nav-item mb-0">
-                <span class="d-lg-block d-none" id="dateTime"></span>
+                {{-- <span class="d-lg-block d-none" id="dateTime"></span> --}}
             </div>
         </div>
         <ul class="navbar-nav align-items-center d-flex gap-1">

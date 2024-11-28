@@ -5,13 +5,13 @@ namespace App\Livewire\Sales\SalesList;
 use App\Models\Auth\User;
 use App\Models\Auth\UserDetail;
 use Exception;
-use Jantinnerezo\LivewireAlert\LivewireAlert;
-use Livewire\Component;
-use Livewire\WithPagination;
-use Throwable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Throwable;
+use Jantinnerezo\LivewireAlert\LivewireAlert;
+use Livewire\Component;
+use Livewire\WithPagination;
 
 class SalesListIndex extends Component
 {
@@ -23,14 +23,15 @@ class SalesListIndex extends Component
 
     public function render()
     {
+        $users =  User::search($this->search);
         return view('livewire.sales.sales-list.sales-list-index', [
-            'sales' => User::role('sales')->paginate($this->perPage)
+            'sales' => $users->role('sales')->paginate($this->perPage)
         ])->extends('layouts.layout.app')->section('content');
     }
 
     public function mount()
     {
-
+        // dd(env('APP_NAME'));
     }
 
     public function hydrate()
@@ -41,7 +42,7 @@ class SalesListIndex extends Component
 
     public function closeModal()
     {
-        $this->reset('id_data', 'name');
+        $this->reset('id_data', 'name', 'depo', 'civil_registration_number', 'sales_type', 'sales_code');
         $this->dispatch('closeModal');
     }
 
@@ -149,7 +150,7 @@ class SalesListIndex extends Component
             Log::error($e->getMessage());
 
             return $this->alert('error', 'Maaf', [
-                'text' => 'Terjadi Kesalahan Saat Menghapus Data!'
+                'text' => 'Terjadi Kesalahan Saat Menghapus Data Pelanggan!'
             ]);
         }
 

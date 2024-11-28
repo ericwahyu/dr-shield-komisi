@@ -2,7 +2,11 @@
 
 namespace App\Models\Auth;
 
+use App\Models\Commission\Commission;
+use App\Models\Commission\LowerLimit;
+use App\Models\Commission\SalesCommision;
 use App\Models\Invoice\Invoice;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -51,6 +55,15 @@ class User extends Authenticatable
         ];
     }
 
+    public function scopeSearch(Builder $query, $term): void
+    {
+        $term = '%'. $term .'%';
+
+        $query->where(function ($query) use ($term) {
+            $query->whereAny(['name'], 'LIKE', $term);
+        });
+    }
+
     public function userDetail()
     {
         return $this->hasOne(UserDetail::class, 'user_id', 'id');
@@ -59,5 +72,15 @@ class User extends Authenticatable
     public function invoices()
     {
         return $this->hasMany(Invoice::class, 'user_id', 'id');
+    }
+
+    public function lowerLimits()
+    {
+        return $this->hasMany(LowerLimit::class, 'user_id', 'id');
+    }
+
+    public function commissions()
+    {
+        return $this->hasMany(Commission::class, 'user_id', 'id');
     }
 }

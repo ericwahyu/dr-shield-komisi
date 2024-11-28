@@ -13,6 +13,9 @@ return new class extends Migration
     {
         Schema::create('system_settings', function (Blueprint $table) {
             $table->uuid('id')->primary();
+            $table->double('value_of_total_income')->nullable()->comment('perkalian dari untuk total pendapatan');
+            $table->double('value_incentive')->nullable()->comment('persentase tambahan untuk komisi keramik jika lebih dari target baling bawah');
+            $table->string('sudo_password')->nullable()->comment('sudo password auth');
             $table->timestamps();
             $table->softDeletes();
         });

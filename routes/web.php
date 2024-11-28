@@ -1,16 +1,53 @@
 <?php
 
 use App\Livewire\Auth\AuthLogin\AuthLoginIndex;
+use App\Livewire\Commission\CeramicCommission\CeramicCommissionDetail;
+use App\Livewire\Commission\CeramicCommission\CeramicCommissionIndex;
+use App\Livewire\Commission\RoofCommission\RoofCommissionDetail;
+use App\Livewire\Commission\RoofCommission\RoofCommissionIndex;
+use App\Livewire\Invoice\CeramicInvoice\CeramicInvoiceDetail;
+use App\Livewire\Invoice\CeramicInvoice\CeramicInvoiceIndex;
+use App\Livewire\Invoice\RoofInvoice\RoofInvoiceDetail;
+use App\Livewire\Invoice\RoofInvoice\RoofInvoiceIndex;
 use App\Livewire\Sales\SalesList;
 use App\Livewire\Sales\SalesList\SalesListIndex;
+use App\Livewire\Sales\SalesList\SalesLowerLimit\SalesLowerLimitIndex;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Session;
 
 Route::get('/', function (){
-    return redirect()->route('auth.login');
+    return redirect()->route('login');
 });
 
-Route::get('/login', AuthLoginIndex::class)->name('auth.login');
+Route::get('/login', AuthLoginIndex::class)->name('login');
 
-Route::prefix('/sales')->group(function () {
-    Route::get('/daftar', SalesListIndex::class)->name('sales.list');
+Route::get('/logout', function () {
+    Session::flush();
+    Auth::logout();
+    return redirect()->to('/');
 });
+
+Route::middleware('auth')->group(function () {
+    Route::prefix('/sales')->group(function () {
+        Route::get('/daftar', SalesListIndex::class)->name('sales.list');
+        Route::get('/batas-bawah-target/{id}', SalesLowerLimitIndex::class)->name('sales.lower.limit');
+    });
+
+    Route::prefix('/faktur')->group(function () {
+        Route::get('/keramik', CeramicInvoiceIndex::class)->name('ceramic.invoice');
+        Route::get('/keramik-detail/{id}', CeramicInvoiceDetail::class)->name('ceramic.invoice.detail');
+
+        Route::get('/atap', RoofInvoiceIndex::class)->name('roof.invoice');
+        Route::get('/atap-detail/{id}', RoofInvoiceDetail::class)->name('roof.invoice.detail');
+    });
+
+    Route::prefix('/komisi')->group(function () {
+        Route::get('/keramik', CeramicCommissionIndex::class)->name('ceramic.commission');
+        Route::get('/keramik-detail/{sales_id}/{month_commission}', CeramicCommissionDetail::class)->name('ceramic.commission.detail');
+
+        Route::get('/atap', RoofCommissionIndex::class)->name('roof.commission');
+        Route::get('/atap-detail/{sales_id}/{month_commission}/{category}', RoofCommissionDetail::class)->name('roof.commission.detail');
+    });
+});
+

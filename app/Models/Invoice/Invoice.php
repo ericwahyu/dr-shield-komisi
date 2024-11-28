@@ -2,6 +2,7 @@
 
 namespace App\Models\Invoice;
 
+use App\Models\Auth\User;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -12,4 +13,28 @@ class Invoice extends Model
     use HasFactory, HasUuids, SoftDeletes;
 
     protected $guarded = ['id'];
+
+    protected $casts = [
+        'date' => 'datetime'
+    ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id', 'id');
+    }
+
+    public function invoiceDetails()
+    {
+        return $this->hasMany(InvoiceDetail::class, 'invoice_id', 'id');
+    }
+
+    public function paymentDetails()
+    {
+        return $this->hasMany(PaymentDetail::class, 'invoice_id', 'id');
+    }
+
+    public function dueDateRules()
+    {
+        return $this->hasMany(DueDateRule::class, 'invoice_id', 'id');
+    }
 }

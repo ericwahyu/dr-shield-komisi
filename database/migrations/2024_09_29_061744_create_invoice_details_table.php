@@ -14,9 +14,9 @@ return new class extends Migration
         Schema::create('invoice_details', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('invoice_id');
-            $table->enum('type', ['dr-shield', 'dr-sonne', 'ceramic'])->nullable()->comment('Jenis invoice dr.shield, dr.sonne, atau keramik');
+            $table->enum('category', ['dr-shield', 'dr-sonne'])->nullable()->comment('Jenis invoice dr.shield, dr.sonne');
             $table->bigInteger('amount')->nullable()->comment('nominal pembayaran');
-            $table->timestamp('date')->nullable()->comment('tanggal pemabayaran');
+            $table->timestamp('date')->nullable()->comment('tanggal pembayaran');
             $table->bigInteger('percentage')->nullable()->comment('persentage nominal yang masuk ke sales');
             $table->timestamps();
             $table->softDeletes();

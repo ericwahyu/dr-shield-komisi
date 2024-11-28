@@ -76,6 +76,9 @@
                             <td class="text-center">
                                 <button class="btn btn-danger btn-sm" wire:click="deleteConfirm('{{ $result?->id }}')" x-data="{ tooltip: 'Hapus' }" x-tooltip="tooltip"><i class="fa-solid fa-trash-alt fa-fw"></i></button>
                                 <button class="btn btn-warning btn-sm" wire:click="edit('{{ $result?->id }}')" x-data="{ tooltip: 'Edit' }" x-tooltip="tooltip"><i class="fa-solid fa-pencil-alt fa-fw"></i></button>
+                                <a href="{{ route('sales.lower.limit', $result?->id) }}" class="btn btn-secondary btn-sm" x-data="{ tooltip: 'Setting Batas Bawah Target' }" x-tooltip="tooltip"><i class="fa-solid fa-gear fa-fw"></i></a>
+                                {{-- @if ($result?->userDetail?->sales_type  == 'roof')
+                                @endif --}}
                             </td>
                         </tr>
                     @empty
