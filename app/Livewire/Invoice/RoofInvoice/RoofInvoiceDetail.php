@@ -194,7 +194,8 @@ class RoofInvoiceDetail extends Component
                 try {
                     DB::transaction(function () use ($get_commission, $actual_target) {
                         $get_commission?->update([
-                            'value_commission' => $actual_target?->value_commission
+                            'value_commission' => $actual_target?->value_commission,
+                            'status'           => 'reached'
                         ]);
                     });
                 } catch (Exception | Throwable $th) {
