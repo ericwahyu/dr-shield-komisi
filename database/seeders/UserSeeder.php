@@ -23,5 +23,14 @@ class UserSeeder extends Seeder
         ]);
 
         $admin->assignRole('admin');
+
+        $ewa = User::create([
+            'name'     => 'EWA',
+            'email'    => 'erickwahyu19@gmail.com',
+            'username' => 'ewa',
+            'password' => Hash::make('12345678')
+        ]);
+
+        $ewa->assignRole('admin');
     }
 }
