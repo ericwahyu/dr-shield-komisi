@@ -16,7 +16,7 @@
     </div>
     <hr class="my-3">
     <div class="row">
-        <div class="col-md-8">
+        <div class="col-md-7">
             <div class="mb-4 card">
                 {{-- <h5 class="card-header d-flex justify-content-between align-items-center">Data Akun Admin</h5> --}}
                 <div class="card-header d-flex justify-content-between align-items-center">
@@ -100,7 +100,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-5">
             <div class="mb-4 card">
                 {{-- <h5 class="card-header d-flex justify-content-between align-items-center">Data Akun Admin</h5> --}}
                 <div class="card-header d-flex justify-content-between align-items-center">
@@ -108,48 +108,24 @@
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
-                        <div class="col-6">
-                            <div class="form-label">Total <b>Dr Shield</b></div>
-                            <input type="text" class="form-control @error('amount') is-invalid @enderror" value="Rp. {{ number_format($amount_shield, 0, ',', '.') }}" placeholder="" disabled>
-                            @error('amount')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="col-6">
-                            <div class="form-label">Total <b>Dr Sonne</b></div>
-                            <input type="text" class="form-control @error('amount') is-invalid @enderror" value="Rp. {{ number_format($amount_sonne, 0, ',', '.') }}" placeholder="" disabled>
-                            @error('amount')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="col-6">
-                            <div class="form-label">Nominal Terbayar</div>
-                            <input type="text" class="form-control @error('payment_amount') is-invalid @enderror" value="{{ $payment_amount_shield }}" placeholder="" disabled>
-                            @error('count_amount')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="col-6">
-                            <div class="form-label">Nominal Terbayar</div>
-                            <input type="text" class="form-control @error('payment_amount') is-invalid @enderror" value="{{ $payment_amount_sonne }}" placeholder="" disabled>
-                            @error('count_amount')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="col-6">
-                            <div class="form-label">Sisa Pembayaran</div>
-                            <input type="text" class="form-control @error('remaining_amount') is-invalid @enderror" value="{{ $remaining_amount_shield }}" placeholder="" disabled>
-                            @error('remaining_amount')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="col-6">
-                            <div class="form-label">Sisa Pembayaran</div>
-                            <input type="text" class="form-control @error('remaining_amount') is-invalid @enderror" value="{{ $remaining_amount_sonne }}" placeholder="" disabled>
-                            @error('remaining_amount')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
-                        </div>
+                        @foreach ($categories as $category)
+                            <div class="col-{{ 12 / (count($categories) > 0 ? count($categories) : 1) }}">
+                                <div class="form-label">Total <b>{{ $category?->name }}</b></div>
+                                <input type="text" class="form-control" value="Rp. {{ number_format($amounts[$category?->slug], 0, ',', '.') }}" placeholder="" disabled>
+                            </div>
+                        @endforeach
+                        @foreach ($categories as $category)
+                            <div class="col-{{ 12 / (count($categories) > 0 ? count($categories) : 1) }}">
+                                <div class="form-label">Nominal Terbayar</div>
+                                <input type="text" class="form-control" value="{{ $payment_amounts[$category?->slug] }}" placeholder="" disabled>
+                            </div>
+                        @endforeach
+                        @foreach ($categories as $category)
+                            <div class="col-{{ 12 / (count($categories) > 0 ? count($categories) : 1) }}">
+                                <div class="form-label">Sisa Pembayaran</div>
+                                <input type="text" class="form-control" value="{{ $remaining_amounts[$category?->slug] }}" placeholder="" disabled>
+                            </div>
+                        @endforeach
                     </div>
                 </div>
             </div>
@@ -177,10 +153,8 @@
                                 <tr>
                                     <td class = "text-center">{{ $loop->iteration }}</td>
                                     <td class="text-center">
-                                        @if ($result?->category  == 'dr-shield')
-                                            <b>Dr Shield</b>
-                                        @elseif ($result?->category  == 'dr-sonne')
-                                            <b>Dr Sonne</b>
+                                        @if ($result?->category)
+                                            <b>{{ $result?->category?->name }}</b>
                                         @else
                                             -
                                         @endif

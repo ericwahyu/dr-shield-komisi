@@ -17,7 +17,8 @@ return new class extends Migration
             $table->foreignUuid('actual_target_id')->nullable();
             $table->integer('year')->nullable()->comment('Tahun komisi');
             $table->integer('month')->nullable()->comment('Bulan komisi');
-            $table->enum('category', ['dr-shield', 'dr-sonne'])->nullable()->comment('tipe komisi');
+            // $table->enum('category', ['dr-shield', 'dr-sonne'])->nullable()->comment('tipe komisi');
+            $table->foreignUuid('category_id')->nullable()->comment('kategori');
             $table->bigInteger('total_sales')->nullable()->comment('Total Penjualan dari total DPP');
             $table->double('percentage_value_commission')->nullable()->comment('nilai komisi persen yang didapatkan dari target');
             $table->bigInteger('value_commission')->nullable()->comment('Nilai komisi');

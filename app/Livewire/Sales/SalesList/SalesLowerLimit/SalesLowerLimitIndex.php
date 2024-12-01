@@ -3,6 +3,7 @@
 namespace App\Livewire\Sales\SalesList\SalesLowerLimit;
 
 use App\Models\Auth\User;
+use App\Models\System\Category;
 use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -19,19 +20,22 @@ class SalesLowerLimitIndex extends Component
 
     public $get_user, $name, $depo, $civil_registration_number, $sales_type, $sales_code;
     public $get_lower_limit, $id_data, $category, $number, $target_payment, $value;
+    public $categories;
 
     public function render()
     {
+        // $lower_limits = $this->get_user->lowerLimits()->whereHas();
         return view('livewire.sales.sales-list.sales-lower-limit.sales-lower-limit-index', [
-            'ceramic_lower_limits'   => $this->get_user->lowerLimits()->whereHas('user.userDetail', function ($query) {
-                $query->where('sales_type', $this->get_user?->userDetail?->sales_type);
-            })->orderBy('target_payment', 'ASC')->get(),
-            'dr_shield_lower_limits' => $this->get_user->lowerLimits()->whereHas('user.userDetail', function ($query) {
-                $query->where('sales_type', $this->get_user?->userDetail?->sales_type);
-            })->where('category', 'dr-shield')->orderBy('target_payment', 'ASC')->get(),
-            'dr_sonne_lower_limits'  => $this->get_user->lowerLimits()->whereHas('user.userDetail', function ($query) {
-                $query->where('sales_type', $this->get_user?->userDetail?->sales_type);
-            })->where('category', 'dr-sonne')->orderBy('target_payment', 'ASC')->get(),
+            // 'ceramic_lower_limits'   => $this->get_user->lowerLimits()->whereHas('user.userDetail', function ($query) {
+            //     $query->where('sales_type', $this->get_user?->userDetail?->sales_type);
+            // })->orderBy('target_payment', 'ASC')->get(),
+            // 'dr_shield_lower_limits' => $this->get_user->lowerLimits()->whereHas('user.userDetail', function ($query) {
+            //     $query->where('sales_type', $this->get_user?->userDetail?->sales_type);
+            // })->where('category', 'dr-shield')->orderBy('target_payment', 'ASC')->get(),
+            // 'dr_sonne_lower_limits'  => $this->get_user->lowerLimits()->whereHas('user.userDetail', function ($query) {
+            //     $query->where('sales_type', $this->get_user?->userDetail?->sales_type);
+            // })->where('category', 'dr-sonne')->orderBy('target_payment', 'ASC')->get(),
+            // 'categories' => Category::where('type', $this->get_user?->userDetail?->sales_type)->get()
         ])->extends('layouts.layout.app')->section('content');
     }
 
@@ -42,6 +46,7 @@ class SalesLowerLimitIndex extends Component
         $this->sales_code                = $this->get_user?->userDetail?->sales_code;
         $this->civil_registration_number = $this->get_user?->userDetail?->civil_registration_number;
         $this->sales_type                = $this->get_user?->userDetail?->sales_type == 'roof' ? 'Atap' : ($this->get_user?->userDetail?->sales_type == 'ceramic' ? 'Keramik' : '-');
+        $this->categories                = Category::where('type', $this->get_user?->userDetail?->sales_type)->get();
     }
 
     public function hydrate()
@@ -69,7 +74,7 @@ class SalesLowerLimitIndex extends Component
             'value'          => 'required|numeric',
         ]);
 
-        $get_unique_lower_limit = $this->get_user->lowerLimits()->where('category', $this->category)->where('value', $this->value)->first();
+        $get_unique_lower_limit = $this->get_user->lowerLimits()->whereHas('category', fn ($query) => $query->where('type', $this->get_user?->userDetail?->sales_type)->where('slug', $this->category))->where('value', $this->value)->first();
         if ($get_unique_lower_limit) {
             $this->closeModal();
             return $this->alert('warning', 'Pemberitahuan', [
@@ -83,8 +88,7 @@ class SalesLowerLimitIndex extends Component
                         'id' => $this->id_data
                     ],
                     [
-                        'category' => $this->category,
-                        // 'number'         => $this->number ? $this->number : (int)$this->get_user->lowerLimits()->where('type', $this->type)->max('number') + 1,
+                        'category_id'    => Category::where('type', $this->get_user?->userDetail?->sales_type)->where('slug', $this->category)->first()?->id,
                         'target_payment' => $this->target_payment,
                         'value'          => $this->value,
                     ]
@@ -110,7 +114,7 @@ class SalesLowerLimitIndex extends Component
     {
         $this->get_lower_limit = $this->get_user->lowerLimits()->where('id', $id)->first();
         $this->id_data         = $this->get_lower_limit?->id;
-        $this->category        = $this->get_lower_limit?->category;
+        $this->category        = $this->get_lower_limit?->category?->slug;
         $this->target_payment  = $this->get_lower_limit?->target_payment;
         $this->value           = $this->get_lower_limit?->value;
 
@@ -157,5 +161,14 @@ class SalesLowerLimitIndex extends Component
         return $this->alert('success', 'Berhasil', [
             'text' => 'Data Batas Bawah Target Telah Dihapus !'
         ]);
+    }
+
+    public function getLowerLimits($category)
+    {
+        return $this->get_user->lowerLimits()->when($category, function ($query) use ($category) {
+            $query->whereHas('category', function ($query) use ($category) {
+                $query->where('type', $this->get_user?->userDetail?->sales_type)->where('slug', $category);
+            });
+        })->get();
     }
 }

@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('invoice_details', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('invoice_id');
-            $table->enum('category', ['dr-shield', 'dr-sonne'])->nullable()->comment('Jenis invoice dr.shield, dr.sonne');
+            $table->foreignUuid('invoice_id')->nullable();
+            $table->foreignUuid('category_id')->nullable()->comment('kategori');
             $table->bigInteger('amount')->nullable()->comment('nominal pembayaran');
             $table->timestamp('date')->nullable()->comment('tanggal pembayaran');
             $table->bigInteger('percentage')->nullable()->comment('persentage nominal yang masuk ke sales');

@@ -140,7 +140,7 @@ class SalesListIndex extends Component
         try {
             DB::transaction(function () use ($data) {
                 $result = User::find($data['inputAttributes']['id']);
-                // $result?->delete();
+                $result?->delete();
             });
 
             DB::commit();

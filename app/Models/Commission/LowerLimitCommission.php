@@ -2,6 +2,7 @@
 
 namespace App\Models\Commission;
 
+use App\Models\System\Category;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -21,5 +22,10 @@ class LowerLimitCommission extends Model
     public function lowerLimit()
     {
         return $this->belongsTo(LowerLimit::class, 'lower_limit_id', 'id');
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class, 'category_id', 'id');
     }
 }

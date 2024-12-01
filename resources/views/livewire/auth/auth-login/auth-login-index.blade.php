@@ -82,12 +82,12 @@
                 </div>
             </form>
 
-            <p class="text-center">
+            {{-- <p class="text-center">
                 <span>Belum Punya Akun ? </span>
                 <a href="#">
                     <span>Buat Akun</span>
                 </a>
-            </p>
+            </p> --}}
 
             {{-- <div class="divider my-4">
                 <div class="divider-text">or</div>

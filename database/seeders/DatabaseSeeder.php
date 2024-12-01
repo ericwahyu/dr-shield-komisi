@@ -2,8 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\Invoice\DueDateRule;
-use App\Models\User;
+
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -17,10 +16,11 @@ class DatabaseSeeder extends Seeder
         $this->call([
             RoleSeeder::class,
             UserSeeder::class,
+            SystemSettingSeeder::class,
+            CategorySeeder::class,
             DueDateRuleSeeder::class,
             DueDateRuleCeramicSeeder::class,
             ActualTargetSeeder::class,
-            SystemSettingSeeder::class,
         ]);
     }
 }

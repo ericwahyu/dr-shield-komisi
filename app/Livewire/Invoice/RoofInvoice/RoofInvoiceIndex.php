@@ -2,29 +2,36 @@
 
 namespace App\Livewire\Invoice\RoofInvoice;
 
+use App\Imports\Invoice\RoofInvoice\RoofInvoiceImport;
 use App\Models\Auth\User;
 use App\Models\Commission\Commission;
 use App\Models\Invoice\Invoice;
 use App\Models\Invoice\PaymentDetail;
+use App\Models\System\Category;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Livewire\Component;
+use Livewire\Features\SupportFileUploads\WithFileUploads;
 use Livewire\WithPagination;
+use Maatwebsite\Excel\Facades\Excel;
 use Throwable;
 
 class RoofInvoiceIndex extends Component
 {
-    use LivewireAlert, WithPagination;
+    use LivewireAlert, WithPagination, WithFileUploads;
     protected $paginationTheme = 'bootstrap';
     public $perPage = 10, $search;
 
     public $filter_month, $filter_sales;
     public $data_due_dates;
-    public $get_invoice, $id_data, $sales_id, $sales_code, $date, $invoice_number, $customer, $id_customer, $due_date, $income_tax, $value_tax, $amount;
-    public $income_tax_shield, $value_tax_shield, $amount_shield, $income_tax_sonne, $value_tax_sonne, $amount_sonne;
+    public $get_invoice, $id_data, $sales_id, $sales_code, $date, $invoice_number, $customer, $id_customer, $due_date;
+    public $income_tax = 0, $value_tax = 0, $amount = 0;
+    public $income_taxs = [], $value_taxs = [], $amounts = [];
+    public $file_import;
+    public $categories;
 
     public function render()
     {
@@ -60,6 +67,8 @@ class RoofInvoiceIndex extends Component
                 'value'    => 0,
             ],
         ];
+
+        $this->categories = Category::where('type', 'roof')->get();
     }
 
     public function hydrate()
@@ -70,7 +79,7 @@ class RoofInvoiceIndex extends Component
 
     public function closeModal()
     {
-        $this->reset('get_invoice', 'id_data', 'sales_id', 'sales_code', 'date', 'invoice_number', 'customer', 'id_customer', 'due_date', 'income_tax_shield', 'value_tax_shield', 'amount_shield', 'income_tax_sonne', 'value_tax_sonne', 'amount_sonne', 'income_tax', 'value_tax', 'amount');
+        $this->reset('get_invoice', 'id_data', 'sales_id', 'sales_code', 'date', 'invoice_number', 'customer', 'id_customer', 'due_date', 'income_taxs', 'value_taxs', 'amounts', 'income_tax', 'value_tax', 'amount', 'file_import');
         $this->dispatch('closeModal');
     }
 
@@ -80,23 +89,38 @@ class RoofInvoiceIndex extends Component
             $this->sales_code = User::find($this->sales_id) ? User::find($this->sales_id)?->userDetail?->sales_code : null;
         }
 
-        if ($this->income_tax_shield) {
-            $this->value_tax_shield = (int)$this->income_tax_shield * 0.11;
-            $this->amount_shield    = (int)$this->income_tax_shield + (int)$this->value_tax_shield;
+        foreach ($this->categories as $key => $category) {
+            if (isset($this->income_taxs[$category?->slug])) {
+                $this->value_taxs[$category?->slug] = (int)$this->income_taxs[$category?->slug] * 0.11;
+                $this->amounts[$category?->slug]    = (int)$this->income_taxs[$category?->slug] + (int)$this->value_taxs[$category?->slug];
+            }
         }
+    }
 
-        if ($this->income_tax_sonne) {
-            $this->value_tax_sonne = (int)$this->income_tax_sonne * 0.11;
-            $this->amount_sonne    = (int)$this->income_tax_sonne + (int)$this->value_tax_sonne;
+    public function updatedIncomeTaxs()
+    {
+        $this->income_tax = $this->value_tax =  $this->amount = 0;
+        foreach ($this->categories as $category) {
+            $slug = $category?->slug;
+            if (isset($this->income_taxs[$slug])) {
+                $this->income_tax += (int)$this->income_taxs[$slug];
+                $this->value_tax  += (int)$this->value_taxs[$slug];
+                $this->amount     += (int)$this->amounts[$slug];
+            }
         }
-
-        $this->income_tax = (double)$this->income_tax_shield + (double)$this->income_tax_sonne;
-        $this->value_tax  = (double)$this->value_tax_shield + (double)$this->value_tax_sonne;
-        $this->amount     = (double)$this->amount_shield + (double)$this->amount_sonne;
     }
 
     public function saveData()
     {
+        foreach ($this->categories as $key => $category) {
+            $check_lower_limit = User::find($this->sales_id)->lowerLimits()->whereHas('category', fn ($query) => $query->where('id', $category?->id))->first();
+            if (!$check_lower_limit) {
+                return $this->alert('warning', 'Peringatan', [
+                    'text' => "Data target batas bawah untuk $category?->name belum diatur !"
+                ]);
+            }
+        }
+
         $this->validate([
             'sales_id'       => 'required',
             'date'           => 'required|date',
@@ -129,27 +153,21 @@ class RoofInvoiceIndex extends Component
                     ]
                 );
 
-                $invoice->paymentDetails()->updateOrCreate(
-                    [
-                        'category' => 'dr-shield'
-                    ],
-                    [
-                        'income_tax'     => (int)number_format($this->income_tax_shield, 0, ',', ''),
-                        'value_tax'      => (int)number_format($this->value_tax_shield, 0, ',', ''),
-                        'amount'         => (int)number_format($this->amount_shield, 0, ',', ''),
-                    ]
-                );
+                foreach ($this->categories as $key => $category) {
+                    $invoice->paymentDetails()->updateOrCreate(
+                        [
+                            'category_id' => $category?->id
+                        ],
+                        [
+                            'category_id' => $category?->id,
+                            'income_tax'  => isset($this->income_taxs[$category?->slug]) ? (int)number_format($this->income_taxs[$category?->slug], 0, ',', '') : null,
+                            'value_tax'   => isset($this->value_taxs[$category?->slug]) ? (int)number_format($this->value_taxs[$category?->slug], 0, ',', '') : null,
+                            'amount'      => isset($this->amounts[$category?->slug]) ? (int)number_format($this->amounts[$category?->slug], 0, ',', '') : null,
+                        ]
+                    );
+                }
 
-                $invoice->paymentDetails()->updateOrCreate(
-                    [
-                        'category' => 'dr-sonne'
-                    ],
-                    [
-                        'income_tax'     => (int)number_format($this->income_tax_sonne, 0, ',', ''),
-                        'value_tax'      => (int)number_format($this->value_tax_sonne, 0, ',', ''),
-                        'amount'         => (int)number_format($this->amount_sonne, 0, ',', ''),
-                    ]
-                );
+                // dd($invoice->paymentDetails()->get());
 
                 if ($this->id_data == null) {
                     $this->createDueDateRule($invoice);
@@ -158,8 +176,7 @@ class RoofInvoiceIndex extends Component
                     $invoice->dueDateRules()->delete();
                     $this->createDueDateRule($invoice);
                     foreach ($invoice?->invoiceDetails as $key => $invoice_detail) {
-
-                        $percentage = null;
+                        $percentage     = null;
                         $get_diffDay    = Carbon::parse($invoice?->date)->diffInDays($invoice_detail?->date);
                         $desc_due_dates = $invoice->dueDateRules()->orderBy('due_date', 'DESC')->get();
 
@@ -180,8 +197,9 @@ class RoofInvoiceIndex extends Component
                     }
                 }
 
-                $this->createCommission($invoice, 'dr-shield');
-                $this->createCommission($invoice, 'dr-sonne');
+                foreach ($this->categories as $key => $category) {
+                    $this->createCommission($invoice, $category);
+                }
             });
         } catch (Exception | Throwable $th) {
             DB::rollback();
@@ -237,23 +255,23 @@ class RoofInvoiceIndex extends Component
     private function createCommission($invoice, $category)
     {
         //create commission
-        $get_commission = Commission::where('user_id', $this->sales_id)->where('month', (int)$invoice?->date?->format('m'))->where('year', (int)$invoice?->date?->format('Y'))->where('category', $category)->first();
+        $get_commission = Commission::where('user_id', $this->sales_id)->where('month', (int)$invoice?->date?->format('m'))->where('year', (int)$invoice?->date?->format('Y'))->where('category_id', $category?->id)->first();
         if (!$get_commission) {
             $commission = Commission::create([
                 'user_id'     => $this->sales_id,
+                'category_id' => $category?->id,
                 'month'       => $invoice?->date?->format('m'),
                 'year'        => $invoice?->date?->format('Y'),
-                'category'    => $category,
-                'total_sales' => $category == 'dr-shield' ? $this->income_tax_shield : ($category == 'dr-sonne' ? $this->income_tax_sonne : null),
+                'total_sales' => $invoice?->paymentDetails()->where('category_id', $category?->id)->sum('amount'),
                 'status'      => 'not-reach'
             ]);
 
             if (count($commission->lowerLimitCommissions) == 0) {
-                $lower_limit_ceramics = User::find($this->sales_id)->lowerLimits()->where('category', $category)->get();
+                $lower_limit_ceramics = User::find($this->sales_id)->lowerLimits()->where('category_id', $category?->id)->get();
                 foreach ($lower_limit_ceramics as $key => $lower_limit_ceramic) {
                     $commission->lowerLimitCommissions()->create([
                         'lower_limit_id' => $lower_limit_ceramic?->id,
-                        'category'       => $category,
+                        'category_id'    => $category?->id,
                         'target_payment' => $lower_limit_ceramic?->target_payment,
                         'value'          => $lower_limit_ceramic?->value,
                     ]);
@@ -264,10 +282,15 @@ class RoofInvoiceIndex extends Component
                 $query->whereHas('user', function ($query) {
                     $query->where('id', $this->sales_id);
                 })->whereYear('date', (int)$invoice?->date->format('Y'))->whereMonth('date', (int)$invoice?->date->format('m'))->where('type', 'roof');
-            })->where('category', $category)->sum('income_tax');
+            })->where('category_id', $category?->id)->sum('income_tax');
+
+            $get_lower_limit_commission = $get_commission?->lowerLimitCommissions()->where('category_id', $category?->id)->where('target_payment', '<=', (int)$sum_income_tax)->max('value');
+            $get_lower_limit_commission = $get_lower_limit_commission ?? null;
 
             $get_commission?->update([
-                'total_sales' => $sum_income_tax,
+                'total_sales'                 => $sum_income_tax,
+                'percentage_value_commission' => $get_lower_limit_commission,
+                'status'                      => $get_lower_limit_commission != null ? 'reached' : 'not-reach'
             ]);
         }
     }
@@ -285,6 +308,11 @@ class RoofInvoiceIndex extends Component
         $this->income_tax     = $this->get_invoice?->income_tax;
         $this->value_tax      = $this->get_invoice?->value_tax;
         $this->amount         = $this->get_invoice?->amount;
+        foreach ($this->categories as $key => $category) {
+            $this->income_taxs[$category?->slug] = $this->get_invoice->paymentDetails()->where('category_id', $category?->id)->first()?->income_tax;
+            $this->value_taxs[$category?->slug]  = $this->get_invoice->paymentDetails()->where('category_id', $category?->id)->first()?->value_tax;
+            $this->amounts[$category?->slug]     = $this->get_invoice->paymentDetails()->where('category_id', $category?->id)->first()?->amount;
+        }
 
         $this->dispatch('openModal');
     }
@@ -328,6 +356,21 @@ class RoofInvoiceIndex extends Component
 
         return $this->alert('success', 'Berhasil', [
             'text' => 'Data Faktur Atap Telah Dihapus !'
+        ]);
+    }
+
+    public function importInvoiceData()
+    {
+        $this->validate([
+            'file_import' => 'required|file|mimes:xlsx',
+        ]);
+
+        Excel::import(new RoofInvoiceImport, $this->file_import);
+
+        $this->closeModal();
+
+        return $this->alert('success', 'Berhasil', [
+            'text' => 'Data Faktur Atap berhasil disimpan !'
         ]);
     }
 }

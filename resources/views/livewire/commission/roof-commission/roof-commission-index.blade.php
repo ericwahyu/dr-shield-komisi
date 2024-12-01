@@ -84,13 +84,14 @@
                 <tbody>
                     @forelse ($sales as $result)
                         @php
-                            $lower_limit_shield_commissions = $this->lowerLimiCommissions($result?->id, 'dr-shield');
-                            $lower_limit_sonne_commissions  = $this->lowerLimiCommissions($result?->id, 'dr-sonne');
-                            $row_span                       = count($lower_limit_shield_commissions) + count($lower_limit_sonne_commissions)
+                            $row_span = 0;
+                            foreach ($categories as $key => $category) {
+                                $row_span += count($this->lowerLimiCommissions($result?->id, $category));
+                            }
                         @endphp
                         <tr wire:key='{{ rand() }}'>
-                            <td rowspan="{{ $row_span > 0 ? $row_span : 2 }}" class="text-center">{{ $sales?->currentPage() * $perPage - $perPage + $loop->iteration }}</td>
-                            <td rowspan="{{ $row_span > 0 ? $row_span : 2 }}" class="sorting_1">
+                            <td rowspan="{{ $row_span > 0 ? $row_span : count($categories) }}" class="text-center">{{ $sales?->currentPage() * $perPage - $perPage + $loop->iteration }}</td>
+                            <td rowspan="{{ $row_span > 0 ? $row_span : count($categories) }}" class="sorting_1">
                                 <div class="d-flex justify-content-start align-items-center product-name">
                                     <div class="d-flex flex-column">
                                         <h6 class="text-nowrap mb-0">{{ $result?->name ? $result?->name : '-' }}</h6>
@@ -98,22 +99,22 @@
                                     </div>
                                 </div>
                             </td>
-                            <td rowspan="{{ $row_span > 0 ? $row_span : 2 }}" class="text-center">{{ $result?->userDetail?->civil_registration_number ? $result?->userDetail?->civil_registration_number : '-' }}</td>
-                            <td rowspan="{{ count($lower_limit_shield_commissions) > 0 ? count($lower_limit_shield_commissions) : '' }}" class="text-center"><b>Dr Shield</b></td>
-                            <td rowspan="{{ count($lower_limit_shield_commissions) > 0 ? count($lower_limit_shield_commissions) : '' }}" class="text-center">{{ "Rp. ". number_format($this->commissionSales($result?->id, 'dr-shield')?->total_sales ?? 0, 0, ',', '.') }}</td>
+                            <td rowspan="{{ $row_span > 0 ? $row_span : count($categories) }}" class="text-center">{{ $result?->userDetail?->civil_registration_number ? $result?->userDetail?->civil_registration_number : '-' }}</td>
+                            <td rowspan="{{ count($this->lowerLimiCommissions($result?->id, $categories[0])) > 0 ? count($this->lowerLimiCommissions($result?->id, $categories[0])) : '' }}" class="text-center"><b>Dr Shield</b></td>
+                            <td rowspan="{{ count($this->lowerLimiCommissions($result?->id, $categories[0])) > 0 ? count($this->lowerLimiCommissions($result?->id, $categories[0])) : '' }}" class="text-center">{{ "Rp. ". number_format($this->commissionSales($result?->id, $categories[0])?->total_sales ?? 0, 0, ',', '.') }}</td>
                             <td class="text-center">
-                                @if (count($lower_limit_shield_commissions) > 0)
+                                @if (count($this->lowerLimiCommissions($result?->id, $categories[0])) > 0)
                                     <div class="d-flex">
-                                        <div class="p-2">Rp. {{ number_format($this->lowerLimiCommissions($result?->id, 'dr-shield')[0]?->target_payment, 0, ',', '.') }}</div>
-                                        <div class="p-2">({{ $this->lowerLimiCommissions($result?->id, 'dr-shield')[0]?->value }}%)</div>
+                                        <div class="p-2">Rp. {{ number_format($this->lowerLimiCommissions($result?->id,  $categories[0])[0]?->target_payment, 0, ',', '.') }}</div>
+                                        <div class="p-2">({{ $this->lowerLimiCommissions($result?->id, $categories[0])[0]?->value }}%)</div>
                                     </div>
                                 @else
                                     -
                                 @endif
                             </td>
-                            <td rowspan="{{ count($lower_limit_shield_commissions) > 0 ? count($lower_limit_shield_commissions) : '' }}" class="text-center">
-                                @if ($this->commissionSales($result?->id, 'dr-shield') != null)
-                                    @if ($this->commissionSales($result?->id, 'dr-shield')?->status == 'reached')
+                            <td rowspan="{{ count($this->lowerLimiCommissions($result?->id, $categories[0])) > 0 ? count($this->lowerLimiCommissions($result?->id, $categories[0])) : '' }}" class="text-center">
+                                @if ($this->commissionSales($result?->id, $categories[0]) != null)
+                                    @if ($this->commissionSales($result?->id, $categories[0])?->status == 'reached')
                                         <span class="badge rounded-pill bg-success bg-glow">Mencapai Target</span>
                                     @else
                                         <span class="badge rounded-pill bg-warning bg-glow">Tidak Mencapai Target</span>
@@ -122,13 +123,13 @@
                                     <span class="badge rounded-pill bg-warning bg-glow">Tidak Mencapai Target</span>
                                 @endif
                             </td>
-                            <td rowspan="{{ count($lower_limit_shield_commissions) > 0 ? count($lower_limit_shield_commissions) : '' }}" class="text-center">-</td>
-                            <td rowspan="{{ count($lower_limit_shield_commissions) > 0 ? count($lower_limit_shield_commissions) : '' }}" class="text-center">
-                                <a class="btn {{ ($this->commissionSales($result?->id, 'dr-shield')?->total_sales ?? 0) > 0 ? "btn-info" : "btn-secondary" }} btn-sm" style="{{ ($this->commissionSales($result?->id, 'dr-shield')?->total_sales ?? 0) < 1 ? "pointer-events: none;" : "" }}" href="{{ route('roof.commission.detail', [$result?->id, $filter_month, 'dr-shield']) }}" x-data="{ tooltip: 'Detail Komisi' }" x-tooltip="tooltip"><i class="fa-solid fa-circle-info fa-fw"></i></a>
+                            <td rowspan="{{ count($this->lowerLimiCommissions($result?->id, $categories[0])) > 0 ? count($this->lowerLimiCommissions($result?->id, $categories[0])) : '' }}" class="text-center">{{ $this->commissionSales($result?->id, $categories[0])?->value_commission ? "Rp. ". number_format($this->commissionSales($result?->id, $categories[0])?->value_commission ?? 0, 0, ',', '.') : '-' }}</td>
+                            <td rowspan="{{ count($this->lowerLimiCommissions($result?->id, $categories[0])) > 0 ? count($this->lowerLimiCommissions($result?->id, $categories[0])) : '' }}" class="text-center">
+                                <a class="btn {{ ($this->commissionSales($result?->id, $categories[0])?->total_sales ?? 0) > 0 ? "btn-info" : "btn-secondary" }} btn-sm" style="{{ ($this->commissionSales($result?->id, $categories[0])?->total_sales ?? 0) < 1 ? "pointer-events: none;" : "" }}" href="{{ route('roof.commission.detail', [$result?->id, $filter_month, $categories[0]]) }}" x-data="{ tooltip: 'Detail Komisi' }" x-tooltip="tooltip"><i class="fa-solid fa-circle-info fa-fw"></i></a>
                             </td>
                         </tr>
-                        @if (count($lower_limit_shield_commissions) > 0)
-                            @foreach ($lower_limit_shield_commissions as $key => $lower_limit_commission)
+                        @if (count($this->lowerLimiCommissions($result?->id, $categories[0])) > 0)
+                            @foreach ($this->lowerLimiCommissions($result?->id, $categories[0]) as $key => $lower_limit_commission)
                                 @if ($key > 0)
                                     <tr>
                                         <td class="text-center">
@@ -141,46 +142,53 @@
                                 @endif
                             @endforeach
                         @endif
-                        <tr>
-                            <td rowspan="{{ count($lower_limit_sonne_commissions) > 0 ? count($lower_limit_sonne_commissions) : '' }}"class="text-center"><b>Dr Sonne</b></td>
-                            <td rowspan="{{ count($lower_limit_sonne_commissions) > 0 ? count($lower_limit_sonne_commissions) : '' }}" class="text-center">{{ "Rp. ". number_format($this->commissionSales($result?->id, 'dr-sonne')?->total_sales ?? 0, 0, ',', '.') }}</td>
-                            <td class="text-center">
-                                @if (count($lower_limit_sonne_commissions) > 0)
-                                    <div class="d-flex">
-                                        <div class="p-2">Rp. {{ number_format($this->lowerLimiCommissions($result?->id, 'dr-shield')[0]?->target_payment, 0, ',', '.') }}</div>
-                                        <div class="p-2">({{ $this->lowerLimiCommissions($result?->id, 'dr-shield')[0]?->value }}%)</div>
-                                    </div>
-                                @else
-                                    -
+                        @if (count($categories) > 0)
+                            @foreach ($categories as $key => $category)
+                                @if ($key == 0 )
+                                    @continue
                                 @endif
-                            </td>
-                            <td rowspan="{{ count($lower_limit_sonne_commissions) > 0 ? count($lower_limit_sonne_commissions) : '' }}" class="text-center">
-                                @if ($this->commissionSales($result?->id, 'dr-sonne') != null)
-                                    @if ($this->commissionSales($result?->id, 'dr-sonne')?->status == 'reached')
-                                        <span class="badge rounded-pill bg-success bg-glow">Mencapai Target</span>
-                                    @else
-                                        <span class="badge rounded-pill bg-warning bg-glow">Tidak Mencapai Target</span>
-                                    @endif
-                                @else
-                                    <span class="badge rounded-pill bg-warning bg-glow">Tidak Mencapai Target</span>
-                                @endif
-                            </td>
-                            <td rowspan="{{ count($lower_limit_sonne_commissions) > 0 ? count($lower_limit_sonne_commissions) : '' }}" class="text-center">-</td>
-                            <td rowspan="{{ count($lower_limit_sonne_commissions) > 0 ? count($lower_limit_sonne_commissions) : '' }}" class="text-center">
-                                <a class="btn {{ ($this->commissionSales($result?->id, 'dr-sonne')?->total_sales ?? 0) > 0 ? "btn-info" : "btn-secondary" }} btn-sm" style="{{ ($this->commissionSales($result?->id, 'dr-sonne')?->total_sales ?? 0) < 1 ? "pointer-events: none;" : "" }}" href="{{ route('roof.commission.detail', [$result?->id, $filter_month, 'dr-sonne']) }}" x-data="{ tooltip: 'Detail Komisi' }" x-tooltip="tooltip"><i class="fa-solid fa-circle-info fa-fw"></i></a>
-                            </td>
-                        </tr>
-                        @if (count($lower_limit_sonne_commissions) > 0)
-                            @foreach ($lower_limit_sonne_commissions as $key => $lower_limit_commission)
-                                @if ($key > 0)
-                                    <tr>
-                                        <td class="text-center">
+                                <tr>
+                                    <td rowspan="{{ count($this->lowerLimiCommissions($result?->id, $category)) > 0 ? count($this->lowerLimiCommissions($result?->id, $category)) : '' }}"class="text-center"><b>Dr Sonne</b></td>
+                                    <td rowspan="{{ count($this->lowerLimiCommissions($result?->id, $category)) > 0 ? count($this->lowerLimiCommissions($result?->id, $category)) : '' }}" class="text-center">{{ "Rp. ". number_format($this->commissionSales($result?->id, $category)?->total_sales ?? 0, 0, ',', '.') }}</td>
+                                    <td class="text-center">
+                                        @if (count($this->lowerLimiCommissions($result?->id, $category)) > 0)
                                             <div class="d-flex">
-                                                <div class="p-2">Rp. {{ number_format($lower_limit_commission?->target_payment, 0, ',', '.') }}</div>
-                                                <div class="p-2">({{ $lower_limit_commission?->value }}%)</div>
+                                                <div class="p-2">Rp. {{ number_format($this->lowerLimiCommissions($result?->id, $category)[0]?->target_payment, 0, ',', '.') }}</div>
+                                                <div class="p-2">({{ $this->lowerLimiCommissions($result?->id, $category)[0]?->value }}%)</div>
                                             </div>
-                                        </td>
-                                    </tr>
+                                        @else
+                                            -
+                                        @endif
+                                    </td>
+                                    <td rowspan="{{ count($this->lowerLimiCommissions($result?->id, $category)) > 0 ? count($this->lowerLimiCommissions($result?->id, $category)) : '' }}" class="text-center">
+                                        @if ($this->commissionSales($result?->id, $category) != null)
+                                            @if ($this->commissionSales($result?->id, $category)?->status == 'reached')
+                                                <span class="badge rounded-pill bg-success bg-glow">Mencapai Target</span>
+                                            @else
+                                                <span class="badge rounded-pill bg-warning bg-glow">Tidak Mencapai Target</span>
+                                            @endif
+                                        @else
+                                            <span class="badge rounded-pill bg-warning bg-glow">Tidak Mencapai Target</span>
+                                        @endif
+                                    </td>
+                                    <td rowspan="{{ count($this->lowerLimiCommissions($result?->id, $category)) > 0 ? count($this->lowerLimiCommissions($result?->id, $category)) : '' }}" class="text-center">{{ $this->commissionSales($result?->id, $category)?->value_commission ? "Rp. ". number_format($this->commissionSales($result?->id, $category)?->value_commission ?? 0, 0, ',', '.') : '-' }}</td>
+                                    <td rowspan="{{ count($this->lowerLimiCommissions($result?->id, $category)) > 0 ? count($this->lowerLimiCommissions($result?->id, $category)) : '' }}" class="text-center">
+                                        <a class="btn {{ ($this->commissionSales($result?->id, $category)?->total_sales ?? 0) > 0 ? "btn-info" : "btn-secondary" }} btn-sm" style="{{ ($this->commissionSales($result?->id, $category)?->total_sales ?? 0) < 1 ? "pointer-events: none;" : "" }}" href="{{ route('roof.commission.detail', [$result?->id, $filter_month, $category]) }}" x-data="{ tooltip: 'Detail Komisi' }" x-tooltip="tooltip"><i class="fa-solid fa-circle-info fa-fw"></i></a>
+                                    </td>
+                                </tr>
+                                @if (count($this->lowerLimiCommissions($result?->id, $category)) > 0)
+                                    @foreach ($this->lowerLimiCommissions($result?->id, $category) as $key => $lower_limit_commission)
+                                        @if ($key > 0)
+                                            <tr>
+                                                <td class="text-center">
+                                                    <div class="d-flex">
+                                                        <div class="p-2">Rp. {{ number_format($lower_limit_commission?->target_payment, 0, ',', '.') }}</div>
+                                                        <div class="p-2">({{ $lower_limit_commission?->value }}%)</div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        @endif
+                                    @endforeach
                                 @endif
                             @endforeach
                         @endif

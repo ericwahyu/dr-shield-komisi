@@ -27,30 +27,6 @@
                         </div>
                     </div>
                 </div>
-                {{-- <div class="col-12 col-lg-2">
-                    <div class="row">
-                        <div class="gap-2 col-lg-10 col-12 d-flex align-items-center">
-                            <select class="form-select" id="" wire:model.live="selectYear" aria-label="Default select example">
-                                <option value=""selected style="display: none">-- Pilih Tahun --</option>
-                                @foreach ($years as $year)
-                                    <option value="{{ $year }}" {{ $year == $selectYear ? "selected" : "" }}>{{ $year }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-12 col-lg-2">
-                    <div class="row">
-                        <div class="gap-2 col-lg-10 col-12 d-flex align-items-center">
-                            <select class="form-select" id="" wire:model.live="selectMonth" aria-label="Default select example">
-                                <option value=""selected style="display: none">-- Pilih Bulan --</option>
-                                @foreach ($months as $month)
-                                    <option value="{{ $month }}" {{ $month == $selectMonth ? "selected" : "" }}>{{ $this->convertNumberToMonth($month) }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-                </div> --}}
                 <div class="col-12 col-lg-3">
                     <div class="row">
                         <div class="gap-2 col-lg-10 col-12 d-flex align-items-center">

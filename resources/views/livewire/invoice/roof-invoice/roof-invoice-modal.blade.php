@@ -1,4 +1,4 @@
-<div class="modal fade modal-xl" id="modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" wire:ignore.self>
+<div class="modal fade modal-lg" id="modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" wire:ignore.self>
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
@@ -48,21 +48,48 @@
                             <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror
                     </div>
-                    <div class="col-5">
+                    <div class="col-4">
                         <div class="form-label">Id Pelanggan <span class="text-danger">*</span></div>
                         <input type="text" class="form-control @error('id_customer') is-invalid @enderror" wire:model="id_customer" placeholder="Contoh : C/ABC/BDG/00121">
                         @error('id_customer')
                             <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror
                     </div>
-                    <div class="col-2">
+                    <div class="col-3">
                         <div class="form-label">Masa Jatuh Tempo <span class="text-danger">*</span></div>
                         <input type="number" class="form-control @error('due_date') is-invalid @enderror" wire:model="due_date" min="0" placeholder="Contoh : 30">
                         @error('due_date')
                             <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror
                     </div>
-                    <div class="col-4">
+                    @if (count($categories) > 0)
+                        @foreach ($categories as $category)
+                            <div class="col-4">
+                                <div class="form-label">Nominal DPP <b>{{ $category?->name }}</b> <span class="text-danger">*</span></div>
+                                <input type="number" class="form-control @error("income_taxs.{{ $category?->slug }}") is-invalid @enderror" wire:model.live="income_taxs.{{ $category?->slug }}" min="0" placeholder="">
+                                @error("income_taxs.{{ $category?->slug }}")
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="col-4">
+                                <div class="form-label">Nilai PPN <b>{{ $category?->name }}</b> <span class="text-danger">*</span></div>
+                                <input type="number" class="form-control @error("value_taxs.{{ $category?->slug }}") is-invalid @enderror" wire:model="value_taxs.{{ $category?->slug }}" min="0" placeholder="">
+                                @error("value_taxs.{{ $category?->slug }}")
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="col-4">
+                                <div class="form-label">Total <b>{{ $category?->name }}</b> <span class="text-danger">*</span></div>
+                                <input type="number" class="form-control @error('amounts.{{ $category?->slug }}') is-invalid @enderror" wire:model="amounts.{{ $category?->slug }}" min="0" placeholder="">
+                                @error('amounts.{{ $category?->slug }}')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        @endforeach
+                    @else
+
+                    @endif
+                    {{-- <div class="col-4">
                         <div class="form-label">Nominal DPP <b>Dr Shield</b> <span class="text-danger">*</span></div>
                         <input type="number" class="form-control @error('income_tax_shield') is-invalid @enderror" wire:model.live="income_tax_shield" min="0"placeholder="">
                         @error('income_tax_shield')
@@ -103,7 +130,7 @@
                         @error('amount_sonne')
                             <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror
-                    </div>
+                    </div> --}}
                     <div class="col-4">
                         <div class="form-label">Nominal DPP <span class="text-danger">*</span></div>
                         <input type="number" class="form-control @error('income_tax') is-invalid @enderror" wire:model="income_tax" min="0"placeholder="">

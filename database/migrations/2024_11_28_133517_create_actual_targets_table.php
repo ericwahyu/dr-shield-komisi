@@ -13,8 +13,9 @@ return new class extends Migration
     {
         Schema::create('actual_targets', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->enum('type', ['ceramic', 'roof'])->nullable()->comment('tipe');
-            $table->enum('category', ['dr-shield', 'dr-sonne'])->nullable()->comment('kategori');
+            // $table->enum('type', ['ceramic', 'roof'])->nullable()->comment('tipe');
+            // $table->enum('category', ['dr-shield', 'dr-sonne'])->nullable()->comment('kategori');
+            $table->foreignUuid('category_id')->nullable()->comment('kategori');
             $table->bigInteger('target')->nullable()->comment('target komisi dalam bertuk nominal uang');
             $table->integer('actual')->nullable()->comment('target komisi dalam bentuk persentase');
             $table->bigInteger('value_commission')->nullable()->comment('nominal komisi dalam bentuk nominal uang');

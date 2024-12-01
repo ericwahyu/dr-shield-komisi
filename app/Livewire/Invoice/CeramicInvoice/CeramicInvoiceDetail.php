@@ -115,7 +115,7 @@ class CeramicInvoiceDetail extends Component
                     ]
                 );
 
-                $get_commission = Commission::where('user_id', $this->get_invoice?->user?->id)->where('year', (int)$this->get_invoice?->date?->format('Y'))->where('month', (int)$this->get_invoice?->date?->format('m'))->whereNull('category')->first();
+                $get_commission = Commission::where('user_id', $this->get_invoice?->user?->id)->where('year', (int)$this->get_invoice?->date?->format('Y'))->where('month', (int)$this->get_invoice?->date?->format('m'))->whereNull('category_id')->first();
                 if ($get_commission) {
                     $invoice_details = InvoiceDetail::whereHas('invoice', function ($query) {
                         $query->whereYear('date', (int)$this->get_invoice?->date?->format('Y'))->whereMonth('date', (int)$this->get_invoice?->date?->format('m'))

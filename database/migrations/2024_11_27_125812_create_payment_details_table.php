@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('payment_details', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('invoice_id');
-            $table->enum('category', ['dr-shield', 'dr-sonne'])->nullable()->comment('tipe detail pembayaran');
+            $table->foreignUuid('category_id')->nullable()->comment('kategori');
             $table->bigInteger('income_tax')->nullable()->comment('nominal DPP'); //DPP
             $table->bigInteger('value_tax')->nullable()->comment('nominal PPN'); //PPN
             $table->bigInteger('amount')->nullable()->comment('DPP + PPN'); //DPP + PPN

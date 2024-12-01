@@ -1,6 +1,7 @@
 <?php
 
 use App\Livewire\Auth\AuthLogin\AuthLoginIndex;
+use App\Livewire\Commission\ActualTarget\ActualTargetIndex;
 use App\Livewire\Commission\CeramicCommission\CeramicCommissionDetail;
 use App\Livewire\Commission\CeramicCommission\CeramicCommissionIndex;
 use App\Livewire\Commission\RoofCommission\RoofCommissionDetail;
@@ -43,6 +44,8 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::prefix('/komisi')->group(function () {
+        Route::get('/target-aktual', ActualTargetIndex::class)->name('actual.target.commission');
+
         Route::get('/keramik', CeramicCommissionIndex::class)->name('ceramic.commission');
         Route::get('/keramik-detail/{sales_id}/{month_commission}', CeramicCommissionDetail::class)->name('ceramic.commission.detail');
 

@@ -11,8 +11,10 @@
                         <div class="form-label">Jenis <span class="text-danger">*</span></div>
                         <select class="form-select @error('category') is-invalid @enderror" id="status" wire:model.live="category" aria-label="Default select example">
                             <option value=""selected style="display: none">-- Pilih Jenis Pembayaran  --</option>
-                            <option value="dr-shield" {{ $category == 'dr-shield' ? "selected" : "" }}>Dr Shield</option>
-                            <option value="dr-sonne" {{ $category == 'dr-sonne' ? "selected" : "" }}>Dr Sonne</option>
+                            @foreach ($categories as $_category)
+                                <option value="{{ $_category?->id }}" {{ $category == $_category?->id ? "selected" : "" }}>{{ $_category?->name }}</option>
+                            @endforeach
+                            {{-- <option value="dr-sonne" {{ $category == 'dr-sonne' ? "selected" : "" }}>Dr Sonne</option> --}}
                         </select>
                         @error('category')
                             <div class="invalid-feedback d-block">{{ $message }}</div>

@@ -15,7 +15,8 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignUuid('user_id')->nullable();
             // $table->enum('type', ['roof', 'ceramic'])->nullable()->comment('kategori target batas bawah');
-            $table->enum('category', ['dr-shield', 'dr-sonne'])->nullable()->comment('tipe target batas bawah');
+            // $table->enum('category', ['dr-shield', 'dr-sonne'])->nullable()->comment('tipe target batas bawah');
+            $table->foreignUuid('category_id')->nullable()->comment('kategori');
             $table->integer('target_payment')->nullable()->comment('Target total dari pembayaran faktur');
             $table->double('value')->nullable()->comment('nilai format %');
             $table->timestamps();

@@ -46,10 +46,10 @@
     <link rel="stylesheet" href="{{ asset('assets/admin/custom/custom.css') }}">
 
     {{-- favicon --}}
-    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('assets/image/favicon_io/apple-touch-icon.png') }}">
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('assets/image/favicon_io/favicon-32x32.png') }}">
-    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('assets/image/favicon_io/favicon-16x16.png') }}">
-    <link rel="manifest" href="{{ asset('assets/image/favicon_io/site.webmanifest') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('assets/favicon_io/apple-touch-icon.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('assets/favicon_io/favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('assets/favicon_io/favicon-16x16.png') }}">
+    <link rel="manifest" href="{{ asset('assets/favicon_io/site.webmanifest') }}">
 
     @yield('styles')
 </head>
@@ -64,7 +64,7 @@
                     <div class="container-xxl flex-grow-1 container-p-y">
                         @yield('content')
                     </div>
-                    {{-- <livewire:change-password wire:model="datas"/> --}}
+                    <livewire:auth.change-password wire:model="datas"/>
                     @include('layouts.layout.footer')
                     <div class="content-backdrop fade"></div>
                 </div>

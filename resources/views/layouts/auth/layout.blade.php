@@ -20,7 +20,7 @@
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
 
-        <title>{{ env('APP_NAME') }}</title>
+        <title>{{ config('app.name') }}</title>
 
         <meta name="description" content="Start your development with a Dashboard for Bootstrap 5" />
         <meta name="keywords" content="dashboard, bootstrap 5 dashboard, bootstrap 5 design, bootstrap 5">
@@ -66,11 +66,12 @@
         <link rel="stylesheet" href="{{ asset('assets/admin/vendor/css/pages/page-auth.css') }}">
             <!-- Custom -->
         <link rel="stylesheet" href="{{ asset('assets/admin/custom/custom.css') }}">
-        {{-- favicon --}}
-        <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('assets/image/favicon_io/apple-touch-icon.png') }}">
-        <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('assets/image/favicon_io/favicon-32x32.png') }}">
-        <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('assets/image/favicon_io/favicon-16x16.png') }}">
-        <link rel="manifest" href="{{ asset('assets/image/favicon_io/site.webmanifest') }}">
+
+       {{-- favicon --}}
+        <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('assets/favicon_io/apple-touch-icon.png') }}">
+        <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('assets/favicon_io/favicon-32x32.png') }}">
+        <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('assets/favicon_io/favicon-16x16.png') }}">
+        <link rel="manifest" href="{{ asset('assets/favicon_io/site.webmanifest') }}">
         @yield('styles')
 
         <!-- Helpers -->

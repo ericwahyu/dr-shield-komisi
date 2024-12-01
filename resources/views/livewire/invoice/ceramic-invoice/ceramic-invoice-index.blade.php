@@ -2,11 +2,16 @@
 <div>
     {{-- In work, do what you enjoy. --}}
     @include('livewire.invoice.ceramic-invoice.ceramic-invoice-modal')
+    @include('livewire.invoice.ceramic-invoice.ceramic-invoice-modal-import')
+    <div wire:loading.block wire:target="importInvoiceData">
+        @include('layouts.layout.loading-screen')
+    </div>
     <div class="d-flex align-items-center">
         <div>
             <h3 class="mb-0 fw-semibold">Faktur Keramik</h3>
         </div>
         <div class="ms-auto">
+            <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#modal-import">Import<i class="fa-solid fa-file-import fa-fw ms-2"></i></button>
             <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modal">Tambah <i class="fa-solid fa-circle-plus fa-fw ms-2"></i></button>
         </div>
     </div>
@@ -117,7 +122,9 @@
             Livewire.on("closeModal", () => {
                 jQuery('#modal').modal('hide');
             });
-
+            Livewire.on("closeModal", () => {
+                jQuery('#modal-import').modal('hide');
+            });
         });
     </script>
 @endpush

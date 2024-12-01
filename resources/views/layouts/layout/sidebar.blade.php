@@ -12,9 +12,9 @@
     </div>
     <div class="menu-inner-shadow" style="display: none; margin-top: 25px"></div>
     <ul class="menu-inner py-0">
-        <li class="menu-header small text-uppercase">
+        {{-- <li class="menu-header small text-uppercase">
             <span class="menu-header-text" style="font-size: 15px;color: black;">DASHBOARD</span>
-        </li>
+        </li> --}}
         {{-- <li class="menu-item {{ Request::is('*dashboard') ? 'active' : '' }}">
             <a href="{{ route('dashboard') }}" class="menu-link">
                 <i class="fa-regular fa-home-alt fa-fw me-2"></i>
@@ -106,6 +106,15 @@
             <a href="{{ route('roof.commission') }}" class="menu-link">
                 <i class="fa-regular fa-home-alt fa-fw me-2"></i>
                 <div>Komisi Sales Atap</div>
+            </a>
+        </li>
+        <li class="menu-header small text-uppercase">
+            <span class="menu-header-text" style="font-size: 15px;color: black;">PENGATURAN</span>
+        </li>
+        <li class="menu-item {{ Request::is('*komisi/target-aktual*') ? 'active' : '' }}">
+            <a href="{{ route('actual.target.commission') }}" class="menu-link">
+                <i class="fa-regular fa-home-alt fa-fw me-2"></i>
+                <div>Target Aktual Atap</div>
             </a>
         </li>
         {{-- <li class="menu-item {{ Request::is('*perhitungan/UPVC') ? 'active' : '' }}">

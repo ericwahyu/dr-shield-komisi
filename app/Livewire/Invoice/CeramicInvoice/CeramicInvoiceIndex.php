@@ -2,12 +2,15 @@
 
 namespace App\Livewire\Invoice\CeramicInvoice;
 
+use App\Imports\Invoice\CeramicInvoice\CeramicInvoiceImport;
 use App\Models\Auth\User;
 use App\Models\Commission\Commission;
 use App\Models\Commission\LowerLimit;
 use App\Models\Invoice\DueDateRule;
 use App\Models\Invoice\DueDateRuleCeramic;
 use App\Models\Invoice\Invoice;
+use App\Models\Invoice\InvoiceDetail;
+use App\Models\System\Category;
 use App\Traits\GetSystemSetting;
 use Carbon\Carbon;
 use Exception;
@@ -18,16 +21,20 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use Throwable;
 use Illuminate\Support\Str;
+use Livewire\Features\SupportFileUploads\WithFileUploads;
+use Maatwebsite\Excel\Facades\Excel;
 
 class CeramicInvoiceIndex extends Component
 {
-    use LivewireAlert, WithPagination, GetSystemSetting;
+    use LivewireAlert, WithPagination, GetSystemSetting, WithFileUploads;
     protected $paginationTheme = 'bootstrap';
     public $perPage = 10, $search;
 
     public $filter_month, $filter_sales;
     public $due_date_ceramic_rules;
     public $get_invoice, $id_data, $sales_id, $sales_code, $date, $invoice_number, $customer, $id_customer, $due_date, $income_tax, $value_tax, $amount;
+    public $file_import;
+    public $categories;
 
     public function render()
     {
@@ -50,6 +57,7 @@ class CeramicInvoiceIndex extends Component
     public function mount()
     {
         $this->due_date_ceramic_rules = DueDateRuleCeramic::where('type', 'ceramic')->orderBy('due_date', 'ASC')->get();
+        $this->categories             = Category::where('type', 'ceramic')->get();
     }
 
     public function hydrate()
@@ -60,7 +68,7 @@ class CeramicInvoiceIndex extends Component
 
     public function closeModal()
     {
-        $this->reset('get_invoice', 'id_data', 'sales_id', 'sales_code', 'date', 'invoice_number', 'customer', 'id_customer', 'due_date', 'income_tax', 'value_tax', 'amount');
+        $this->reset('get_invoice', 'id_data', 'sales_id', 'sales_code', 'date', 'invoice_number', 'customer', 'id_customer', 'due_date', 'income_tax', 'value_tax', 'amount', 'file_import');
         $this->dispatch('closeModal');
     }
 
@@ -79,11 +87,22 @@ class CeramicInvoiceIndex extends Component
 
     public function saveData()
     {
-        $check_lower_limit = User::find($this->sales_id)->lowerLimits()->whereNull('category')->first();
-        if (!$check_lower_limit) {
-            return $this->alert('warning', 'Peringatan', [
-                'text' => 'Data target batas bawah belum diatur !'
-            ]);
+        if (count($this->categories) > 0 ) {
+            foreach ($this->categories as $key => $category) {
+                $check_lower_limit = User::find($this->sales_id)->lowerLimits()->whereHas('category', fn ($query) => $query->where('id', $category?->id))->first();
+                if (!$check_lower_limit) {
+                    return $this->alert('warning', 'Peringatan', [
+                        'text' => "Data target batas bawah untuk $category?->name belum diatur !"
+                    ]);
+                }
+            }
+        } else {
+            $check_lower_limit = User::find($this->sales_id)->lowerLimits()->whereNull('category_id')->first();
+            if (!$check_lower_limit) {
+                return $this->alert('warning', 'Peringatan', [
+                    'text' => 'Data target batas bawah belum diatur !'
+                ]);
+            }
         }
 
         $this->validate([
@@ -118,18 +137,29 @@ class CeramicInvoiceIndex extends Component
                     ]
                 );
 
+                $invoice->paymentDetails()->updateOrCreate(
+                    [
+                        'category_id' => null
+                    ],
+                    [
+                       'category_id' => null,
+                       'income_tax'  => intval(Str::replace('.','',$this->income_tax)),
+                       'value_tax'   => intval(Str::replace('.','',$this->value_tax)),
+                       'amount'      => intval(Str::replace('.','',$this->amount)),
+                    ]
+                );
+
                 if ($this->id_data == null) {
                     foreach ($this->due_date_ceramic_rules as $key => $due_date_ceramic_rule) {
                         $invoice->dueDateRules()->create(
                             [
-                                'type'     => 'ceramic',
                                 'number'   => $key,
                                 'due_date' => $due_date_ceramic_rule?->due_date,
                                 'value'    => $due_date_ceramic_rule?->value,
                             ]
                         );
                     }
-                } elseif ($this?->get_invoice?->date != $this->date) {
+                } elseif ($this->get_invoice?->date != $this->date) {
                     // $invoice->invoiceDetails()->delete();
                     foreach ($invoice?->invoiceDetails as $key => $invoice_detail) {
 
@@ -155,7 +185,7 @@ class CeramicInvoiceIndex extends Component
                 }
 
                 //create commission
-                $get_commission = Commission::where('user_id', $this->sales_id)->where('month', (int)$invoice?->date?->format('m'))->where('year', (int)$invoice?->date?->format('Y'))->whereNull('category')->first();
+                $get_commission = Commission::where('user_id', $this->sales_id)->where('month', (int)$invoice?->date?->format('m'))->where('year', (int)$invoice?->date?->format('Y'))->whereNull('category_id')->first();
                 if (!$get_commission) {
                     $commission = Commission::create([
                         'user_id'    => $this->sales_id,
@@ -166,7 +196,7 @@ class CeramicInvoiceIndex extends Component
                     ]);
 
                     if (count($commission->lowerLimitCommissions) == 0) {
-                        $lower_limit_ceramics = User::find($this->sales_id)->lowerLimits()->whereNull('category')->get();
+                        $lower_limit_ceramics = User::find($this->sales_id)->lowerLimits()->whereNull('category_id')->get();
                         foreach ($lower_limit_ceramics as $key => $lower_limit_ceramic) {
                             $commission->lowerLimitCommissions()->create([
                                 'lower_limit_id' => $lower_limit_ceramic?->id,
@@ -180,8 +210,12 @@ class CeramicInvoiceIndex extends Component
                         $query->where('id', $this->sales_id);
                     })->whereYear('date', (int)$invoice?->date->format('Y'))->whereMonth('date', (int)$invoice?->date->format('m'))->where('type', 'ceramic')->sum('income_tax');
 
-                    $get_lower_limit_commission = $get_commission?->lowerLimitCommissions()->whereNull('category')->where('target_payment', '<=', (int)$sum_income_tax)->max('value');
-                    $get_lower_limit_commission = $get_lower_limit_commission != null && $get_lower_limit_commission >= 0.3 ? $get_lower_limit_commission + $this->getSystemSetting()?->value_incentive : 0;
+                    // $total_income = InvoiceDetail::whereHas('invoice', function ($query) use ($category) {
+                    //     $query->whereYear('date', (int)$this->get_invoice?->date?->format('Y'))->whereMonth('date', (int)$this->get_invoice?->date?->format('m'))->where('user_id', $this->get_invoice?->user?->id)->where('category_id', null);
+                    // })->whereYear('date', (int)Carbon::parse($year_month_invoice_detail)->format('Y'))->whereMonth('date', (int)Carbon::parse($year_month_invoice_detail)->format('m'))->where('percentage', (int)$percentage_invoice_details)->sum('amount');
+
+                    $get_lower_limit_commission = $get_commission?->lowerLimitCommissions()->whereNull('category_id')->where('target_payment', '<=', (int)$sum_income_tax)->max('value');
+                    $get_lower_limit_commission = $get_lower_limit_commission != null && $get_lower_limit_commission >= 0.3 ? $get_lower_limit_commission + $this->getSystemSetting()?->value_incentive : $get_lower_limit_commission;
 
                     $get_commission?->update([
                         'total_sales'                 => $sum_income_tax,
@@ -270,6 +304,21 @@ class CeramicInvoiceIndex extends Component
 
         return $this->alert('success', 'Berhasil', [
             'text' => 'Data Faktur Keramik Telah Dihapus !'
+        ]);
+    }
+
+    public function importInvoiceData()
+    {
+        $this->validate([
+            'file_import' => 'required|file|mimes:xlsx',
+        ]);
+
+        Excel::import(new CeramicInvoiceImport, $this->file_import);
+
+        $this->closeModal();
+
+        return $this->alert('success', 'Berhasil', [
+            'text' => 'Data Faktur Keramik berhasil disimpan !'
         ]);
     }
 }

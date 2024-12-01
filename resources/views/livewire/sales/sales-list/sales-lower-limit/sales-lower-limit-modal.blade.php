@@ -7,13 +7,14 @@
             </div>
             <div class = "modal-body">
                 <div class="row g-3">
-                    @if ($get_user?->userDetail?->sales_type == 'roof')
+                    @if (count($categories) > 0)
                         <div class="col-4">
                             <div class="form-label">Tipe <span class="text-danger">*</span></div>
                             <select class="form-select @error('category') is-invalid @enderror" id="status" wire:model="category" aria-label="Default select example">
                                 <option value=""selected style="display: none">-- Pilih Tipe --</option>
-                                <option value="dr-shield" {{ $category == 'dr-shield' ? "selected" : "" }}>Dr Shield</option>
-                                <option value="dr-sonne" {{ $category == 'dr-sonne' ? "selected" : "" }}>Dr Sonne</option>
+                                @foreach ($categories as $data_category)
+                                    <option value="{{ $data_category?->slug }}" {{ $category == $data_category?->slug ? "selected" : "" }}>{{ $data_category?->name }}</option>
+                                @endforeach
                             </select>
                             @error('category')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
@@ -22,14 +23,14 @@
                     @endif
                     <div class="col-4">
                         <div class="form-label">Nominal Target<span class="text-danger">*</span></div>
-                        <input type="number" class="form-control @error('target_payment') is-invalid @enderror" wire:model="target_payment" placeholder="Contoh : 100000000">
+                        <input type="number" class="form-control @error('target_payment') is-invalid @enderror" wire:model="target_payment" placeholder="Contoh : 100000000" min="0">
                         @error('target_payment')
                             <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror
                     </div>
                     <div class="col-4">
                         <div class="form-label">Persentase <span class="text-danger">*</span></div>
-                        <input type="number" class="form-control @error('value') is-invalid @enderror" wire:model="value" placeholder="Contoh : 60">
+                        <input type="number" class="form-control @error('value') is-invalid @enderror" wire:model="value" placeholder="Contoh : 60" min="0">
                         @error('value')
                             <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror

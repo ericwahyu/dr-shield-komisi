@@ -3,8 +3,10 @@
 namespace Database\Seeders;
 
 use App\Models\Commission\ActualTarget;
+use App\Models\System\Category;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class ActualTargetSeeder extends Seeder
 {
@@ -191,8 +193,7 @@ class ActualTargetSeeder extends Seeder
 
         foreach ($datas as $key => $data) {
             ActualTarget::create([
-                'type'             => $data['type'],
-                'category'         => $data['category'],
+                'category_id'      => Category::where('type', $data['type'])->where('slug', Str::slug($data['category']))->first()?->id,
                 'target'           => $data['target'],
                 'actual'           => $data['actual'],
                 'value_commission' => $data['value_commission'],

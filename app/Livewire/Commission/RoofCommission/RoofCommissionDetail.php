@@ -4,6 +4,7 @@ namespace App\Livewire\Commission\RoofCommission;
 
 use App\Models\Auth\User;
 use App\Models\Commission\Commission;
+use App\Models\System\Category;
 use Carbon\Carbon;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Livewire\Component;
@@ -31,13 +32,13 @@ class RoofCommissionDetail extends Component
     {
         $this->get_commission = Commission::whereHas('user', function ($query) use ($sales_id) {
             $query->where('id', $sales_id);
-        })->where('year', (int)Carbon::parse($month_commission)?->format('Y'))->where('month', (int)Carbon::parse($month_commission)?->format('m'))->where('category', $category)->first();
+        })->where('year', (int)Carbon::parse($month_commission)?->format('Y'))->where('month', (int)Carbon::parse($month_commission)?->format('m'))->where('category_id', $category)->first();
 
         $this->get_user             = User::find($sales_id);
         $this->get_month_commission = Carbon::parse($month_commission)->translatedFormat('F Y');
         $this->get_list_years       = $this->get_commission?->commissionDetails()->orderBy('year', 'ASC')->distinct()->pluck('year')->toArray();
         $this->get_list_months      = $this->get_commission?->commissionDetails()->orderBy('month', 'ASC')->distinct()->pluck('month')->toArray();
-        $this->category             = Str::title(Str::replace('-', ' ', $category));
+        $this->category             = Str::title(Str::replace('-', ' ', Category::find($category)?->name));
     }
 
     public function hydrate()

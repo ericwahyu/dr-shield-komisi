@@ -30,7 +30,7 @@ class CeramicCommissionDetail extends Component
     {
         $this->get_commission = Commission::whereHas('user', function ($query) use ($sales_id) {
             $query->where('id', $sales_id);
-        })->where('year', (int)Carbon::parse($month_commission)?->format('Y'))->where('month', (int)Carbon::parse($month_commission)?->format('m'))->whereNull('category')->first();
+        })->where('year', (int)Carbon::parse($month_commission)?->format('Y'))->where('month', (int)Carbon::parse($month_commission)?->format('m'))->whereNull('category_id')->first();
 
         $this->get_user             = User::find($sales_id);
         $this->get_month_commission = Carbon::parse($month_commission)->translatedFormat('F Y');
