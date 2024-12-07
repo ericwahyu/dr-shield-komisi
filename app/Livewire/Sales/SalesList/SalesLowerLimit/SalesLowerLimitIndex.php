@@ -24,18 +24,8 @@ class SalesLowerLimitIndex extends Component
 
     public function render()
     {
-        // $lower_limits = $this->get_user->lowerLimits()->whereHas();
         return view('livewire.sales.sales-list.sales-lower-limit.sales-lower-limit-index', [
-            // 'ceramic_lower_limits'   => $this->get_user->lowerLimits()->whereHas('user.userDetail', function ($query) {
-            //     $query->where('sales_type', $this->get_user?->userDetail?->sales_type);
-            // })->orderBy('target_payment', 'ASC')->get(),
-            // 'dr_shield_lower_limits' => $this->get_user->lowerLimits()->whereHas('user.userDetail', function ($query) {
-            //     $query->where('sales_type', $this->get_user?->userDetail?->sales_type);
-            // })->where('category', 'dr-shield')->orderBy('target_payment', 'ASC')->get(),
-            // 'dr_sonne_lower_limits'  => $this->get_user->lowerLimits()->whereHas('user.userDetail', function ($query) {
-            //     $query->where('sales_type', $this->get_user?->userDetail?->sales_type);
-            // })->where('category', 'dr-sonne')->orderBy('target_payment', 'ASC')->get(),
-            // 'categories' => Category::where('type', $this->get_user?->userDetail?->sales_type)->get()
+
         ])->extends('layouts.layout.app')->section('content');
     }
 

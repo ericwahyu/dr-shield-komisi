@@ -60,7 +60,10 @@ class User extends Authenticatable
         $term = '%'. $term .'%';
 
         $query->where(function ($query) use ($term) {
-            $query->whereAny(['name'], 'LIKE', $term);
+            $query->whereAny(['name'], 'LIKE', $term)
+                ->orWhereHas('userDetail', function ($query) use ($term) {
+                    $query->whereAny(['civil_registration_number', 'depo', 'sales_type', 'sales_code'], 'LIKE', $term);
+                });
         });
     }
 

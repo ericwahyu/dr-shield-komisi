@@ -8,6 +8,7 @@ use App\Models\Commission\Commission;
 use App\Models\Invoice\Invoice;
 use App\Models\Invoice\PaymentDetail;
 use App\Models\System\Category;
+use App\Traits\CommissionProcess;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\DB;
@@ -21,7 +22,7 @@ use Throwable;
 
 class RoofInvoiceIndex extends Component
 {
-    use LivewireAlert, WithPagination, WithFileUploads;
+    use LivewireAlert, WithPagination, WithFileUploads, CommissionProcess;
     protected $paginationTheme = 'bootstrap';
     public $perPage = 10, $search;
 
@@ -35,12 +36,13 @@ class RoofInvoiceIndex extends Component
 
     public function render()
     {
+        $roof_invoices = Invoice::search($this->search);
         return view('livewire.invoice.roof-invoice.roof-invoice-index', [
             'sales' => User::role('sales')->whereHas('userDetail', function ($query) {
                     $query->where('sales_type', 'roof');
                 })->get(),
 
-            'roof_invoices' => Invoice::where('type', 'roof')
+            'roof_invoices' => $roof_invoices->where('type', 'roof')
                 ->when($this->filter_sales, function ($query) {
                     $query->where('user_id', $this->filter_sales);
                 })
@@ -197,8 +199,11 @@ class RoofInvoiceIndex extends Component
                     }
                 }
 
+                $datas = array(
+                    'sales_id'   => $invoice?->user?->id,
+                );
                 foreach ($this->categories as $key => $category) {
-                    $this->createCommission($invoice, $category);
+                    $this->roofCommission($invoice, $category, $datas);
                 }
             });
         } catch (Exception | Throwable $th) {
@@ -252,49 +257,6 @@ class RoofInvoiceIndex extends Component
         }
     }
 
-    private function createCommission($invoice, $category)
-    {
-        //create commission
-        $get_commission = Commission::where('user_id', $this->sales_id)->where('month', (int)$invoice?->date?->format('m'))->where('year', (int)$invoice?->date?->format('Y'))->where('category_id', $category?->id)->first();
-        if (!$get_commission) {
-            $commission = Commission::create([
-                'user_id'     => $this->sales_id,
-                'category_id' => $category?->id,
-                'month'       => $invoice?->date?->format('m'),
-                'year'        => $invoice?->date?->format('Y'),
-                'total_sales' => $invoice?->paymentDetails()->where('category_id', $category?->id)->sum('amount'),
-                'status'      => 'not-reach'
-            ]);
-
-            if (count($commission->lowerLimitCommissions) == 0) {
-                $lower_limit_ceramics = User::find($this->sales_id)->lowerLimits()->where('category_id', $category?->id)->get();
-                foreach ($lower_limit_ceramics as $key => $lower_limit_ceramic) {
-                    $commission->lowerLimitCommissions()->create([
-                        'lower_limit_id' => $lower_limit_ceramic?->id,
-                        'category_id'    => $category?->id,
-                        'target_payment' => $lower_limit_ceramic?->target_payment,
-                        'value'          => $lower_limit_ceramic?->value,
-                    ]);
-                }
-            }
-        } else {
-            $sum_income_tax = PaymentDetail::whereHas('invoice', function ($query) use ($invoice) {
-                $query->whereHas('user', function ($query) {
-                    $query->where('id', $this->sales_id);
-                })->whereYear('date', (int)$invoice?->date->format('Y'))->whereMonth('date', (int)$invoice?->date->format('m'))->where('type', 'roof');
-            })->where('category_id', $category?->id)->sum('income_tax');
-
-            $get_lower_limit_commission = $get_commission?->lowerLimitCommissions()->where('category_id', $category?->id)->where('target_payment', '<=', (int)$sum_income_tax)->max('value');
-            $get_lower_limit_commission = $get_lower_limit_commission ?? null;
-
-            $get_commission?->update([
-                'total_sales'                 => $sum_income_tax,
-                'percentage_value_commission' => $get_lower_limit_commission,
-                'status'                      => $get_lower_limit_commission != null ? 'reached' : 'not-reach'
-            ]);
-        }
-    }
-
     public function edit($id)
     {
         $this->get_invoice    = Invoice::find($id);
@@ -338,7 +300,15 @@ class RoofInvoiceIndex extends Component
         try {
             DB::transaction(function () use ($data) {
                 $result = Invoice::find($data['inputAttributes']['id']);
+                $invoice = $result;
                 $result?->delete();
+
+                $datas = array(
+                    'sales_id'   => $invoice?->user?->id,
+                );
+                foreach ($this->categories as $key => $category) {
+                    $this->roofCommission($invoice, $category, $datas, );
+                }
             });
 
             DB::commit();

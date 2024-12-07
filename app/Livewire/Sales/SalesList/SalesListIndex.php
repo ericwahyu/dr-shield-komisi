@@ -20,10 +20,15 @@ class SalesListIndex extends Component
     public $perPage = 10, $search;
 
     public $id_data, $name, $depo, $civil_registration_number, $sales_type, $sales_code;
+    public $type_filter;
 
     public function render()
     {
-        $users =  User::search($this->search);
+        $users =  User::search($this->search)->when($this->type_filter, function ($query) {
+            $query->whereHas('userDetail', function ($query) {
+                $query->where('sales_type', $this->type_filter);
+            });
+        });
         return view('livewire.sales.sales-list.sales-list-index', [
             'sales' => $users->role('sales')->paginate($this->perPage)
         ])->extends('layouts.layout.app')->section('content');

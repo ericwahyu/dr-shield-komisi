@@ -3,6 +3,7 @@
 namespace App\Models\Invoice;
 
 use App\Models\Auth\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -17,6 +18,21 @@ class Invoice extends Model
     protected $casts = [
         'date' => 'datetime'
     ];
+
+    public function scopeSearch(Builder $query, $term): void
+    {
+        $term = '%'. $term .'%';
+
+        $query->where(function ($query) use ($term) {
+            $query->whereAny(['invoice_number', 'id_customer', 'customer'], 'LIKE', $term)
+                ->orWhereHas('user', function ($query) use ($term) {
+                    $query->whereAny(['name'], 'LIKE', $term)
+                        ->orWhereHas('userDetail', function ($query) use ($term) {
+                            $query->whereAny(['civil_registration_number', 'depo', 'sales_type', 'sales_code'], 'LIKE', $term);
+                        });
+                });
+        });
+    }
 
     public function user()
     {

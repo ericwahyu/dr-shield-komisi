@@ -28,13 +28,18 @@
                         </div>
                     </div>
                 </div>
-                {{-- <div class="col-12 col-lg-4">
+                <div class="col-12 col-lg-4">
                     <div class="row">
                         <div class="gap-2 col-lg-10 col-12 d-flex align-items-center">
-                            <input class="form-control" type="date" wire:model.live="filter_date" id="html5-date-input">
+                            {{-- <input class="form-control" type="date" wire:model.live="filter_date" id="html5-date-input"> --}}
+                            <select class="form-select @error('type_filter') is-invalid @enderror" id="status" wire:model.live="type_filter" aria-label="Default select example">
+                                <option value="" selected>-- Pilih Tipe Sales --</option>
+                                <option value="ceramic" {{ $type_filter == 'ceramic' ? "selected" : "" }}>{{ Str::title('keramik') }}</option>
+                                <option value="roof" {{ $type_filter == 'roof' ? "selected" : "" }}>{{ Str::title('atap') }}</option>
+                            </select>
                         </div>
                     </div>
-                </div> --}}
+                </div>
                 <div class="col-12 col-lg-4 text-end">
                     <div class="input-group">
                         <span class="input-group-text"><i class="fa-regular fa-magnifying-glass fa-fw"></i></span>

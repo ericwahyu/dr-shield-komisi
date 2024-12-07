@@ -6,6 +6,7 @@ use App\Models\Auth\User;
 use App\Models\Commission\Commission;
 use App\Models\Invoice\DueDateRuleCeramic;
 use App\Models\Invoice\Invoice;
+use App\Traits\CommissionProcess;
 use App\Traits\GetSystemSetting;
 use Carbon\Carbon;
 use Exception;
@@ -18,7 +19,7 @@ use Illuminate\Support\Str;
 
 class CeramicInvoiceExecutionImport implements ToCollection
 {
-    use GetSystemSetting;
+    use GetSystemSetting, CommissionProcess;
     /**
     * @param Collection $collection
     */
@@ -39,16 +40,14 @@ class CeramicInvoiceExecutionImport implements ToCollection
                     $query->where('depo', 'LIKE', "%". $collection[6] ."%");
                 })->first();
 
-                if (!$check_lower_limit || !$get_user) {
+                $unique_invoice = Invoice::where('invoice_number', $collection[1])->first();
+
+                if (!$check_lower_limit || !$get_user || $unique_invoice) {
                     continue;
                 }
 
                 DB::transaction(function () use ($get_user, $collection) {
-                    // $avaiable_invoice = Invoice::where('invoice_number', $collection[1])->first();
                     $invoice = Invoice::create(
-                        // [
-                        //     'id' => $avaiable_invoice?->id
-                        // ],
                         [
                             'user_id'        => $get_user?->id,
                             'type'           => 'ceramic',
@@ -60,6 +59,15 @@ class CeramicInvoiceExecutionImport implements ToCollection
                             'value_tax'      => $collection[4],
                             'amount'         => $collection[5],
                             'due_date'       => $collection[9],
+                        ]
+                    );
+
+                    $invoice->paymentDetails()->updateOrCreate(
+                        [
+                           'category_id' => null,
+                           'income_tax'     => $collection[3],
+                           'value_tax'      => $collection[4],
+                           'amount'         => $collection[5],
                         ]
                     );
 
@@ -75,48 +83,11 @@ class CeramicInvoiceExecutionImport implements ToCollection
                     }
 
                     //create commission
-                    $get_commission = Commission::where('user_id', $get_user?->id)->where('month', (int)$invoice?->date?->format('m'))->where('year', (int)$invoice?->date?->format('Y'))->whereNull('category_id')->first();
-                    if (!$get_commission) {
-                        $commission = Commission::create([
-                            'user_id'    => $get_user?->id,
-                            'month'      => $invoice?->date?->format('m'),
-                            'year'       => $invoice?->date?->format('Y'),
-                            'income_tax' => intval(Str::replace('.','',$collection[3])),
-                            'status'     => 'not-reach'
-                        ]);
-
-                        if (count($commission->lowerLimitCommissions) == 0) {
-                            $lower_limit_ceramics = User::find($get_user?->id)->lowerLimits()->whereNull('category_id')->get();
-                            foreach ($lower_limit_ceramics as $key => $lower_limit_ceramic) {
-                                $commission->lowerLimitCommissions()->create([
-                                    'lower_limit_id' => $lower_limit_ceramic?->id,
-                                    'target_payment' => $lower_limit_ceramic?->target_payment,
-                                    'value'          => $lower_limit_ceramic?->value,
-                                ]);
-                            }
-                        }
-                    } else {
-                        $sum_income_tax = Invoice::whereHas('user', function ($query) use ($get_user){
-                            $query->where('id', $get_user?->id);
-                        })->whereYear('date', (int)$invoice?->date->format('Y'))->whereMonth('date', (int)$invoice?->date->format('m'))->where('type', 'ceramic')->sum('income_tax');
-
-                        $get_lower_limit_commission = $get_commission?->lowerLimitCommissions()->whereNull('category_id')->where('target_payment', '<=', (int)$sum_income_tax)->max('value');
-                        $get_lower_limit_commission = $get_lower_limit_commission != null && $get_lower_limit_commission >= 0.3 ? $get_lower_limit_commission + $this->getSystemSetting()?->value_incentive : $get_lower_limit_commission;
-
-                        $get_commission?->update([
-                            'total_sales'                 => $sum_income_tax,
-                            'percentage_value_commission' => $get_lower_limit_commission,
-                            'status'                      => $get_lower_limit_commission != null ? 'reached' : 'not-reach'
-                        ]);
-
-                        if ($get_commission?->percentage_value_commission != null) {
-                            foreach ($get_commission?->commissionDetails()->get() as $key => $commission_detail) {
-                                $commission_detail->update([
-                                    'value_of_due_date' => $commission_detail?->total_income * ($get_commission?->percentage_value_commission/100)
-                                ]);
-                            }
-                        }
-                    }
+                    $datas = array(
+                        'sales_id'   => $invoice?->user?->id,
+                        'income_tax' => $collection[3],
+                    );
+                    $this->ceramicCommission($invoice, $datas);
                 });
             }
 

@@ -15,7 +15,7 @@ class CeramicInvoiceImport implements WithMultipleSheets
     {
         return [
             'faktur'     => new CeramicInvoiceExecutionImport(),
-            'pembayaran' => new CeramicInvoiceDetailExecutionImport()
+            'pembayaran' => new CeramicInvoiceDetailExecutionImport(),
         ];
     }
 }

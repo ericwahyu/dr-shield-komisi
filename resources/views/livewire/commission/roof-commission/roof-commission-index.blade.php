@@ -86,8 +86,9 @@
                         @php
                             $row_span = 0;
                             foreach ($categories as $key => $category) {
-                                $row_span += count($this->lowerLimiCommissions($result?->id, $category));
+                                $row_span += count($this->lowerLimiCommissions($result?->id, $category)) > 0 ? count($this->lowerLimiCommissions($result?->id, $category)) : 1;
                             }
+                            // dd($row_span);
                         @endphp
                         <tr wire:key='{{ rand() }}'>
                             <td rowspan="{{ $row_span > 0 ? $row_span : count($categories) }}" class="text-center">{{ $sales?->currentPage() * $perPage - $perPage + $loop->iteration }}</td>

@@ -7,6 +7,8 @@ use App\Models\Commission\Commission;
 use App\Models\Invoice\Invoice;
 use App\Models\Invoice\PaymentDetail;
 use App\Models\System\Category;
+use App\Traits\CommissionProcess;
+use App\Traits\GetSystemSetting;
 use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -16,6 +18,7 @@ use Throwable;
 
 class RoofInvoiceExecutionImport implements ToCollection
 {
+    use GetSystemSetting, CommissionProcess;
     /**
     * @param Collection $collection
     */
@@ -43,7 +46,9 @@ class RoofInvoiceExecutionImport implements ToCollection
                     $query->where('depo', 'LIKE', "%". $collection[6] ."%");
                 })->first();
 
-                if (!$get_user) {
+                $unique_invoice = Invoice::where('invoice_number', $collection[1])->first();
+
+                if (!$get_user || $unique_invoice) {
                     continue;
                 }
 
@@ -86,11 +91,11 @@ class RoofInvoiceExecutionImport implements ToCollection
                             ]
                         );
 
-                        $this->createCommission($invoice, $category, (int)$collection[10], (int)$collection[13]);
+                        $datas = array(
+                            'sales_id'   => $invoice?->user?->id,
+                        );
+                        $this->roofCommission($invoice, $category, $datas);
                     }
-
-
-                    // $this->createCommission($invoice, 'dr-sonne', (int)$collection[10], (int)$collection[13]);
                 });
             }
         } catch (Exception | Throwable $th) {
@@ -147,49 +152,6 @@ class RoofInvoiceExecutionImport implements ToCollection
                     ]
                 );
             }
-        }
-    }
-
-    private function createCommission($invoice, $category, $income_tax_shield, $income_tax_sonne)
-    {
-        //create commission
-        $get_commission = Commission::where('user_id', $invoice?->user?->id)->where('month', (int)$invoice?->date?->format('m'))->where('year', (int)$invoice?->date?->format('Y'))->where('category_id', $category?->id)->first();
-        if (!$get_commission) {
-            $commission = Commission::create([
-                'user_id'     => $invoice?->user?->id,
-                'category_id' => $category?->id,
-                'month'       => $invoice?->date?->format('m'),
-                'year'        => $invoice?->date?->format('Y'),
-                // 'total_sales' => $invoice?->paymentDetails()->where('category_id', $category?->id)->sum('amount'),
-                'status'      => 'not-reach'
-            ]);
-
-            if (count($commission->lowerLimitCommissions) == 0) {
-                $lower_limit_ceramics = User::find($invoice?->user?->id)->lowerLimits()->where('category_id', $category?->id)->get();
-                foreach ($lower_limit_ceramics as $key => $lower_limit_ceramic) {
-                    $commission->lowerLimitCommissions()->create([
-                        'lower_limit_id' => $lower_limit_ceramic?->id,
-                        'category_id'    => $category?->id,
-                        'target_payment' => $lower_limit_ceramic?->target_payment,
-                        'value'          => $lower_limit_ceramic?->value,
-                    ]);
-                }
-            }
-        } else {
-            $sum_income_tax = PaymentDetail::whereHas('invoice', function ($query) use ($invoice) {
-                $query->whereHas('user', function ($query) use ($invoice) {
-                    $query->where('id', $invoice?->user?->id);
-                })->whereYear('date', (int)$invoice?->date->format('Y'))->whereMonth('date', (int)$invoice?->date->format('m'))->where('type', 'roof');
-            })->where('category_id', $category?->id)->sum('income_tax');
-
-            $get_lower_limit_commission = $get_commission?->lowerLimitCommissions()->where('category_id', $category?->id)->where('target_payment', '<=', (int)$sum_income_tax)->max('value');
-            $get_lower_limit_commission = $get_lower_limit_commission ?? null;
-
-            $get_commission?->update([
-                'total_sales'                 => $sum_income_tax,
-                'percentage_value_commission' => $get_lower_limit_commission,
-                'status'                      => $get_lower_limit_commission != null ? 'reached' : 'not-reach'
-            ]);
         }
     }
 }

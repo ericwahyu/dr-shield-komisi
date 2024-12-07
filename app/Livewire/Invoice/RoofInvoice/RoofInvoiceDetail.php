@@ -7,6 +7,7 @@ use App\Models\Commission\Commission;
 use App\Models\Invoice\Invoice;
 use App\Models\Invoice\InvoiceDetail;
 use App\Models\System\Category;
+use App\Traits\CommissionProcess;
 use App\Traits\GetSystemSetting;
 use Carbon\Carbon;
 use Exception;
@@ -17,9 +18,11 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use Throwable;
 
+use function Laravel\Prompts\error;
+
 class RoofInvoiceDetail extends Component
 {
-    use LivewireAlert, WithPagination, GetSystemSetting;
+    use LivewireAlert, WithPagination, GetSystemSetting, CommissionProcess;
     protected $paginationTheme = 'bootstrap';
     public $perPage = 10, $search;
 
@@ -35,9 +38,6 @@ class RoofInvoiceDetail extends Component
             $this->payment_amounts[$category?->slug]   = "Rp. ". number_format((int)$this->get_invoice->invoiceDetails()->where('category_id', $category?->id)->sum('amount'), 0, ',', '.');
             $this->remaining_amounts[$category?->slug] = "Rp. ". number_format((int)$this->amounts[$category?->slug] - (int)$this->get_invoice->invoiceDetails()->where('category_id', $category?->id)->sum('amount'), 0, ',', '.');
         }
-
-        // $this->payment_amount_sonne   = "Rp. ". number_format((int)$this->get_invoice->invoiceDetails()->where('category', 'dr-sonne')->sum('amount'), 0, ',', '.');
-        // $this->remaining_amount_sonne = "Rp. ". number_format((int)$this->amount_sonne - (int)$this->get_invoice->invoiceDetails()->where('category', 'dr-sonne')->sum('amount'), 0, ',', '.');
 
         return view('livewire.invoice.roof-invoice.roof-invoice-detail', [
             'invoice_details' => $this->get_invoice?->invoiceDetails()->get(),
@@ -77,7 +77,7 @@ class RoofInvoiceDetail extends Component
 
             $get_diffDay    = Carbon::parse($this->date)->diffInDays($this->invoice_detail_date);
             $desc_due_dates = $this->get_invoice->dueDateRules()->orderBy('due_date', 'DESC')->get();
-            $percentage = null;
+            $percentage     = 0;
 
             if (Carbon::parse($this->invoice_detail_date)->toDateString() <= Carbon::parse($this->date)->toDateString()) {
                 $percentage = 100;
@@ -109,11 +109,11 @@ class RoofInvoiceDetail extends Component
             'percentage'            => 'required|numeric',
         ]);
 
-        if ((int)$this->get_invoice?->paymentDetails()->where('category_id', $this->category)->sum('amount') - ((int)$this->get_invoice->invoiceDetails()->where('category_id', $this->category)->sum('amount') + (int)$this->invoice_detail_amount) < 0) {
-            return $this->alert('warning', 'Pemberitahuan', [
-                'text' => 'Nominal pembayaran melebihi total !'
-            ]);
-        }
+        // if ($this->id_data == null && (int)$this->get_invoice?->paymentDetails()->where('category_id', $this->category)->sum('amount') - ((int)$this->get_invoice->invoiceDetails()->where('category_id', $this->category)->sum('amount') + (int)$this->invoice_detail_amount) < 0) {
+        //     return $this->alert('warning', 'Pemberitahuan', [
+        //         'text' => 'Nominal pembayaran melebihi total !'
+        //     ]);
+        // }
 
         try {
             DB::transaction(function () {
@@ -130,7 +130,7 @@ class RoofInvoiceDetail extends Component
                 );
 
                 foreach ($this->categories as $key => $category) {
-                    $this->createCommissionDetail($category);
+                    $this->roofCommissionDetail($this->get_invoice, $category);
                 }
             });
         } catch (Exception | Throwable $th) {
@@ -147,75 +147,6 @@ class RoofInvoiceDetail extends Component
         return $this->alert('success', 'Berhasil', [
             'text' => 'Data Detail Faktur Atap Telah Disimpan !'
         ]);
-    }
-
-    private function createCommissionDetail($category)
-    {
-        $get_commission = Commission::where('user_id', $this->get_invoice?->user?->id)->where('year', (int)$this->get_invoice?->date?->format('Y'))->where('month', (int)$this->get_invoice?->date?->format('m'))->where('category_id', $category?->id)->first();
-
-        if ($get_commission) {
-            $invoice_details = InvoiceDetail::whereHas('invoice', function ($query) use ($category) {
-                $query->whereYear('date', (int)$this->get_invoice?->date?->format('Y'))->whereMonth('date', (int)$this->get_invoice?->date?->format('m'))->where('user_id', $this->get_invoice?->user?->id)->where('category_id', $category?->id);
-            });
-
-            foreach ($invoice_details->distinct()->pluck('percentage')->toArray() as $key => $percentage_invoice_details) {
-
-                foreach (($invoice_details->selectRaw('YEAR(date) as year, MONTH(date) as month')->groupBy('year', 'month')
-                ->distinct()
-                ->get()
-                ->map(function ($item) {
-                    return $item->year . '-' . str_pad($item->month, 2, '0', STR_PAD_LEFT);
-                })
-                ->toArray()) as $key => $year_month_invoice_detail) {
-
-                    $total_income = InvoiceDetail::whereHas('invoice', function ($query) use ($category) {
-                        $query->whereYear('date', (int)$this->get_invoice?->date?->format('Y'))->whereMonth('date', (int)$this->get_invoice?->date?->format('m'))->where('user_id', $this->get_invoice?->user?->id)->where('category_id', $category?->id);
-                    })->whereYear('date', (int)Carbon::parse($year_month_invoice_detail)->format('Y'))->whereMonth('date', (int)Carbon::parse($year_month_invoice_detail)->format('m'))->where('percentage', (int)$percentage_invoice_details)->sum('amount');
-
-                    try {
-                        DB::transaction(function () use ($get_commission, $year_month_invoice_detail, $percentage_invoice_details, $total_income, $category) {
-                            if (in_array($category?->slug, ['dr-shield'])) {
-                                $total_income = round((int)$total_income / floatval($this->getSystemSetting()?->value_of_total_income)*((int)$percentage_invoice_details/100), 2);
-                             } else {
-                                 $total_income = round((int)$total_income / floatval((int)$percentage_invoice_details/100), 2);
-                             }
-                             $get_commission->commissionDetails()->updateOrCreate(
-                                 [
-                                     'year'                   => (int)Carbon::parse($year_month_invoice_detail)->format('Y'),
-                                     'month'                  => (int)Carbon::parse($year_month_invoice_detail)->format('m'),
-                                     'percentage_of_due_date' => $percentage_invoice_details
-                                 ],
-                                 [
-                                     'total_income'      => $total_income,
-                                     'value_of_due_date' => $get_commission?->percentage_value_commission != null ? $total_income * ($get_commission?->percentage_value_commission/100) : null
-                                 ]
-                             );
-                        });
-                    } catch (Exception | Throwable $th) {
-                        DB::rollBack();
-                        Log::error($th->getMessage());
-                        Log::error("Ada kesalahan saat create roof commission detail");
-                    }
-                }
-            }
-
-            if ($get_commission?->status == 'reached' && $get_commission?->percentage_value_commission != null) {
-                $get_total_income  = $get_commission->commissionDetails()->whereNot('percentage_of_due_date', 0)->sum('total_income');
-                $get_actual_target = ActualTarget::where('type', $get_commission?->user?->userDetail?->sales_type)->where('category_id', $category?->id)->where('target', '<=', $get_total_income)->where('actual', $get_commission?->percentage_value_commission)->max('target');
-                $actual_target     = ActualTarget::where('type', $get_commission?->user?->userDetail?->sales_type)->where('category_id', $category?->id)->where('target', $get_actual_target)->where('actual', $get_commission?->percentage_value_commission)->first();
-                try {
-                    DB::transaction(function () use ($get_commission, $actual_target) {
-                        $get_commission?->update([
-                            'value_commission' => $actual_target?->value_commission,
-                        ]);
-                    });
-                } catch (Exception | Throwable $th) {
-                    DB::rollBack();
-                    Log::error($th->getMessage());
-                    Log::error("Ada kesalahan saat set roof value commission");
-                }
-            }
-        }
     }
 
     public function edit($id)
@@ -251,8 +182,9 @@ class RoofInvoiceDetail extends Component
         try {
             DB::transaction(function () use ($data) {
                 $result = Invoice::find($this->get_invoice?->id)->invoiceDetails()->where('id', $data['inputAttributes']['id'])->first();
-                $this->createCommissionDetail($result?->category);
+                $invoice = $result;
                 $result?->delete();
+                $this->roofCommissionDetail($invoice, $result?->category);
             });
 
             DB::commit();

@@ -2,7 +2,7 @@
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
-                <h1 class="modal-title fs-5">Import Faktur Keramik</h1>
+                <h1 class="modal-title fs-5">Import Faktur Atap</h1>
                 <button type="button" class="btn-close" wire:click="closeModal()"></button>
             </div>
             <div class="modal-body">
