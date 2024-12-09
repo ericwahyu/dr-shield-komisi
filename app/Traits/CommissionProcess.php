@@ -104,7 +104,7 @@ trait CommissionProcess
                                 'percentage_of_due_date' => $percentage_invoice_details
                             ],
                             [
-                                'total_income'      => round((int)$total_income/floatval($this->getSystemSetting()?->value_of_total_income)*((int)$percentage_invoice_details >= 0 ? (int)$percentage_invoice_details/100 : 1), 2),
+                                'total_income'      => round((int)$total_income/floatval($this->getSystemSetting()?->value_of_total_income)*((int)$percentage_invoice_details > 0 ? (int)$percentage_invoice_details/100 : 1), 2),
                                 'value_of_due_date' => $get_commission?->percentage_value_commission != null ? round((int)$total_income/floatval($this->getSystemSetting()?->value_of_total_income)*((int)$percentage_invoice_details/100), 2) * ($get_commission?->percentage_value_commission/100) : null
                             ]
                         );
@@ -207,9 +207,9 @@ trait CommissionProcess
                         try {
                             DB::transaction(function () use ($get_commission, $year_month_invoice_detail, $percentage_invoice_details, $total_income, $category) {
                                 if (in_array($category?->slug, ['dr-shield'])) {
-                                    $total_income = round((int)$total_income / floatval($this->getSystemSetting()?->value_of_total_income)*((int)$percentage_invoice_details >= 0 ? (int)$percentage_invoice_details/100 : 1), 2);
+                                    $total_income = round((int)$total_income / floatval($this->getSystemSetting()?->value_of_total_income)*((int)$percentage_invoice_details > 0 ? (int)$percentage_invoice_details/100 : 1), 2);
                                  } else {
-                                     $total_income = round((int)$total_income / floatval((int)$percentage_invoice_details >= 0 ? (int)$percentage_invoice_details/100 : 1), 2);
+                                     $total_income = round((int)$total_income / floatval((int)$percentage_invoice_details > 0 ? (int)$percentage_invoice_details/100 : 1), 2);
                                  }
                                  $get_commission->commissionDetails()->updateOrCreate(
                                      [

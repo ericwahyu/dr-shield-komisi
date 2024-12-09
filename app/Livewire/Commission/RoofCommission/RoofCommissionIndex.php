@@ -33,8 +33,8 @@ class RoofCommissionIndex extends Component
 
     public function mount()
     {
-        // $this->filter_month = Carbon::now()->format('Y-m');
-        $this->filter_month = Carbon::parse('2024-04')->format('Y-m');
+        $this->filter_month = Carbon::now()->format('Y-m');
+        // $this->filter_month = Carbon::parse('2024-04')->format('Y-m');
         $this->categories   = Category::where('type', 'roof')->get();
     }
 

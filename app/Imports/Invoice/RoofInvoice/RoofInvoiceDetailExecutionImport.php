@@ -35,7 +35,7 @@ class RoofInvoiceDetailExecutionImport implements ToCollection
 
                 $get_invoice = Invoice::where('invoice_number', $collection[0])->first();
 
-                $check_year = Carbon::parse($collection[2])->format('Y');
+                $check_year = Carbon::parse($collection[3])->format('Y');
 
                 if (!$get_invoice || (int)$check_year < 2010) {
                     continue;
