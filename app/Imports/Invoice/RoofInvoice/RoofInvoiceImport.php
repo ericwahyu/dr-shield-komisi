@@ -15,7 +15,7 @@ class RoofInvoiceImport implements WithMultipleSheets
     {
         //
         return [
-            'faktur' => new RoofInvoiceExecutionImport(),
+            'faktur'     => new RoofInvoiceExecutionImport(),
             'pembayaran' => new RoofInvoiceDetailExecutionImport(),
         ];
     }

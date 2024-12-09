@@ -32,6 +32,7 @@ class CeramicInvoiceExecutionImport implements ToCollection
                 if ($key == 0) {
                     continue;
                 }
+
                 $check_lower_limit = User::where('name', 'LIKE', "%". $collection[7] ."%")->whereHas('userDetail', function ($query) use ($collection) {
                     $query->where('depo', 'LIKE', "%". $collection[6] ."%");
                 })->first()?->lowerLimits()->whereNull('category_id')->first();
@@ -42,7 +43,9 @@ class CeramicInvoiceExecutionImport implements ToCollection
 
                 $unique_invoice = Invoice::where('invoice_number', $collection[1])->first();
 
-                if (!$check_lower_limit || !$get_user || $unique_invoice) {
+                $check_year = Carbon::parse($collection[0])->format('Y');
+
+                if (!$check_lower_limit || !$get_user || $unique_invoice || (int)$check_year < 2010) {
                     continue;
                 }
 

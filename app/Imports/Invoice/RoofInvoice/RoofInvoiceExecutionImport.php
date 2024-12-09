@@ -9,6 +9,7 @@ use App\Models\Invoice\PaymentDetail;
 use App\Models\System\Category;
 use App\Traits\CommissionProcess;
 use App\Traits\GetSystemSetting;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -48,7 +49,9 @@ class RoofInvoiceExecutionImport implements ToCollection
 
                 $unique_invoice = Invoice::where('invoice_number', $collection[1])->first();
 
-                if (!$get_user || $unique_invoice) {
+                $check_year = Carbon::parse($collection[0])->format('Y');
+
+                if (!$get_user || $unique_invoice || (int)$check_year < 2010) {
                     continue;
                 }
 

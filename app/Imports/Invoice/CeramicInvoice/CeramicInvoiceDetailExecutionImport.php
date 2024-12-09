@@ -30,7 +30,9 @@ class CeramicInvoiceDetailExecutionImport implements ToCollection
 
                 $get_invoice = Invoice::where('invoice_number', $collection[0])->first();
 
-                if (!$get_invoice) {
+                $check_year = Carbon::parse($collection[2])->format('Y');
+
+                if (!$get_invoice || (int)$check_year < 2010) {
                     continue;
                 }
 
