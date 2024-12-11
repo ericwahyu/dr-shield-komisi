@@ -335,12 +335,21 @@ class RoofInvoiceIndex extends Component
             'file_import' => 'required|file|mimes:xlsx',
         ]);
 
-        Excel::import(new RoofInvoiceImport, $this->file_import);
+        try {
+            Excel::import(new RoofInvoiceImport, $this->file_import);
+        } catch (Exception | Throwable $th) {
+            Log::error($th->getMessage());
+            Log::error("Ada kesalahan saat Import data faktur atap");
+            $this->closeModal();
+            return $this->alert('error', 'Gagal', [
+                'text' => 'Ada kesalahan saat Import data faktur atap !'
+            ]);
+        }
 
         $this->closeModal();
 
         return $this->alert('success', 'Berhasil', [
-            'text' => 'Data Faktur Atap berhasil disimpan !'
+            'text' => 'Data Faktur Atap berhasil disimpan !, silahkan tunggu beberapa saat'
         ]);
     }
 }

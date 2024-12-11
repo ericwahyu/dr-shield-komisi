@@ -2,6 +2,7 @@
 
 namespace App\Imports\Invoice\RoofInvoice;
 
+use App\Jobs\Import\RoofInvoice\RoofInvoice as Job_Roof_Invoice;
 use App\Models\Auth\User;
 use App\Models\Commission\Commission;
 use App\Models\Invoice\Invoice;
@@ -26,86 +27,93 @@ class RoofInvoiceExecutionImport implements ToCollection
     public function collection(Collection $collections)
     {
         //
-        $categories = Category::where('type', 'roof')->get();
         try {
-            foreach ($collections as $key => $collection) {
-                if ($key == 0) {
-                    continue;
-                }
-
-                foreach ($categories as $key => $category) {
-                    $check_lower_limit = User::where('name', 'LIKE', "%". $collection[7] ."%")->whereHas('userDetail', function ($query) use ($collection) {
-                        $query->where('depo', 'LIKE', "%". $collection[6] ."%");
-                    })->first()?->lowerLimits()->where('category_id', $category?->id)->first();
-
-                    if (!$check_lower_limit) {
-                        continue;
-                    }
-                }
-
-                $get_user = User::where('name', 'LIKE', "%". $collection[7] ."%")->whereHas('userDetail', function ($query) use ($collection) {
-                    $query->where('depo', 'LIKE', "%". $collection[6] ."%");
-                })->first();
-
-                $unique_invoice = Invoice::where('invoice_number', $collection[1])->first();
-
-                $check_year = Carbon::parse($collection[0])->format('Y');
-
-                if (!$get_user || $unique_invoice || (int)$check_year < 2010) {
-                    continue;
-                }
-
-                DB::transaction(function () use ($collection, $get_user, $categories) {
-
-                    $invoice = Invoice::create(
-                        [
-                            'user_id'        => $get_user?->id,
-                            'type'           => 'roof',
-                            'date'           => $collection[0],
-                            'invoice_number' => $collection[1],
-                            'customer'       => $collection[2],
-                            'id_customer'    => $collection[8],
-                            'income_tax'     => (int)$collection[10] + (int)$collection[13],
-                            'value_tax'      => (int)$collection[11] + (int)$collection[14],
-                            'amount'         => (int)$collection[12] + (int)$collection[15],
-                            'due_date'       => $collection[9],
-                        ]
-                    );
-
-                    $this->createDueDateRule($invoice, $collection[9]);
-                    foreach ($categories as $key => $category) {
-                        $index = 10;
-                        if ($category?->slug == 'dr-shield') {
-                            $index = 10;
-                        } elseif ($category?->slug == 'dr-sonne') {
-                            $index = 13;
-                        } else {
-                            $index = 100;
-                        }
-                        $invoice->paymentDetails()->updateOrCreate(
-                            [
-                                'category_id' => $category?->id
-                            ],
-                            [
-                                'category_id' => $category?->id,
-                                'income_tax'  => (int)number_format($collection[$index], 0, ',', ''),
-                                'value_tax'   => (int)number_format($collection[$index + 1], 0, ',', ''),
-                                'amount'      => (int)number_format($collection[$index + 2], 0, ',', ''),
-                            ]
-                        );
-
-                        $datas = array(
-                            'sales_id'   => $invoice?->user?->id,
-                        );
-                        $this->roofCommission($invoice, $category, $datas);
-                    }
-                });
-            }
+            //code...
+            Job_Roof_Invoice::dispatch($collections);
         } catch (Exception | Throwable $th) {
-            DB::rollBack();
             Log::error($th->getMessage());
             Log::error("Ada kesalahan saat import faktur atap");
         }
+        // $categories = Category::where('type', 'roof')->get();
+        // try {
+        //     foreach ($collections as $key => $collection) {
+        //         if ($key == 0) {
+        //             continue;
+        //         }
+
+        //         foreach ($categories as $key => $category) {
+        //             $check_lower_limit = User::where('name', 'LIKE', "%". $collection[7] ."%")->whereHas('userDetail', function ($query) use ($collection) {
+        //                 $query->where('depo', 'LIKE', "%". $collection[6] ."%");
+        //             })->first()?->lowerLimits()->where('category_id', $category?->id)->first();
+
+        //             if (!$check_lower_limit) {
+        //                 continue;
+        //             }
+        //         }
+
+        //         $get_user = User::where('name', 'LIKE', "%". $collection[7] ."%")->whereHas('userDetail', function ($query) use ($collection) {
+        //             $query->where('depo', 'LIKE', "%". $collection[6] ."%");
+        //         })->first();
+
+        //         $unique_invoice = Invoice::where('invoice_number', $collection[1])->first();
+
+        //         $check_year = Carbon::parse($collection[0])->format('Y');
+
+        //         if (!$get_user || $unique_invoice || (int)$check_year < 2010) {
+        //             continue;
+        //         }
+
+        //         DB::transaction(function () use ($collection, $get_user, $categories) {
+
+        //             $invoice = Invoice::create(
+        //                 [
+        //                     'user_id'        => $get_user?->id,
+        //                     'type'           => 'roof',
+        //                     'date'           => $collection[0],
+        //                     'invoice_number' => $collection[1],
+        //                     'customer'       => $collection[2],
+        //                     'id_customer'    => $collection[8],
+        //                     'income_tax'     => (int)$collection[10] + (int)$collection[13],
+        //                     'value_tax'      => (int)$collection[11] + (int)$collection[14],
+        //                     'amount'         => (int)$collection[12] + (int)$collection[15],
+        //                     'due_date'       => $collection[9],
+        //                 ]
+        //             );
+
+        //             $this->createDueDateRule($invoice, $collection[9]);
+        //             foreach ($categories as $key => $category) {
+        //                 $index = 10;
+        //                 if ($category?->slug == 'dr-shield') {
+        //                     $index = 10;
+        //                 } elseif ($category?->slug == 'dr-sonne') {
+        //                     $index = 13;
+        //                 } else {
+        //                     $index = 100;
+        //                 }
+        //                 $invoice->paymentDetails()->updateOrCreate(
+        //                     [
+        //                         'category_id' => $category?->id
+        //                     ],
+        //                     [
+        //                         'category_id' => $category?->id,
+        //                         'income_tax'  => (int)number_format($collection[$index], 0, ',', ''),
+        //                         'value_tax'   => (int)number_format($collection[$index + 1], 0, ',', ''),
+        //                         'amount'      => (int)number_format($collection[$index + 2], 0, ',', ''),
+        //                     ]
+        //                 );
+
+        //                 $datas = array(
+        //                     'sales_id'   => $invoice?->user?->id,
+        //                 );
+        //                 $this->roofCommission($invoice, $category, $datas);
+        //             }
+        //         });
+        //     }
+        // } catch (Exception | Throwable $th) {
+        //     DB::rollBack();
+        //     Log::error($th->getMessage());
+        //     Log::error("Ada kesalahan saat import faktur atap");
+        // }
     }
 
     private function createDueDateRule($invoice, $due_date)

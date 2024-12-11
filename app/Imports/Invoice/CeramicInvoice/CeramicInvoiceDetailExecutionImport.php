@@ -2,6 +2,7 @@
 
 namespace App\Imports\Invoice\CeramicInvoice;
 
+use App\Jobs\Import\CeramicInvoice\CeramicInvoiceDetail as Job_Ceramic_Invoice_Detail;
 use App\Models\Commission\Commission;
 use App\Models\Invoice\Invoice;
 use App\Models\Invoice\InvoiceDetail;
@@ -23,37 +24,45 @@ class CeramicInvoiceDetailExecutionImport implements ToCollection
     {
         //
         try {
-            foreach ($collections as $key => $collection) {
-                if ($key == 0) {
-                    continue;
-                }
 
-                $get_invoice = Invoice::where('invoice_number', $collection[0])->first();
+            Job_Ceramic_Invoice_Detail::dispatch($collections);
 
-                $check_year = Carbon::parse($collection[2])->format('Y');
-
-                if (!$get_invoice || (int)$check_year < 2010) {
-                    continue;
-                }
-
-                DB::transaction(function () use ($get_invoice, $collection) {
-                    $get_invoice->invoiceDetails()->create(
-                        [
-                            'amount'     => $collection[1],
-                            'date'       => Carbon::parse($collection[2])->toDateString(),
-                            'percentage' => $this->percentageInvoiceDetail($get_invoice, Carbon::parse($collection[2])->toDateString()),
-                        ]
-                    );
-
-                    $datas = array();
-                    $this->ceramicCommissionDetail($get_invoice, $datas);
-                });
-            }
         } catch (\Throwable $th) {
-            DB::rollBack();
             Log::error($th->getMessage());
             Log::error("Ada kesalahan saat import detail faktur keramik");
         }
+        // try {
+        //     foreach ($collections as $key => $collection) {
+        //         if ($key == 0) {
+        //             continue;
+        //         }
+
+        //         $get_invoice = Invoice::where('invoice_number', $collection[0])->first();
+
+        //         $check_year = Carbon::parse($collection[2])->format('Y');
+
+        //         if (!$get_invoice || (int)$check_year < 2010) {
+        //             continue;
+        //         }
+
+        //         DB::transaction(function () use ($get_invoice, $collection) {
+        //             $get_invoice->invoiceDetails()->create(
+        //                 [
+        //                     'amount'     => $collection[1],
+        //                     'date'       => Carbon::parse($collection[2])->toDateString(),
+        //                     'percentage' => $this->percentageInvoiceDetail($get_invoice, Carbon::parse($collection[2])->toDateString()),
+        //                 ]
+        //             );
+
+        //             $datas = array();
+        //             $this->ceramicCommissionDetail($get_invoice, $datas);
+        //         });
+        //     }
+        // } catch (\Throwable $th) {
+        //     DB::rollBack();
+        //     Log::error($th->getMessage());
+        //     Log::error("Ada kesalahan saat import detail faktur keramik");
+        // }
     }
 
     private function percentageInvoiceDetail($get_invoice, $invoice_detail_date)

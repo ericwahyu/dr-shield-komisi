@@ -283,12 +283,22 @@ class CeramicInvoiceIndex extends Component
             'file_import' => 'required|file|mimes:xlsx',
         ]);
 
-        Excel::import(new CeramicInvoiceImport, $this->file_import);
+        try {
+            Excel::import(new CeramicInvoiceImport, $this->file_import);
+        } catch (Exception | Throwable $th) {
+            Log::error($th->getMessage());
+            Log::error("Ada kesalahan saat Import data faktur keramik");
+            $this->closeModal();
+
+            return $this->alert('error', 'Gagal', [
+                'text' => 'Ada kesalahan saat Import data faktur keramik !'
+            ]);
+        }
 
         $this->closeModal();
 
         return $this->alert('success', 'Berhasil', [
-            'text' => 'Data Faktur Keramik berhasil disimpan !'
+            'text' => 'Data Faktur Keramik berhasil disimpan !, silahkan tunggu beberapa saat'
         ]);
     }
 }
