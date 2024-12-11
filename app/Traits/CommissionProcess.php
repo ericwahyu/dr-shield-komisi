@@ -211,6 +211,7 @@ trait CommissionProcess
                                  } else {
                                      $total_income = round((int)$total_income / floatval((int)$percentage_invoice_details > 0 ? (int)$percentage_invoice_details/100 : 1), 2);
                                  }
+
                                  $get_commission->commissionDetails()->updateOrCreate(
                                      [
                                          'year'                   => (int)Carbon::parse($year_month_invoice_detail)->format('Y'),
@@ -232,7 +233,8 @@ trait CommissionProcess
                 }
 
                 if ($get_commission?->status == 'reached' && $get_commission?->percentage_value_commission != null) {
-                    $get_total_income  = $get_commission->commissionDetails()->whereNot('percentage_of_due_date', 0)->sum('total_income');
+                    // $get_total_income  = $get_commission->commissionDetails()->whereNot('percentage_of_due_date', 0)->sum('total_income');
+                    $get_total_income  = $get_commission->user?->lowerLimits()->where('category_id', $category?->id)->max('target_payment');
                     $get_actual_target = ActualTarget::where('category_id', $category?->id)->where('target', '<=', $get_total_income)->where('actual', $get_commission?->percentage_value_commission)->max('target');
                     $actual_target     = ActualTarget::where('category_id', $category?->id)->where('target', $get_actual_target)->where('actual', $get_commission?->percentage_value_commission)->first();
                     try {

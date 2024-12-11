@@ -11,7 +11,7 @@
     <div class="d-flex align-items-center">
         <a href="{{ route('roof.invoice') }}" class="btn btn-icon" style="margin-right: 15px"><i class="fa-solid fa-arrow-left"></i></a>
         <div>
-            <h3 class="mb-0 fw-semibold">Detail Faktur Keramik</h3>
+            <h3 class="mb-0 fw-semibold">Detail Faktur Atap</h3>
         </div>
     </div>
     <hr class="my-3">
@@ -20,7 +20,7 @@
             <div class="mb-4 card">
                 {{-- <h5 class="card-header d-flex justify-content-between align-items-center">Data Akun Admin</h5> --}}
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0" style="text-align: center">Data Faktur Keramik</h5>
+                    <h5 class="mb-0" style="text-align: center">Data Faktur Atap</h5>
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
@@ -161,7 +161,7 @@
                                     </td>
                                     <td class = "text-center">{{ $result?->amount ? number_format($result?->amount, 0, ',', '.') : '-' }}</td>
                                     <td class = "text-center">{{ $result?->date ? $result?->date?->format('d M Y') : '-' }}</td>
-                                    <td class = "text-center">{{ $result?->percentage ? $result?->percentage : '-' }}</td>
+                                    <td class = "text-center">{{ $result?->percentage }}</td>
                                     <td class="text-center">
                                         <button class="btn btn-danger btn-sm" wire:click="deleteConfirm('{{ $result?->id }}')" x-data="{ tooltip: 'Hapus' }" x-tooltip="tooltip"><i class="fa-solid fa-trash-alt fa-fw"></i></button>
                                         <button class="btn btn-warning btn-sm" wire:click="edit('{{ $result?->id }}')" x-data="{ tooltip: 'Edit' }" x-tooltip="tooltip"><i class="fa-solid fa-pencil-alt fa-fw"></i></button>

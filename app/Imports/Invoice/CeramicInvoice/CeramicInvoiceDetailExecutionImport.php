@@ -73,6 +73,10 @@ class CeramicInvoiceDetailExecutionImport implements ToCollection
             }
         }
 
+        // if ($percentage == null) {
+        //     $percentage = 0;
+        // }
+
         return $percentage;
     }
 }

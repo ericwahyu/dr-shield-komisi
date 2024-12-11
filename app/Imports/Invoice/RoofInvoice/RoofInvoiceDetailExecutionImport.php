@@ -51,12 +51,9 @@ class RoofInvoiceDetailExecutionImport implements ToCollection
                         ]
                     );
 
-                    // dd($get_invoice->invoiceDetails()->first());
-
                     foreach ($categories as $key => $category) {
                         $this->roofCommissionDetail($get_invoice, $category);
                     }
-                    // $this->createCommissionDetail('dr-sonne', $get_invoice);
                 });
             }
         } catch (Exception | Throwable $th) {
@@ -70,7 +67,7 @@ class RoofInvoiceDetailExecutionImport implements ToCollection
     {
         $get_diffDay    = Carbon::parse($get_invoice?->date?->format('d M Y'))->diffInDays($invoice_detail_date);
         $desc_due_dates = $get_invoice->dueDateRules()->orderBy('due_date', 'DESC')->get();
-        $percentage = null;
+        $percentage     = 0;
 
         if (Carbon::parse($invoice_detail_date)->toDateString() <= Carbon::parse($get_invoice?->date?->format('d M Y'))->toDateString()) {
             $percentage = 100;
@@ -82,6 +79,10 @@ class RoofInvoiceDetailExecutionImport implements ToCollection
                 }
             }
         }
+
+        // if ($percentage == null) {
+        //     $percentage = 0;
+        // }
 
         return $percentage;
     }
