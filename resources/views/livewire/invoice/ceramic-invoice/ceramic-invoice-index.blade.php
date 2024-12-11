@@ -40,7 +40,7 @@
                             <select class="form-select @error('filter_sales') is-invalid @enderror" id="status" wire:model.live="filter_sales" aria-label="Default select example">
                                 <option value="" selected>-- Pilih Sales --</option>
                                 @foreach ($sales as $sales)
-                                    <option value="{{ $sales?->id }}" {{ $filter_sales == $sales?->id ? "selected" : "" }}>{{ Str::title($sales?->name) }}</option>
+                                    <option value="{{ $sales?->id }}" {{ $filter_sales == $sales?->id ? 'selected' : '' }}>{{ Str::title($sales?->name) }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -128,4 +128,3 @@
         });
     </script>
 @endpush
-

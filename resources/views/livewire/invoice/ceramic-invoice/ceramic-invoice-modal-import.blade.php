@@ -9,7 +9,7 @@
                 <div class="row g-3">
                     <div class="col-12">
                         <div class="form-label">Upload File <span class="text-danger">*</span></div>
-                        <input type="file" class="form-control @error('file_import') is-invalid @enderror" wire:model="file_import" placeholder="Contoh : C3/035/SI-ABC.KBN/04-24">
+                        <input type="file" class="form-control @error('file_import') is-invalid @enderror" wire:model.live="file_import" placeholder="Contoh : C3/035/SI-ABC.KBN/04-24">
                         @error('file_import')
                             <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror
