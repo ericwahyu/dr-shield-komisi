@@ -36,7 +36,7 @@ class SalesLowerLimitIndex extends Component
         $this->sales_code                = $this->get_user?->userDetail?->sales_code;
         $this->civil_registration_number = $this->get_user?->userDetail?->civil_registration_number;
         $this->sales_type                = $this->get_user?->userDetail?->sales_type == 'roof' ? 'Atap' : ($this->get_user?->userDetail?->sales_type == 'ceramic' ? 'Keramik' : '-');
-        $this->categories                = Category::where('type', $this->get_user?->userDetail?->sales_type)->get();
+        $this->categories                = Category::where('type', $this->get_user?->userDetail?->sales_type)->where('version', 1)->get();
     }
 
     public function hydrate()
@@ -64,7 +64,7 @@ class SalesLowerLimitIndex extends Component
             'value'          => 'required|numeric',
         ]);
 
-        $get_unique_lower_limit = $this->get_user->lowerLimits()->whereHas('category', fn ($query) => $query->where('type', $this->get_user?->userDetail?->sales_type)->where('slug', $this->category))->where('value', $this->value)->first();
+        $get_unique_lower_limit = $this->get_user->lowerLimits()->whereHas('category', fn ($query) => $query->where('type', $this->get_user?->userDetail?->sales_type)->where('version', 1)->where('slug', $this->category))->where('value', $this->value)->first();
         if ($get_unique_lower_limit) {
             $this->closeModal();
             return $this->alert('warning', 'Pemberitahuan', [
@@ -78,7 +78,8 @@ class SalesLowerLimitIndex extends Component
                         'id' => $this->id_data
                     ],
                     [
-                        'category_id'    => Category::where('type', $this->get_user?->userDetail?->sales_type)->where('slug', $this->category)->first()?->id,
+                        'category_id'    => Category::where('type', $this->get_user?->userDetail?->sales_type)->where('version', 1)->where('slug', $this->category)->first()?->id,
+                        'version'        => 1,
                         'target_payment' => $this->target_payment,
                         'value'          => $this->value,
                     ]
@@ -102,7 +103,7 @@ class SalesLowerLimitIndex extends Component
 
     public function edit($id)
     {
-        $this->get_lower_limit = $this->get_user->lowerLimits()->where('id', $id)->first();
+        $this->get_lower_limit = $this->get_user->lowerLimits()->where('version', 1)->where('id', $id)->first();
         $this->id_data         = $this->get_lower_limit?->id;
         $this->category        = $this->get_lower_limit?->category?->slug;
         $this->target_payment  = $this->get_lower_limit?->target_payment;
@@ -131,7 +132,7 @@ class SalesLowerLimitIndex extends Component
     {
         try {
             DB::transaction(function () use ($data) {
-                $result = $this->get_user->lowerLimits()->where('id', $data['inputAttributes']['id'])->first();
+                $result = $this->get_user->lowerLimits()->where('version', 1)->where('id', $data['inputAttributes']['id'])->first();
                 $result?->delete();
             });
 
@@ -159,6 +160,6 @@ class SalesLowerLimitIndex extends Component
             $query->whereHas('category', function ($query) use ($category) {
                 $query->where('type', $this->get_user?->userDetail?->sales_type)->where('slug', $category);
             });
-        })->get();
+        })->where('version', 1)->orderBy('value', 'DESC')->get();
     }
 }

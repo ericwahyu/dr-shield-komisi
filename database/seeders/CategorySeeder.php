@@ -15,7 +15,7 @@ class CategorySeeder extends Seeder
     public function run(): void
     {
         //
-        $datas = [
+        $datas_v1 = [
             [
                 'type' => 'roof',
                 'name' => 'Dr Shield',
@@ -26,11 +26,36 @@ class CategorySeeder extends Seeder
             ]
         ];
 
-        foreach ($datas as $key => $data) {
+        foreach ($datas_v1 as $key => $data) {
             Category::create([
-                'type' => $data['type'],
-                'name' => $data['name'],
-                'slug' => Str::slug($data['name'])
+                'type'    => $data['type'],
+                'version' => 1,
+                'name'    => $data['name'],
+                'slug'    => Str::slug($data['name'])
+            ]);
+        }
+
+        $datas_v2 = [
+            // [
+            //     'type' => 'roof',
+            //     'name' => 'Dr Shield',
+            // ],
+            [
+                'type' => 'roof',
+                'name' => 'Dr Sonne',
+            ],
+            // [
+            //     'type' => 'roof',
+            //     'name' => 'Dr Houze',
+            // ]
+        ];
+
+        foreach ($datas_v2 as $key => $data) {
+            Category::create([
+                'type'    => $data['type'],
+                'version' => 2,
+                'name'    => $data['name'],
+                'slug'    => Str::slug($data['name'])
             ]);
         }
     }

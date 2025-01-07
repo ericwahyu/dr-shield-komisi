@@ -4,8 +4,10 @@ use App\Livewire\Auth\AuthLogin\AuthLoginIndex;
 use App\Livewire\Commission\ActualTarget\ActualTargetIndex;
 use App\Livewire\Commission\CeramicCommission\CeramicCommissionDetail;
 use App\Livewire\Commission\CeramicCommission\CeramicCommissionIndex;
+use App\Livewire\Commission\CeramicCommission\CeramicCommissionV2\CeramicCommissionDetailV2;
 use App\Livewire\Commission\RoofCommission\RoofCommissionDetail;
 use App\Livewire\Commission\RoofCommission\RoofCommissionIndex;
+use App\Livewire\Commission\RoofCommission\RoofCommissionV2\RoofCommissionDetailV2;
 use App\Livewire\Invoice\CeramicInvoice\CeramicInvoiceDetail;
 use App\Livewire\Invoice\CeramicInvoice\CeramicInvoiceIndex;
 use App\Livewire\Invoice\RoofInvoice\RoofInvoiceDetail;
@@ -47,10 +49,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/target-aktual', ActualTargetIndex::class)->name('actual.target.commission');
 
         Route::get('/keramik', CeramicCommissionIndex::class)->name('ceramic.commission');
-        Route::get('/keramik-detail/{sales_id}/{month_commission}', CeramicCommissionDetail::class)->name('ceramic.commission.detail');
+        Route::get('/keramik-detail/{sales_id}/{month_commission}/1', CeramicCommissionDetail::class)->name('ceramic.commission.detail.v1');
+        Route::get('/keramik-detail/{sales_id}/{month_commission}/2', CeramicCommissionDetailV2::class)->name('ceramic.commission.detail.v2');
 
         Route::get('/atap', RoofCommissionIndex::class)->name('roof.commission');
-        Route::get('/atap-detail/{sales_id}/{month_commission}/{category}', RoofCommissionDetail::class)->name('roof.commission.detail');
+        Route::get('/atap-detail/{sales_id}/{month_commission}/{category}/1', RoofCommissionDetail::class)->name('roof.commission.detail.v1');
+        Route::get('/atap-detail/{sales_id}/{month_commission}/{category}/2', RoofCommissionDetailV2::class)->name('roof.commission.detail.v2');
     });
 });
 

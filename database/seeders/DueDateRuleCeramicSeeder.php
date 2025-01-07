@@ -14,7 +14,7 @@ class DueDateRuleCeramicSeeder extends Seeder
     public function run(): void
     {
         //
-        $datas = [
+        $datas_v1 = [
             [
                 'type'     => 'ceramic',
                 'due_date' => 0,
@@ -37,10 +37,37 @@ class DueDateRuleCeramicSeeder extends Seeder
             ],
         ];
 
-        foreach ($datas as $key => $data) {
+        foreach ($datas_v1 as $key => $data) {
             DueDateRuleCeramic::create([
                 'type'     => $data['type'],
-                'number'   => $key,
+                'version'  => 1,
+                'due_date' => $data['due_date'],
+                'value'    => $data['value'],
+            ]);
+        }
+
+        $datas_v2 = [
+            [
+                'type'     => 'ceramic',
+                'due_date' => 0,
+                'value'    => 100,
+            ],
+            [
+                'type'     => 'ceramic',
+                'due_date' => 15,
+                'value'    => 50,
+            ],
+            [
+                'type'     => 'ceramic',
+                'due_date' => 22,
+                'value'    => 0,
+            ],
+        ];
+
+        foreach ($datas_v2 as $key => $data) {
+            DueDateRuleCeramic::create([
+                'type'     => $data['type'],
+                'version'  => 2,
                 'due_date' => $data['due_date'],
                 'value'    => $data['value'],
             ]);

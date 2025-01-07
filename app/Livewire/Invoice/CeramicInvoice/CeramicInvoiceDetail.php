@@ -5,8 +5,13 @@ namespace App\Livewire\Invoice\CeramicInvoice;
 use App\Models\Commission\Commission;
 use App\Models\Invoice\Invoice;
 use App\Models\Invoice\InvoiceDetail;
+use App\Traits\CommissionDetailProcess\CeramicCommissionDetailProsses;
 use App\Traits\CommissionProcess;
+use App\Traits\CommissionProcess\CeramicCommissionProsses;
 use App\Traits\GetSystemSetting;
+use App\Traits\InvoiceDetailProcess\CeramicInvoiceDetailProsses;
+use App\Traits\InvoiceProcess;
+use App\Traits\InvoiceProcess\CeramicInvoiceProsses;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\DB;
@@ -18,7 +23,7 @@ use Throwable;
 
 class CeramicInvoiceDetail extends Component
 {
-    use LivewireAlert, WithPagination, GetSystemSetting, CommissionProcess;
+    use LivewireAlert, WithPagination, GetSystemSetting, CeramicInvoiceDetailProsses, CeramicCommissionDetailProsses;
     protected $paginationTheme = 'bootstrap';
     public $perPage = 10, $search;
 
@@ -29,10 +34,10 @@ class CeramicInvoiceDetail extends Component
 
     public function render()
     {
-        $this->payment_amount   = "Rp. ". number_format((int)$this->get_invoice->invoiceDetails()->sum('amount'), 0, ',', '.');
-        $this->remaining_amount = "Rp. ". number_format((int)$this->get_invoice?->amount - (int)$this->get_invoice->invoiceDetails()->sum('amount'), 0, ',', '.');
+        $this->payment_amount   = "Rp. ". number_format((int)$this->get_invoice->invoiceDetails()->where('version', 1)->sum('amount'), 0, ',', '.');
+        $this->remaining_amount = "Rp. ". number_format((int)$this->get_invoice?->amount - (int)$this->get_invoice->invoiceDetails()->where('version', 1)->sum('amount'), 0, ',', '.');
         return view('livewire.invoice.ceramic-invoice.ceramic-invoice-detail',[
-            'invoice_details' => $this->get_invoice?->invoiceDetails()->get(),
+            'invoice_details' => $this->get_invoice?->invoiceDetails()->where('version', 1)->get(),
         ])->extends('layouts.layout.app')->section('content');
     }
 
@@ -49,7 +54,7 @@ class CeramicInvoiceDetail extends Component
         $this->value_tax      = "Rp. ". number_format($this->get_invoice?->value_tax, 0, ',', '.');
         $this->amount         = "Rp. ". number_format($this->get_invoice?->amount, 0, ',', '.');
 
-        $this->due_date_ceramic_rules = $this->get_invoice->dueDateRules()->whereNot('number', 0)->get();
+        $this->due_date_ceramic_rules = $this->get_invoice->dueDateRules()->where('version', 1)->get();
         $this->type                   = 'ceramic';
     }
 
@@ -63,21 +68,12 @@ class CeramicInvoiceDetail extends Component
     {
         if ($this->invoice_detail_date) {
 
-            $get_diffDay    = Carbon::parse($this->date)->diffInDays($this->invoice_detail_date);
-            $desc_due_dates = $this->get_invoice->dueDateRules()->orderBy('due_date', 'DESC')->get();
-            $percentage = null;
+            $datas = array(
+                'invoice_detail_date' => $this->invoice_detail_date,
+                'version'             => 1,
+            );
 
-            if (Carbon::parse($this->invoice_detail_date)->toDateString() <= Carbon::parse($this->date)->toDateString()) {
-                $percentage = 100;
-            } else {
-                foreach ($desc_due_dates as $key => $desc_due_date) {
-                    if ((int)$get_diffDay > (int)$desc_due_date?->due_date) {
-                        $percentage = $desc_due_date?->value;
-                        break;
-                    }
-                }
-            }
-            $this->percentage = $percentage ;
+            $this->percentage = $this->_percentageCeramicInvoiceDetail($this->get_invoice, $datas);
         }
     }
 
@@ -96,27 +92,25 @@ class CeramicInvoiceDetail extends Component
             'percentage'            => 'required|numeric',
         ]);
 
-        // if ($this->id_data == null && (int)$this->get_invoice?->amount - ((int)$this->get_invoice->invoiceDetails()->sum('amount') + (int)$this->invoice_detail_amount) < 0 && $this->id_data == null) {
-        //     return $this->alert('warning', 'Pemberitahuan', [
-        //         'text' => 'Nominal pembayaran melebihi total !'
-        //     ]);
-        // }
 
         try {
             DB::transaction(function () {
-                $this->get_invoice->invoiceDetails()->updateOrCreate(
-                    [
-                        'id' => $this->id_data,
-                    ],
-                    [
-                        'amount'     => $this->invoice_detail_amount,
-                        'date'       => $this->invoice_detail_date,
-                        'percentage' => $this->percentage,
-                    ]
+
+                $datas = array(
+                    'id_data'               => $this->id_data,
+                    'version'               => 1,
+                    'invoice_detail_amount' => $this->invoice_detail_amount,
+                    'invoice_detail_date'   => $this->invoice_detail_date,
+                    'percentage'            => $this->percentage,
                 );
 
-                $datas = array();
-                $this->ceramicCommissionDetail($this->get_invoice, $datas);
+                $this->_ceramicInvoiceDetail($this->get_invoice, $datas);
+
+                $datas = array(
+                    'version'             => 1,
+                    'invoice_detail_date' => $this->invoice_detail_date
+                );
+                $this->_ceramicCommissionDetail($this->get_invoice, $datas);
             });
         } catch (Exception | Throwable $th) {
             DB::rollback();
@@ -170,8 +164,11 @@ class CeramicInvoiceDetail extends Component
                 $invoice = $result;
                 $result?->delete();
 
-                $datas = array();
-                $this->ceramicCommissionDetail($invoice, $datas);
+                $datas = array(
+                    'version'             => 1,
+                    'invoice_detail_date' => Invoice::find($this->get_invoice?->id)->invoiceDetails()->where('id', $data['inputAttributes']['id'])->withTrashed()->first()?->date?->format('Y-m-d')
+                );
+                $this->_ceramicCommissionDetail($this->get_invoice, $datas);
             });
 
             DB::commit();

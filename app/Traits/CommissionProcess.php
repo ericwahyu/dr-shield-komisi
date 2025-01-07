@@ -22,20 +22,21 @@ trait CommissionProcess
     public function ceramicCommission($invoice, $datas)
     {
         try {
-            $get_commission = Commission::where('user_id', $datas['sales_id'])->where('month', (int)$invoice?->date?->format('m'))->where('year', (int)$invoice?->date?->format('Y'))->whereNull('category_id')->first();
+            $get_commission = Commission::where('user_id', $invoice?->user?->id)->where('month', (int)$invoice?->date?->format('m'))->where('year', (int)$invoice?->date?->format('Y'))->where('version', $datas['version'])->whereNull('category_id')->first();
             if (!$get_commission) {
                 $commission = Commission::create([
-                    'user_id'    => $datas['sales_id'],
-                    'month'      => $invoice?->date?->format('m'),
-                    'year'       => $invoice?->date?->format('Y'),
-                    'income_tax' => (int)$datas['income_tax'],
-                    'status'     => 'not-reach'
+                    'user_id'     => $invoice?->user?->id,
+                    'month'       => $invoice?->date?->format('m'),
+                    'year'        => $invoice?->date?->format('Y'),
+                    'version'     => $datas['version'],
+                    'total_sales' => (int)$datas['income_tax'],
+                    'status'      => 'not-reach'
                 ]);
 
                 if (count($commission->lowerLimitCommissions) == 0) {
-                    $lower_limit_ceramics = User::find($datas['sales_id'])->lowerLimits()->whereNull('category_id')->get();
+                    $lower_limit_ceramics = User::find($invoice?->user?->id)->lowerLimits()->where('version', $datas['version'])->whereNull('category_id')->get();
                     foreach ($lower_limit_ceramics as $key => $lower_limit_ceramic) {
-                        $commission->lowerLimitCommissions()->create([
+                        $commission->lowerLimitCommissions()->orderBy('value', 'DESC')->create([
                             'lower_limit_id' => $lower_limit_ceramic?->id,
                             'target_payment' => $lower_limit_ceramic?->target_payment,
                             'value'          => $lower_limit_ceramic?->value,
@@ -43,71 +44,98 @@ trait CommissionProcess
                     }
                 }
             } else {
-                $sum_income_tax = Invoice::whereHas('user', function ($query) use ($datas) {
-                    $query->where('id', $datas['sales_id']);
+                $sum_income_tax = Invoice::whereHas('user', function ($query) use ($invoice) {
+                    $query->where('id', $invoice?->user?->id);
                 })->whereYear('date', (int)$invoice?->date->format('Y'))->whereMonth('date', (int)$invoice?->date->format('m'))->where('type', 'ceramic')->sum('income_tax');
 
-                $get_lower_limit_commission = $get_commission?->lowerLimitCommissions()->whereNull('category_id')->where('target_payment', '<=', (int)$sum_income_tax)->max('value');
-                $get_lower_limit_commission = $get_lower_limit_commission != null && $get_lower_limit_commission >= 0.3 ? $get_lower_limit_commission + $this->getSystemSetting()?->value_incentive : $get_lower_limit_commission;
+                if ($datas['version'] == 1) {
+                    $get_lower_limit_commission = $get_commission?->lowerLimitCommissions()->whereNull('category_id')->where('target_payment', '<=', (int)$sum_income_tax)->max('value');
+                    $get_lower_limit_commission = $get_lower_limit_commission != null && $get_lower_limit_commission >= 0.3 ? $get_lower_limit_commission + $this->getSystemSetting()?->value_incentive : $get_lower_limit_commission;
 
-                $get_commission?->update([
-                    'total_sales'                 => $sum_income_tax,
-                    'percentage_value_commission' => $get_lower_limit_commission,
-                    'status'                      => $get_lower_limit_commission != null ? 'reached' : 'not-reach'
-                ]);
+                    $get_commission?->update([
+                        'total_sales'                 => $sum_income_tax,
+                        'percentage_value_commission' => $get_lower_limit_commission,
+                        'status'                      => $get_lower_limit_commission != null ? 'reached' : 'not-reach'
+                    ]);
 
-                if ($get_commission?->percentage_value_commission != null) {
-                    foreach ($get_commission?->commissionDetails()->get() as $key => $commission_detail) {
-                        $commission_detail->update([
-                            'value_of_due_date' => $commission_detail?->total_income * ($get_commission?->percentage_value_commission/100)
-                        ]);
+                    if ($get_commission?->percentage_value_commission != null) {
+                        foreach ($get_commission?->commissionDetails()->get() as $key => $commission_detail) {
+                            $commission_detail->update([
+                                'value_of_due_date' => $commission_detail?->total_income * ($get_commission?->percentage_value_commission/100)
+                            ]);
+                        }
                     }
+                } elseif ($datas['version'] == 2) {
+                    $get_lower_limit_commission = $get_commission?->lowerLimitCommissions()->whereNull('category_id')->where('target_payment', '<=', (int)$sum_income_tax)->max('value');
+
+                    $get_commission?->update([
+                        'total_sales'                 => $sum_income_tax,
+                        'percentage_value_commission' => $get_lower_limit_commission,
+                        'status'                      => $get_lower_limit_commission != null ? 'reached' : 'not-reach'
+                    ]);
                 }
             }
         } catch (Exception | Throwable $th) {
             DB::rollBack();
-            Log::error($th->getMessage());
             Log::error("Ada kesalahan saat proses komisi keramik");
+            throw new Exception($th->getMessage());
         }
     }
 
-    public function ceramicCommissionDetail($get_invoice, $datas)
+    public function ceramicCommissionDetail($invoice, $datas)
     {
         try {
             //code...
-            $get_commission = Commission::where('user_id', $get_invoice?->user?->id)->where('year', (int)$get_invoice?->date?->format('Y'))->where('month', (int)$get_invoice?->date?->format('m'))->whereNull('category_id')->first();
+            $get_commission = Commission::where('user_id', $invoice?->user?->id)->where('year', (int)$invoice?->date?->format('Y'))->where('month', (int)$invoice?->date?->format('m'))->where('version', $datas['version'])->whereNull('category_id')->first();
             if ($get_commission) {
-                $invoice_details = InvoiceDetail::whereHas('invoice', function ($query) use ($get_invoice) {
-                    $query->whereYear('date', (int)$get_invoice?->date?->format('Y'))->whereMonth('date', (int)$get_invoice?->date?->format('m'))
-                        ->where('user_id', $get_invoice?->user?->id);
-                });
+                $invoice_details = InvoiceDetail::whereHas('invoice', function ($query) use ($invoice) {
+                    $query->whereYear('date', (int)$invoice?->date?->format('Y'))->whereMonth('date', (int)$invoice?->date?->format('m'))
+                        ->where('user_id', $invoice?->user?->id);
+                })->where('version', $datas['version']);
 
                 foreach ($invoice_details->distinct()->pluck('percentage')->toArray() as $key => $percentage_invoice_details) {
 
-                    foreach (($invoice_details->selectRaw('YEAR(date) as year, MONTH(date) as month')->groupBy('year', 'month')
+                    foreach ($invoice_details
+                    // ->selectRaw('YEAR(date) as year, MONTH(date) as month')->groupBy('year', 'month')
+                    ->selectRaw('EXTRACT(YEAR FROM date) AS year, EXTRACT(MONTH FROM date) AS month')
                     ->distinct()
                     ->get()
                     ->map(function ($item) {
                         return $item->year . '-' . str_pad($item->month, 2, '0', STR_PAD_LEFT);
                     })
-                    ->toArray()) as $key => $year_month_invoice_detail) {
+                    ->toArray() as $key => $year_month_invoice_detail) {
 
-                        $total_income = InvoiceDetail::whereHas('invoice', function ($query) use ($get_invoice) {
-                            $query->whereYear('date', (int)$get_invoice?->date?->format('Y'))->whereMonth('date', (int)$get_invoice?->date?->format('m'))
-                                ->where('user_id', $get_invoice?->user?->id);
-                        })->whereYear('date', (int)Carbon::parse($year_month_invoice_detail)->format('Y'))->whereMonth('date', (int)Carbon::parse($year_month_invoice_detail)->format('m'))->where('percentage', (int)$percentage_invoice_details)->sum('amount');
+                        $total_income = InvoiceDetail::whereHas('invoice', function ($query) use ($invoice) {
+                            $query->whereYear('date', (int)$invoice?->date?->format('Y'))->whereMonth('date', (int)$invoice?->date?->format('m'))
+                                ->where('user_id', $invoice?->user?->id);
+                        })->whereYear('date', (int)Carbon::parse($year_month_invoice_detail)->format('Y'))->whereMonth('date', (int)Carbon::parse($year_month_invoice_detail)->format('m'))->where('percentage', (int)$percentage_invoice_details)->where('version', $datas['version'])->sum('amount');
 
-                        $get_commission->commissionDetails()->updateOrCreate(
-                            [
-                                'year'                   => (int)Carbon::parse($year_month_invoice_detail)->format('Y'),
-                                'month'                  => (int)Carbon::parse($year_month_invoice_detail)->format('m'),
-                                'percentage_of_due_date' => $percentage_invoice_details
-                            ],
-                            [
-                                'total_income'      => round((int)$total_income/floatval($this->getSystemSetting()?->value_of_total_income)*((int)$percentage_invoice_details > 0 ? (int)$percentage_invoice_details/100 : 1), 2),
-                                'value_of_due_date' => $get_commission?->percentage_value_commission != null ? round((int)$total_income/floatval($this->getSystemSetting()?->value_of_total_income)*((int)$percentage_invoice_details/100), 2) * ($get_commission?->percentage_value_commission/100) : null
-                            ]
-                        );
+                        if ($datas['version'] == 1) {
+
+                            $get_commission->commissionDetails()->updateOrCreate(
+                                [
+                                    'year'                   => (int)Carbon::parse($year_month_invoice_detail)->format('Y'),
+                                    'month'                  => (int)Carbon::parse($year_month_invoice_detail)->format('m'),
+                                    'percentage_of_due_date' => $percentage_invoice_details
+                                ],
+                                [
+                                    'total_income'      => round((int)$total_income/floatval($this->getSystemSetting()?->value_of_total_income)*((int)$percentage_invoice_details > 0 ? (int)$percentage_invoice_details/100 : 1), 2),
+                                    'value_of_due_date' => $get_commission?->percentage_value_commission != null ? round((int)$total_income/floatval($this->getSystemSetting()?->value_of_total_income)*((int)$percentage_invoice_details/100), 2) * ($get_commission?->percentage_value_commission/100) : null
+                                ]
+                            );
+                        } elseif ($datas['version'] == 2) {
+                            $get_commission->commissionDetails()->updateOrCreate(
+                                [
+                                    'year'                   => (int)Carbon::parse($year_month_invoice_detail)->format('Y'),
+                                    'month'                  => (int)Carbon::parse($year_month_invoice_detail)->format('m'),
+                                    'percentage_of_due_date' => $percentage_invoice_details
+                                ],
+                                [
+                                    'total_income'      => round((int)$total_income/floatval($this->getSystemSetting()?->value_of_total_income)*((int)$percentage_invoice_details > 0 ? (int)$percentage_invoice_details/100 : 1), 2),
+                                    'value_of_due_date' => $get_commission?->percentage_value_commission != null ? round((int)$total_income/floatval($this->getSystemSetting()?->value_of_total_income)*((int)$percentage_invoice_details/100), 2) * ($get_commission?->percentage_value_commission/100) : null
+                                ]
+                            );
+                        }
                     }
                 }
 
@@ -136,10 +164,10 @@ trait CommissionProcess
     {
         //create commission
         try {
-            $get_commission = Commission::where('user_id', $datas['sales_id'])->where('month', (int)$invoice?->date?->format('m'))->where('year', (int)$invoice?->date?->format('Y'))->where('category_id', $category?->id)->first();
+            $get_commission = Commission::where('user_id', $invoice?->user?->id)->where('month', (int)$invoice?->date?->format('m'))->where('year', (int)$invoice?->date?->format('Y'))->where('category_id', $category?->id)->first();
             if (!$get_commission) {
                 $commission = Commission::create([
-                    'user_id'     => $datas['sales_id'],
+                    'user_id'     => $invoice?->user?->id,
                     'category_id' => $category?->id,
                     'month'       => $invoice?->date?->format('m'),
                     'year'        => $invoice?->date?->format('Y'),
@@ -148,7 +176,7 @@ trait CommissionProcess
                 ]);
 
                 if (count($commission->lowerLimitCommissions) == 0) {
-                    $lower_limit_ceramics = User::find($datas['sales_id'])->lowerLimits()->where('category_id', $category?->id)->get();
+                    $lower_limit_ceramics = User::find($invoice?->user?->id)->lowerLimits()->where('category_id', $category?->id)->get();
                     foreach ($lower_limit_ceramics as $key => $lower_limit_ceramic) {
                         $commission->lowerLimitCommissions()->create([
                             'lower_limit_id' => $lower_limit_ceramic?->id,
@@ -159,9 +187,9 @@ trait CommissionProcess
                     }
                 }
             } else {
-                $sum_income_tax = PaymentDetail::whereHas('invoice', function ($query) use ($invoice, $datas) {
-                    $query->whereHas('user', function ($query) use ($datas) {
-                        $query->where('id', $datas['sales_id']);
+                $sum_income_tax = PaymentDetail::whereHas('invoice', function ($query) use ($invoice) {
+                    $query->whereHas('user', function ($query) use ($invoice) {
+                        $query->where('id', $invoice?->user?->id);
                     })->whereYear('date', (int)$invoice?->date->format('Y'))->whereMonth('date', (int)$invoice?->date->format('m'))->where('type', 'roof');
                 })->where('category_id', $category?->id)->sum('income_tax');
 
@@ -181,13 +209,13 @@ trait CommissionProcess
         }
     }
 
-    public function roofCommissionDetail($get_invoice, $category)
+    public function roofCommissionDetail($invoice, $category)
     {
         try {
-            $get_commission = Commission::where('user_id', $get_invoice?->user?->id)->where('year', (int)$get_invoice?->date?->format('Y'))->where('month', (int)$get_invoice?->date?->format('m'))->where('category_id', $category?->id)->first();
+            $get_commission = Commission::where('user_id', $invoice?->user?->id)->where('year', (int)$invoice?->date?->format('Y'))->where('month', (int)$invoice?->date?->format('m'))->where('category_id', $category?->id)->first();
             if ($get_commission) {
-                $invoice_details = InvoiceDetail::whereHas('invoice', function ($query) use ($category, $get_invoice) {
-                    $query->whereYear('date', (int)$get_invoice?->date?->format('Y'))->whereMonth('date', (int)$get_invoice?->date?->format('m'))->where('user_id', $get_invoice?->user?->id)->where('category_id', $category?->id);
+                $invoice_details = InvoiceDetail::whereHas('invoice', function ($query) use ($category, $invoice) {
+                    $query->whereYear('date', (int)$invoice?->date?->format('Y'))->whereMonth('date', (int)$invoice?->date?->format('m'))->where('user_id', $invoice?->user?->id)->where('category_id', $category?->id);
                 });
 
                 foreach ($invoice_details->distinct()->pluck('percentage')->toArray() as $key => $percentage_invoice_details) {
@@ -200,8 +228,8 @@ trait CommissionProcess
                     })
                     ->toArray()) as $key => $year_month_invoice_detail) {
 
-                        $total_income = InvoiceDetail::whereHas('invoice', function ($query) use ($category, $get_invoice) {
-                            $query->whereYear('date', (int)$get_invoice?->date?->format('Y'))->whereMonth('date', (int)$get_invoice?->date?->format('m'))->where('user_id', $get_invoice?->user?->id)->where('category_id', $category?->id);
+                        $total_income = InvoiceDetail::whereHas('invoice', function ($query) use ($category, $invoice) {
+                            $query->whereYear('date', (int)$invoice?->date?->format('Y'))->whereMonth('date', (int)$invoice?->date?->format('m'))->where('user_id', $invoice?->user?->id)->where('category_id', $category?->id);
                         })->whereYear('date', (int)Carbon::parse($year_month_invoice_detail)->format('Y'))->whereMonth('date', (int)Carbon::parse($year_month_invoice_detail)->format('m'))->where('percentage', (int)$percentage_invoice_details)->sum('amount');
 
                         try {
@@ -219,7 +247,7 @@ trait CommissionProcess
                                          'percentage_of_due_date' => $percentage_invoice_details
                                      ],
                                      [
-                                         'total_income'      => $total_income,
+                                         'total_income'      => (int)$total_income,
                                          'value_of_due_date' => $get_commission?->percentage_value_commission != null ? $total_income * ($get_commission?->percentage_value_commission/100) : null
                                      ]
                                  );

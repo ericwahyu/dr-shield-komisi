@@ -3,18 +3,25 @@
 namespace App\Jobs\Import\CeramicInvoice;
 
 use App\Models\Invoice\Invoice;
+use App\Traits\CommissionDetailProcess\CeramicCommissionDetailProsses;
 use App\Traits\CommissionProcess;
+use App\Traits\CommissionProcess\CeramicCommissionProsses;
 use App\Traits\GetSystemSetting;
+use App\Traits\InvoiceDetailProcess\CeramicInvoiceDetailProsses;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Throwable;
+
+use function Illuminate\Log\log;
 
 class CeramicInvoiceDetail implements ShouldQueue
 {
     use Queueable;
-    use GetSystemSetting, CommissionProcess;
+    use GetSystemSetting, CeramicInvoiceDetailProsses, CeramicCommissionDetailProsses;
 
     protected $collections;
 
@@ -43,51 +50,65 @@ class CeramicInvoiceDetail implements ShouldQueue
 
                 $check_year = Carbon::parse($collection[2])->format('Y');
 
-                if (!$get_invoice || (int)$check_year < 2010) {
+                $invoice_detail_v1 = $get_invoice?->invoiceDetails()->where('version', 1)->whereNull('category_id')->where('amount', (int)$collection[1])->where('date', Carbon::parse($collection[2])->toDateString())->first();
+                $invoice_detail_v2 = $get_invoice?->invoiceDetails()->where('version', 2)->whereNull('category_id')->where('amount', (int)$collection[1])->where('date', Carbon::parse($collection[2])->toDateString())->first();
+
+                if (!$get_invoice || (int)$check_year < 2010 || $invoice_detail_v1 || $invoice_detail_v2) {
                     continue;
                 }
 
-                DB::transaction(function () use ($get_invoice, $collection) {
-                    $get_invoice->invoiceDetails()->create(
-                        [
-                            'amount'     => $collection[1],
-                            'date'       => Carbon::parse($collection[2])->toDateString(),
-                            'percentage' => $this->percentageInvoiceDetail($get_invoice, Carbon::parse($collection[2])->toDateString()),
-                        ]
-                    );
+                // version 1
+                $datas = array(
+                    'invoice_detail_date' => Carbon::parse($collection[2])->toDateString(),
+                    'version'             => 1,
+                );
 
-                    $datas = array();
-                    $this->ceramicCommissionDetail($get_invoice, $datas);
-                });
+                $percentage = $this->_percentageCeramicInvoiceDetail($get_invoice, $datas);
+
+                $datas = array(
+                    'id_data'               => null,
+                    'version'               => 1,
+                    'invoice_detail_amount' => $collection[1],
+                    'invoice_detail_date'   => Carbon::parse($collection[2])->toDateString(),
+                    'percentage'            => $percentage,
+                );
+
+                $this->_ceramicInvoiceDetail($get_invoice, $datas);
+
+                $datas = array(
+                    'version'             => 1,
+                    'invoice_detail_date' => Carbon::parse($collection[2])->toDateString()
+                );
+                $this->_ceramicCommissionDetail($get_invoice, $datas);
+
+                //version 2
+                $datas = array(
+                    'invoice_detail_date' => Carbon::parse($collection[2])->toDateString(),
+                    'version'             => 2,
+                );
+
+                $percentage = $this->_percentageCeramicInvoiceDetail($get_invoice, $datas);
+
+                $datas = array(
+                    'id_data'               => null,
+                    'version'               => 2,
+                    'invoice_detail_amount' => $collection[1],
+                    'invoice_detail_date'   => Carbon::parse($collection[2])->toDateString(),
+                    'percentage'            => $percentage,
+                );
+
+                $this->_ceramicInvoiceDetail($get_invoice, $datas);
+
+                $datas = array(
+                    'version'             => 2,
+                    'income_tax'          => $get_invoice?->income_tax,
+                    'invoice_detail_date' => Carbon::parse($collection[2])->toDateString(),
+                );
+                $this->_ceramicCommissionDetail($get_invoice, $datas);
             }
-        } catch (\Throwable $th) {
-            DB::rollBack();
-            Log::error($th->getMessage());
+        } catch (Exception | Throwable $th) {
             Log::error("Ada kesalahan saat import detail faktur keramik");
+            throw new Exception($th->getMessage());
         }
-    }
-
-    private function percentageInvoiceDetail($get_invoice, $invoice_detail_date)
-    {
-        $get_diffDay    = Carbon::parse($get_invoice?->date?->format('d M Y'))->diffInDays($invoice_detail_date);
-        $desc_due_dates = $get_invoice->dueDateRules()->orderBy('due_date', 'DESC')->get();
-        $percentage     = 0;
-
-        if (Carbon::parse($invoice_detail_date)->toDateString() <= Carbon::parse($get_invoice?->date?->format('d M Y'))->toDateString()) {
-            $percentage = 100;
-        } else {
-            foreach ($desc_due_dates as $key => $desc_due_date) {
-                if ((int)$get_diffDay > (int)$desc_due_date?->due_date) {
-                    $percentage = $desc_due_date?->value;
-                    break;
-                }
-            }
-        }
-
-        // if ($percentage == null) {
-        //     $percentage = 0;
-        // }
-
-        return $percentage;
     }
 }

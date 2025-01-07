@@ -33,41 +33,6 @@ class RoofInvoiceDetailExecutionImport implements ToCollection
             Log::error($th->getMessage());
             Log::error("Ada kesalahan saat import detail faktur atap");
         }
-        // $categories = Category::where('type', 'roof')->get();
-        // try {
-        //     foreach ($collections as $key => $collection) {
-        //         if ($key == 0) {
-        //             continue;
-        //         }
-
-        //         $get_invoice = Invoice::where('invoice_number', $collection[0])->first();
-
-        //         $check_year = Carbon::parse($collection[3])->format('Y');
-
-        //         if (!$get_invoice || (int)$check_year < 2010) {
-        //             continue;
-        //         }
-
-        //         DB::transaction(function () use ($get_invoice, $collection, $categories) {
-        //             $get_invoice->invoiceDetails()->create(
-        //                 [
-        //                     'category_id' => Category::where('type', 'roof')->where('slug', $collection[1])->first()?->id,
-        //                     'amount'      => $collection[2],
-        //                     'date'        => Carbon::parse($collection[3])->toDateString(),
-        //                     'percentage'  => $this->percentageInvoiceDetail($get_invoice, Carbon::parse($collection[3])->toDateString()),
-        //                 ]
-        //             );
-
-        //             foreach ($categories as $key => $category) {
-        //                 $this->roofCommissionDetail($get_invoice, $category);
-        //             }
-        //         });
-        //     }
-        // } catch (Exception | Throwable $th) {
-        //     DB::rollBack();
-        //     Log::error($th->getMessage());
-        //     Log::error("Ada kesalahan saat import detail faktur atap");
-        // }
     }
 
     private function percentageInvoiceDetail($get_invoice, $invoice_detail_date)

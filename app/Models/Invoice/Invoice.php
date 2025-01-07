@@ -24,11 +24,11 @@ class Invoice extends Model
         $term = '%'. $term .'%';
 
         $query->where(function ($query) use ($term) {
-            $query->whereAny(['invoice_number', 'id_customer', 'customer'], 'LIKE', $term)
+            $query->whereAny(['invoice_number', 'id_customer', 'customer'], 'ILIKE', $term)
                 ->orWhereHas('user', function ($query) use ($term) {
-                    $query->whereAny(['name'], 'LIKE', $term)
+                    $query->whereAny(['name'], 'ILIKE', $term)
                         ->orWhereHas('userDetail', function ($query) use ($term) {
-                            $query->whereAny(['civil_registration_number', 'depo', 'sales_type', 'sales_code'], 'LIKE', $term);
+                            $query->whereAny(['civil_registration_number', 'depo', 'sales_type', 'sales_code'], 'ILIKE', $term);
                         });
                 });
         });

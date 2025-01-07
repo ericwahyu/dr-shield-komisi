@@ -15,6 +15,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignUuid('invoice_id')->nullable();
             $table->foreignUuid('category_id')->nullable()->comment('kategori');
+            $table->integer('version')->nullable()->comment('versi komisi');
             $table->bigInteger('amount')->nullable()->comment('nominal pembayaran');
             $table->timestamp('date')->nullable()->comment('tanggal pembayaran');
             $table->bigInteger('percentage')->nullable()->comment('persentage nominal yang masuk ke sales');

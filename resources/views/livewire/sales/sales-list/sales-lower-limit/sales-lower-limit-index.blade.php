@@ -53,251 +53,119 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-12">
-            <div class="mb-4 card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0" style="text-align: center">Detail Batas Bawah Target</h5>
-                    <button type="submit" class="btn btn-success waves-effect waves-light" data-bs-toggle="modal" data-bs-target="#modal">Tambah </button>
-                </div>
-                {{-- <div class="mb-0 card-body">
-                    <div class="row justify-content-between g-3">
-                        <div class="col-12 col-lg-4">
-                            <div class="row">
-                                <div class="gap-2 col-lg-6 col-12 d-flex align-items-center">
-                                    <div>Lihat</div>
-                                    <select class="form-select" wire:model.live="perPage">
-                                        <option value="10">10</option>
-                                        <option value="25">25</option>
-                                        <option value="50">50</option>
-                                        <option value="100">100</option>
-                                    </select>
-                                    <div class="ms-auto">Hasil</div>
+        <div class="nav-align-top mb-6">
+            <ul class="nav nav-pills mb-4 gap-3" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button type="button" class="nav-link waves-effect waves-light" role="tab" data-bs-toggle="tab" data-bs-target="#verison-1" aria-controls="verison-1" aria-selected="true">Versi 1</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button type="button" class="nav-link active waves-effect waves-light" role="tab" data-bs-toggle="tab" data-bs-target="#version-2" aria-controls="version-2" aria-selected="false" tabindex="-1">Versi 2</button>
+                </li>
+                {{-- <li class="nav-item" role="presentation">
+                    <button type="button" class="nav-link waves-effect waves-light" role="tab" data-bs-toggle="tab" data-bs-target="#navs-pills-top-messages" aria-controls="navs-pills-top-messages" aria-selected="false" tabindex="-1">Messages</button>
+                </li> --}}
+            </ul>
+            <div class="tab-content">
+                <div class="tab-pane fade" id="verison-1" role="tabpanel">
+                    <div class="card-header d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="mb-0" style="text-align: center">Detail Batas Bawah Target</h5>
+                        <button type="submit" class="btn btn-success waves-effect waves-light" data-bs-toggle="modal" data-bs-target="#modal">Tambah </button>
+                    </div>
+                    <div class="row">
+                        @if (count($categories) < 1)
+                            <div class="col-md-12">
+                                <div class="table-responsive scrollbar-x">
+                                    <table class="table table-bordered">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th class="text-center" style="width: 10px;">No</th>
+                                                <th class="text-center">Nominal Target</th>
+                                                <th class="text-center">Persentase</th>
+                                                <th class="text-center" style="width: 10px;">Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @forelse ($this->getLowerLimits(null) as $result)
+                                                <tr>
+                                                    <td class = "text-center">{{ $loop->iteration }}</td>
+                                                    <td class = "text-center">{{ $result?->target_payment ? "Rp. ". number_format($result?->target_payment, 0, ',', '.') : '-' }}</td>
+                                                    <td class = "text-center">{{ $result?->value ? $result?->value : '-' }}</td>
+                                                    <td class = "text-center">
+                                                    <button class = "btn btn-danger btn-sm" wire:click  = "deleteConfirm('{{ $result?->id }}')" x-data = "{ tooltip: 'Hapus' }" x-tooltip = "tooltip"><i class = "fa-solid fa-trash-alt fa-fw"></i></button>
+                                                    <button class = "btn btn-warning btn-sm" wire:click = "edit('{{ $result?->id }}')" x-data          = "{ tooltip: 'Edit' }" x-tooltip  = "tooltip"><i class = "fa-solid fa-pencil-alt fa-fw"></i></button>
+                                                    </td>
+                                                </tr>
+                                            @empty
+                                                <tr>
+                                                    <td colspan="11" class="text-center fw-bold">Belum Ada Data</td>
+                                                </tr>
+                                            @endforelse
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
-                        </div>
-                        <div class="col-12 col-lg-4">
-                            <div class="row">
-                                <div class="gap-2 col-lg-10 col-12 d-flex align-items-center">
-                                    <input class="form-control" type="date" wire:model.live="filter_date" id="html5-date-input">
+                        @else
+                            @foreach ($categories as $categories)
+                            <div class="col-md-6 mb-4">
+                                <div class="mb-3 justify-content-between align-items-center">
+                                    <h6 class="mb-0" style="text-align: center"><b>{{ $categories?->name }}</b></h6>
+                                </div>
+                                <div class="table-responsive scrollbar-x">
+                                    <table class="table table-bordered">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th class="text-center" style="width: 10px;">No</th>
+                                                <th class="text-center">Kategori</th>
+                                                <th class="text-center">Nominal Target</th>
+                                                <th class="text-center">Persentase</th>
+                                                <th class="text-center" style="width: 10px;">Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @forelse ($this->getLowerLimits($categories?->slug) as $result)
+                                                <tr>
+                                                    <td class = "text-center">{{ $loop->iteration }}</td>
+                                                    <td class="text-center">
+                                                        @if ($result?->category)
+                                                            <b>{{ $result?->category?->name }}</b>
+                                                        @else
+                                                            -
+                                                        @endif
+                                                    </td>
+                                                    <td class = "text-center">{{ $result?->target_payment ? "Rp. ". number_format($result?->target_payment, 0, ',', '.') : '-' }}</td>
+                                                    <td class = "text-center">{{ $result?->value ? $result?->value : '-' }}</td>
+                                                    <td class = "text-center">
+                                                    <button class = "btn btn-danger btn-sm" wire:click  = "deleteConfirm('{{ $result?->id }}')" x-data = "{ tooltip: 'Hapus' }" x-tooltip = "tooltip"><i class = "fa-solid fa-trash-alt fa-fw"></i></button>
+                                                    <button class = "btn btn-warning btn-sm" wire:click = "edit('{{ $result?->id }}')" x-data          = "{ tooltip: 'Edit' }" x-tooltip  = "tooltip"><i class = "fa-solid fa-pencil-alt fa-fw"></i></button>
+                                                    </td>
+                                                </tr>
+                                            @empty
+                                                <tr>
+                                                    <td colspan="11" class="text-center fw-bold">Belum Ada Data</td>
+                                                </tr>
+                                            @endforelse
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
-                        </div>
-                        <div class="col-12 col-lg-4 text-end">
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fa-regular fa-magnifying-glass fa-fw"></i></span>
-                                <input class="form-control" type="text" placeholder="Cari Sesuatu.." wire:model.live="search">
-                            </div>
-                        </div>
+                            @endforeach
+                        @endif
                     </div>
-                </div> --}}
-                <div class="row">
-                    @if (count($categories) < 1)
-                        <div class="col-md-12 mb-4">
-                            <div class="table-responsive scrollbar-x">
-                                <table class="table table-bordered">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th class="text-center" style="width: 10px;">No</th>
-                                            {{-- <th class="text-center">Tipe</th> --}}
-                                            <th class="text-center">Nominal Target</th>
-                                            <th class="text-center">Persentase</th>
-                                            <th class="text-center" style="width: 10px;">Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @forelse ($this->getLowerLimits(null) as $result)
-                                            <tr>
-                                                <td class = "text-center">{{ $loop->iteration }}</td>
-                                                <td class = "text-center">{{ $result?->target_payment ? "Rp. ". number_format($result?->target_payment, 0, ',', '.') : '-' }}</td>
-                                                <td class = "text-center">{{ $result?->value ? $result?->value : '-' }}</td>
-                                                <td class = "text-center">
-                                                <button class = "btn btn-danger btn-sm" wire:click  = "deleteConfirm('{{ $result?->id }}')" x-data = "{ tooltip: 'Hapus' }" x-tooltip = "tooltip"><i class = "fa-solid fa-trash-alt fa-fw"></i></button>
-                                                <button class = "btn btn-warning btn-sm" wire:click = "edit('{{ $result?->id }}')" x-data          = "{ tooltip: 'Edit' }" x-tooltip  = "tooltip"><i class = "fa-solid fa-pencil-alt fa-fw"></i></button>
-                                                </td>
-                                            </tr>
-                                        @empty
-                                            <tr>
-                                                <td colspan="11" class="text-center fw-bold">Belum Ada Data</td>
-                                            </tr>
-                                        @endforelse
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    @else
-                        @foreach ($categories as $categories)
-                        <div class="col-md-6 mb-4">
-                            <div class="mb-3 justify-content-between align-items-center">
-                                <h6 class="mb-0" style="text-align: center"><b>{{ $categories?->name }}</b></h6>
-                            </div>
-                            <div class="table-responsive scrollbar-x">
-                                <table class="table table-bordered">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th class="text-center" style="width: 10px;">No</th>
-                                            <th class="text-center">Kategori</th>
-                                            <th class="text-center">Nominal Target</th>
-                                            <th class="text-center">Persentase</th>
-                                            <th class="text-center" style="width: 10px;">Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @forelse ($this->getLowerLimits($categories?->slug) as $result)
-                                            <tr>
-                                                <td class = "text-center">{{ $loop->iteration }}</td>
-                                                <td class="text-center">
-                                                    @if ($result?->category)
-                                                        <b>{{ $result?->category?->name }}</b>
-                                                    @else
-                                                        -
-                                                    @endif
-                                                </td>
-                                                <td class = "text-center">{{ $result?->target_payment ? "Rp. ". number_format($result?->target_payment, 0, ',', '.') : '-' }}</td>
-                                                <td class = "text-center">{{ $result?->value ? $result?->value : '-' }}</td>
-                                                <td class = "text-center">
-                                                <button class = "btn btn-danger btn-sm" wire:click  = "deleteConfirm('{{ $result?->id }}')" x-data = "{ tooltip: 'Hapus' }" x-tooltip = "tooltip"><i class = "fa-solid fa-trash-alt fa-fw"></i></button>
-                                                <button class = "btn btn-warning btn-sm" wire:click = "edit('{{ $result?->id }}')" x-data          = "{ tooltip: 'Edit' }" x-tooltip  = "tooltip"><i class = "fa-solid fa-pencil-alt fa-fw"></i></button>
-                                                </td>
-                                            </tr>
-                                        @empty
-                                            <tr>
-                                                <td colspan="11" class="text-center fw-bold">Belum Ada Data</td>
-                                            </tr>
-                                        @endforelse
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                        @endforeach
-                    @endif
-                    {{-- @if ($get_user?->userDetail?->sales_type == 'ceramic')
-                        <div class="col-md-12 mb-4">
-                            <div class="table-responsive scrollbar-x">
-                                <table class="table table-bordered">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th class="text-center" style="width: 10px;">No</th>
-                                            <th class="text-center">Nominal Target</th>
-                                            <th class="text-center">Persentase</th>
-                                            <th class="text-center" style="width: 10px;">Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @forelse ($ceramic_lower_limits as $result)
-                                            <tr>
-                                                <td class = "text-center">{{ $loop->iteration }}</td>
-                                                <td class = "text-center">{{ $result?->target_payment ? "Rp. ". number_format($result?->target_payment, 0, ',', '.') : '-' }}</td>
-                                                <td class = "text-center">{{ $result?->value ? $result?->value : '-' }}</td>
-                                                <td class = "text-center">
-                                                <button class = "btn btn-danger btn-sm" wire:click  = "deleteConfirm('{{ $result?->id }}')" x-data = "{ tooltip: 'Hapus' }" x-tooltip = "tooltip"><i class = "fa-solid fa-trash-alt fa-fw"></i></button>
-                                                <button class = "btn btn-warning btn-sm" wire:click = "edit('{{ $result?->id }}')" x-data          = "{ tooltip: 'Edit' }" x-tooltip  = "tooltip"><i class = "fa-solid fa-pencil-alt fa-fw"></i></button>
-                                                </td>
-                                            </tr>
-                                        @empty
-                                            <tr>
-                                                <td colspan="11" class="text-center fw-bold">Belum Ada Data</td>
-                                            </tr>
-                                        @endforelse
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    @else
-                        <div class="col-md-6 mb-4">
-                            <div class="mb-3 justify-content-between align-items-center">
-                                <h6 class="mb-0" style="text-align: center"><b>Dr Shield</b></h6>
-                            </div>
-                            <div class="table-responsive scrollbar-x">
-                                <table class="table table-bordered">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th class="text-center" style="width: 10px;">No</th>
-                                            <th class="text-center">Kategori</th>
-                                            <th class="text-center">Nominal Target</th>
-                                            <th class="text-center">Persentase</th>
-                                            <th class="text-center" style="width: 10px;">Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @forelse ($dr_shield_lower_limits as $result)
-                                            <tr>
-                                                <td class = "text-center">{{ $loop->iteration }}</td>
-                                                <td class="text-center">
-                                                    @if ($result?->category  == 'dr-shield')
-                                                        <b>Dr Shield</b>
-                                                    @elseif ($result?->category  == 'dr-sonne')
-                                                        <b>Dr Sonne</b>
-                                                    @else
-                                                        -
-                                                    @endif
-                                                </td>
-                                                <td class = "text-center">{{ $result?->target_payment ? "Rp. ". number_format($result?->target_payment, 0, ',', '.') : '-' }}</td>
-                                                <td class = "text-center">{{ $result?->value ? $result?->value : '-' }}</td>
-                                                <td class = "text-center">
-                                                <button class = "btn btn-danger btn-sm" wire:click  = "deleteConfirm('{{ $result?->id }}')" x-data = "{ tooltip: 'Hapus' }" x-tooltip = "tooltip"><i class = "fa-solid fa-trash-alt fa-fw"></i></button>
-                                                <button class = "btn btn-warning btn-sm" wire:click = "edit('{{ $result?->id }}')" x-data          = "{ tooltip: 'Edit' }" x-tooltip  = "tooltip"><i class = "fa-solid fa-pencil-alt fa-fw"></i></button>
-                                                </td>
-                                            </tr>
-                                        @empty
-                                            <tr>
-                                                <td colspan="11" class="text-center fw-bold">Belum Ada Data</td>
-                                            </tr>
-                                        @endforelse
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                        <div class="col-md-6 mb-4">
-                            <div class="mb-3 justify-content-between align-items-center">
-                                <h6 class="mb-0" style="text-align: center"><b>Dr Sonne</b></h6>
-                            </div>
-                            <div class="table-responsive scrollbar-x">
-                                <table class="table table-bordered">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th class="text-center" style="width: 10px;">No</th>
-                                            <th class="text-center">Kategori</th>
-                                            <th class="text-center">Nominal Target</th>
-                                            <th class="text-center">Persentase</th>
-                                            <th class="text-center" style="width: 10px;">Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @forelse ($dr_sonne_lower_limits as $result)
-                                            <tr>
-                                                <td class = "text-center">{{ $loop->iteration }}</td>
-                                                <td class="text-center">
-                                                    @if ($result?->category  == 'dr-shield')
-                                                        <b>Dr Shield</b>
-                                                    @elseif ($result?->category  == 'dr-sonne')
-                                                        <b>Dr Sonne</b>
-                                                    @else
-                                                        -
-                                                    @endif
-                                                </td>
-                                                <td class = "text-center">{{ $result?->target_payment ? "Rp. ". number_format($result?->target_payment, 0, ',', '.') : '-' }}</td>
-                                                <td class = "text-center">{{ $result?->value ? $result?->value : '-' }}</td>
-                                                <td class = "text-center">
-                                                <button class = "btn btn-danger btn-sm" wire:click  = "deleteConfirm('{{ $result?->id }}')" x-data = "{ tooltip: 'Hapus' }" x-tooltip = "tooltip"><i class = "fa-solid fa-trash-alt fa-fw"></i></button>
-                                                <button class = "btn btn-warning btn-sm" wire:click = "edit('{{ $result?->id }}')" x-data          = "{ tooltip: 'Edit' }" x-tooltip  = "tooltip"><i class = "fa-solid fa-pencil-alt fa-fw"></i></button>
-                                                </td>
-                                            </tr>
-                                        @empty
-                                            <tr>
-                                                <td colspan="11" class="text-center fw-bold">Belum Ada Data</td>
-                                            </tr>
-                                        @endforelse
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    @endif --}}
                 </div>
-                <div class="card-body">
-                    <div class="row align-items-center g-3">
-                        {{-- <div class="col-lg-6 col-12">Menampilkan {{ $ceramic_invoices->firstItem() }} sampai {{ $ceramic_invoices->lastItem() }} dari {{ $ceramic_invoices->total() }} hasil</div>
-                        <div class="col-lg-6 col-12 text-align-end">{{ $ceramic_invoices->onEachSide(1)->links('vendor.livewire.custom-paginate') }}</div> --}}
-                    </div>
+                <div class="tab-pane fade show active" id="version-2" role="tabpanel">
+                    <livewire:sales.sales-list.sales-lower-limit-v2.sales-lower-limit-v2-index :id="$get_user?->id" wire:key="sales-lower-limit-v2-{{ $get_user?->id }}" />
+                </div>
+                <div class="tab-pane fade" id="navs-pills-top-messages" role="tabpanel">
+                    <p>
+                        Oat cake chupa chups dragée donut toffee. Sweet cotton candy jelly beans macaroon gummies cupcake gummi
+                        bears
+                        cake chocolate.
+                    </p>
+                    <p class="mb-0">
+                        Cake chocolate bar cotton candy apple pie tootsie roll ice cream apple pie brownie cake. Sweet roll icing
+                        sesame snaps caramels danish toffee. Brownie biscuit dessert dessert. Pudding jelly jelly-o tart brownie
+                        jelly.
+                    </p>
                 </div>
             </div>
         </div>

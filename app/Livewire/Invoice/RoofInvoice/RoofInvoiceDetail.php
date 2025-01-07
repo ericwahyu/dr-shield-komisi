@@ -7,8 +7,11 @@ use App\Models\Commission\Commission;
 use App\Models\Invoice\Invoice;
 use App\Models\Invoice\InvoiceDetail;
 use App\Models\System\Category;
+use App\Traits\CommissionDetailProcess\RoofCommissionDetailProsses;
 use App\Traits\CommissionProcess;
 use App\Traits\GetSystemSetting;
+use App\Traits\InvoiceDetailProcess\RoofInvoiceDetailProsses;
+use App\Traits\InvoiceProcess\RoofInvoiceProsses;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\DB;
@@ -22,7 +25,7 @@ use function Laravel\Prompts\error;
 
 class RoofInvoiceDetail extends Component
 {
-    use LivewireAlert, WithPagination, GetSystemSetting, CommissionProcess;
+    use LivewireAlert, WithPagination, GetSystemSetting, RoofInvoiceDetailProsses, RoofCommissionDetailProsses;
     protected $paginationTheme = 'bootstrap';
     public $perPage = 10, $search;
 
@@ -35,12 +38,12 @@ class RoofInvoiceDetail extends Component
     public function render()
     {
         foreach ($this->categories as $key => $category) {
-            $this->payment_amounts[$category?->slug]   = "Rp. ". number_format((int)$this->get_invoice->invoiceDetails()->where('category_id', $category?->id)->sum('amount'), 0, ',', '.');
-            $this->remaining_amounts[$category?->slug] = "Rp. ". number_format((int)$this->amounts[$category?->slug] - (int)$this->get_invoice->invoiceDetails()->where('category_id', $category?->id)->sum('amount'), 0, ',', '.');
+            $this->payment_amounts[$category?->slug]   = "Rp. ". number_format((int)$this->get_invoice->invoiceDetails()->where('version', 1)->where('category_id', $category?->id)->sum('amount'), 0, ',', '.');
+            $this->remaining_amounts[$category?->slug] = "Rp. ". number_format((int)$this->amounts[$category?->slug] - (int)$this->get_invoice->invoiceDetails()->where('version', 1)->where('category_id', $category?->id)->sum('amount'), 0, ',', '.');
         }
 
         return view('livewire.invoice.roof-invoice.roof-invoice-detail', [
-            'invoice_details' => $this->get_invoice?->invoiceDetails()->get(),
+            'invoice_details' => $this->get_invoice?->invoiceDetails()->where('version', 1)->get(),
         ])->extends('layouts.layout.app')->section('content');
     }
 
@@ -57,11 +60,11 @@ class RoofInvoiceDetail extends Component
         $this->value_tax      = "Rp. ". number_format($this->get_invoice?->value_tax, 0, ',', '.');
         $this->amount         = "Rp. ". number_format($this->get_invoice?->amount, 0, ',', '.');
 
-        $this->due_date_roof_rules = $this->get_invoice->dueDateRules()->whereNot('number', 0)->get();
+        $this->due_date_roof_rules = $this->get_invoice->dueDateRules()->where('version', 1)->get();
 
-        $this->categories = Category::where('type', 'roof')->get();
+        $this->categories = Category::where('type', 'roof')->where('version', 1)->get();
         foreach ($this->categories as $key => $category) {
-            $this->amounts[$category?->slug] = $this->get_invoice?->paymentDetails()->where('category_id', $category?->id)->first()?->amount;
+            $this->amounts[$category?->slug] = $this->get_invoice?->paymentDetails()->where('version', 1)->where('category_id', $category?->id)->first()?->amount;
         }
     }
 
@@ -75,22 +78,12 @@ class RoofInvoiceDetail extends Component
     {
         if ($this->invoice_detail_date) {
 
-            $get_diffDay    = Carbon::parse($this->date)->diffInDays($this->invoice_detail_date);
-            $desc_due_dates = $this->get_invoice->dueDateRules()->orderBy('due_date', 'DESC')->get();
-            $percentage     = 0;
+            $datas = array(
+                'invoice_detail_date' => $this->invoice_detail_date,
+                'version'             => 1,
+            );
 
-            if (Carbon::parse($this->invoice_detail_date)->toDateString() <= Carbon::parse($this->date)->toDateString()) {
-                $percentage = 100;
-            } else {
-                foreach ($desc_due_dates as $key => $desc_due_date) {
-                    if ((int)$get_diffDay > (int)$desc_due_date?->due_date) {
-                        $percentage = $desc_due_date?->value;
-                        break;
-                    }
-                }
-            }
-
-            $this->percentage = $percentage ;
+            $this->percentage = $this->_percentageRoofInvoiceDetail($this->get_invoice, $datas) ;
         }
     }
 
@@ -117,21 +110,23 @@ class RoofInvoiceDetail extends Component
 
         try {
             DB::transaction(function () {
-                $this->get_invoice->invoiceDetails()->updateOrCreate(
-                    [
-                        'id' => $this->id_data,
-                    ],
-                    [
-                        'category_id' => $this->category,
-                        'amount'      => $this->invoice_detail_amount,
-                        'date'        => $this->invoice_detail_date,
-                        'percentage'  => $this->percentage,
-                    ]
-                );
 
-                foreach ($this->categories as $key => $category) {
-                    $this->roofCommissionDetail($this->get_invoice, $category);
-                }
+                $datas = array(
+                    'id_data'               => $this->id_data,
+                    'version'               => 1,
+                    'category_id'           => $this->category,
+                    'invoice_detail_amount' => $this->invoice_detail_amount,
+                    'invoice_detail_date'   => $this->invoice_detail_date,
+                    'percentage'            => $this->percentage,
+                );
+                $this->_roofInvoiceDetail($this->get_invoice, $datas);
+
+                $datas = array(
+                    'version' => 1
+                );
+                $this->_roofCommissionDetail($this->get_invoice, $datas);
+
+
             });
         } catch (Exception | Throwable $th) {
             DB::rollback();
@@ -158,7 +153,7 @@ class RoofInvoiceDetail extends Component
         $this->invoice_detail_amount = $this->get_invoice_detail?->amount;
         $this->percentage            = $this->get_invoice_detail?->percentage;
 
-        $this->dispatch('openModal');
+        $this->dispatch('openModal-v1');
     }
 
     public function deleteConfirm($id)
@@ -184,7 +179,12 @@ class RoofInvoiceDetail extends Component
                 $result = Invoice::find($this->get_invoice?->id)->invoiceDetails()->where('id', $data['inputAttributes']['id'])->first();
                 $invoice = $result;
                 $result?->delete();
-                $this->roofCommissionDetail($invoice, $result?->category);
+
+                $datas = array(
+                    'version' => 1,
+                    'invoice_detail_date' => Invoice::find($this->get_invoice?->id)->invoiceDetails()->where('id', $data['inputAttributes']['id'])->withTrashed()->first()?->date?->format('Y-m-d')
+                );
+                $this->_roofCommissionDetail($this->get_invoice, $datas);
             });
 
             DB::commit();

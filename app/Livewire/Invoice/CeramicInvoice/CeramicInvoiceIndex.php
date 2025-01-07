@@ -12,7 +12,10 @@ use App\Models\Invoice\Invoice;
 use App\Models\Invoice\InvoiceDetail;
 use App\Models\System\Category;
 use App\Traits\CommissionProcess;
+use App\Traits\CommissionProcess\CeramicCommissionProsses;
 use App\Traits\GetSystemSetting;
+use App\Traits\InvoiceProcess;
+use App\Traits\InvoiceProcess\CeramicInvoiceProsses;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\DB;
@@ -27,7 +30,7 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class CeramicInvoiceIndex extends Component
 {
-    use LivewireAlert, WithPagination, GetSystemSetting, WithFileUploads, CommissionProcess;
+    use LivewireAlert, WithPagination, GetSystemSetting, WithFileUploads, CeramicInvoiceProsses, CeramicCommissionProsses;
     protected $paginationTheme = 'bootstrap';
     public $perPage = 10, $search;
 
@@ -58,8 +61,8 @@ class CeramicInvoiceIndex extends Component
 
     public function mount()
     {
-        $this->due_date_ceramic_rules = DueDateRuleCeramic::where('type', 'ceramic')->orderBy('due_date', 'ASC')->get();
-        $this->categories             = Category::where('type', 'ceramic')->get();
+        $this->due_date_ceramic_rules = DueDateRuleCeramic::where('type', 'ceramic')->where('version', 1)->orderBy('due_date', 'ASC')->get();
+        $this->categories             = Category::where('type', 'ceramic')->where('version', 1)->get();
     }
 
     public function hydrate()
@@ -89,30 +92,30 @@ class CeramicInvoiceIndex extends Component
 
     public function saveData()
     {
-        if (count($this->categories) > 0 ) {
-            foreach ($this->categories as $key => $category) {
-                $check_lower_limit = User::find($this->sales_id)->lowerLimits()->whereHas('category', fn ($query) => $query->where('id', $category?->id))->first();
-                if (!$check_lower_limit) {
-                    return $this->alert('warning', 'Peringatan', [
-                        'text' => "Data target batas bawah untuk $category?->name belum diatur !"
-                    ]);
-                }
-            }
-        } else {
-            $check_lower_limit = User::find($this->sales_id)->lowerLimits()->whereNull('category_id')->first();
-            if (!$check_lower_limit) {
-                return $this->alert('warning', 'Peringatan', [
-                    'text' => 'Data target batas bawah belum diatur !'
-                ]);
-            }
-        }
+        // if (count($this->categories) > 0 ) {
+        //     foreach ($this->categories as $key => $category) {
+        //         $check_lower_limit = User::find($this->sales_id)->lowerLimits()->whereHas('category', fn ($query) => $query->where('id', $category?->id))->where('version', 1)->first();
+        //         if (!$check_lower_limit) {
+        //             return $this->alert('warning', 'Peringatan', [
+        //                 'text' => "Data target batas bawah untuk $category?->name belum diatur !"
+        //             ]);
+        //         }
+        //     }
+        // } else {
+        //     $check_lower_limit = User::find($this->sales_id)->lowerLimits()->whereNull('category_id')->where('version', 1)->first();
+        //     if (!$check_lower_limit) {
+        //         return $this->alert('warning', 'Peringatan', [
+        //             'text' => 'Data target batas bawah belum diatur !'
+        //         ]);
+        //     }
+        // }
 
         $this->validate([
             'sales_id'       => 'required',
             'date'           => 'required|date',
             'invoice_number' => 'required',
             'customer'       => 'required',
-            'id_customer'    => 'required',
+            'id_customer'    => 'nullable',
             'due_date'       => 'required|numeric',
             'income_tax'     => 'required|numeric',
             'value_tax'      => 'required|numeric',
@@ -141,56 +144,57 @@ class CeramicInvoiceIndex extends Component
 
                 $invoice->paymentDetails()->updateOrCreate(
                     [
-                        'category_id' => null
+                        'category_id' => null,
+                        'version'     => 1,
                     ],
                     [
                        'category_id' => null,
+                       'version'     => 1,
                        'income_tax'  => intval(Str::replace('.','',$this->income_tax)),
                        'value_tax'   => intval(Str::replace('.','',$this->value_tax)),
                        'amount'      => intval(Str::replace('.','',$this->amount)),
                     ]
                 );
 
-                if ($this->id_data == null) {
-                    foreach ($this->due_date_ceramic_rules as $key => $due_date_ceramic_rule) {
-                        $invoice->dueDateRules()->create(
-                            [
-                                'due_date' => $due_date_ceramic_rule?->due_date,
-                                'value'    => $due_date_ceramic_rule?->value,
-                            ]
-                        );
-                    }
-                } elseif ($this->get_invoice?->date != $this->date) {
-                    // $invoice->invoiceDetails()->delete();
-                    foreach ($invoice?->invoiceDetails as $key => $invoice_detail) {
+                $invoice->paymentDetails()->updateOrCreate(
+                    [
+                        'category_id' => null,
+                        'version'     => 2,
+                    ],
+                    [
+                       'category_id' => null,
+                       'version'     => 2,
+                       'income_tax'  => intval(Str::replace('.','',$this->income_tax)),
+                       'value_tax'   => intval(Str::replace('.','',$this->value_tax)),
+                       'amount'      => intval(Str::replace('.','',$this->amount)),
+                    ]
+                );
 
-                        $percentage = null;
-                        $get_diffDay    = Carbon::parse($invoice?->date)->diffInDays($invoice_detail?->date);
-                        $desc_due_dates = $invoice->dueDateRules()->orderBy('due_date', 'DESC')->get();
+                //proses invoice
+                $datas = array(
+                    'due_date' => $this->due_date,
+                    'version'  => 1,
+                );
+                $this->_ceramicInvoice($invoice, $datas);
 
-                        if (Carbon::parse($invoice_detail?->date)->toDateString() <= Carbon::parse($invoice?->date)->toDateString()) {
-                            $percentage = 100;
-                        } else {
-                            foreach ($desc_due_dates as $key => $desc_due_date) {
-                                if ((int)$get_diffDay >= (int)$desc_due_date?->due_date) {
-                                    $percentage = $desc_due_date?->value;
-                                    break;
-                                }
-                            }
-                        }
-
-                        $invoice->invoiceDetails()->where('id', $invoice_detail?->id)->first()?->update([
-                            'percentage' => $percentage
-                        ]);
-                    }
-                }
+                $datas = array(
+                    'due_date' => $this->due_date,
+                    'version'  => 2,
+                );
+                $this->_ceramicInvoice($invoice, $datas);
 
                 //create commission
                 $datas = array(
-                    'sales_id'   => $invoice?->user?->id,
                     'income_tax' => $this->income_tax,
+                    'version'    => 1,
                 );
-                $this->ceramicCommission($invoice, $datas);
+                $this->_ceramicCommission($invoice, $datas);
+
+                $datas = array(
+                    'income_tax' => $this->income_tax,
+                    'version'    => 2,
+                );
+                $this->_ceramicCommission($invoice, $datas);
 
             });
         } catch (Exception | Throwable $th) {
@@ -214,6 +218,7 @@ class CeramicInvoiceIndex extends Component
         $this->get_invoice    = Invoice::find($id);
         $this->id_data        = $this->get_invoice?->id;
         $this->sales_id       = $this->get_invoice?->user?->id;
+        $this->sales_code     = User::find($this->sales_id) ? User::find($this->sales_id)?->userDetail?->sales_code : null;
         $this->date           = $this->get_invoice?->date?->format('Y-m-d');
         $this->invoice_number = $this->get_invoice?->invoice_number;
         $this->customer       = $this->get_invoice?->customer;
@@ -252,11 +257,19 @@ class CeramicInvoiceIndex extends Component
                 $result->paymentDetails()->delete();
                 $result->dueDateRules()->delete();
                 $result?->delete();
+
                 $datas = array(
-                    'sales_id'   => $invoice?->user?->id,
-                    'income_tax' => null,
+                    'income_tax' => $invoice?->income_tax,
+                    'version'    => 1,
                 );
-                $this->ceramicCommission($invoice, $datas);
+                $this->_ceramicCommission($invoice, $datas);
+
+                $datas = array(
+                    'income_tax' => $invoice?->income_tax,
+                    'version'    => 2,
+                );
+                $this->_ceramicCommission($invoice, $datas);
+
             });
 
             DB::commit();

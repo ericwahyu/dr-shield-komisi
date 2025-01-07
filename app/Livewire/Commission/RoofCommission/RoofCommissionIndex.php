@@ -27,7 +27,7 @@ class RoofCommissionIndex extends Component
         return view('livewire.commission.roof-commission.roof-commission-index', [
             'sales' => $users->role('sales')->whereHas('userDetail', function ($query) {
                 $query->where('sales_type', 'roof');
-            })->paginate($this->perPage)
+            })->get()
         ])->extends('layouts.layout.app')->section('content');
     }
 
@@ -35,7 +35,7 @@ class RoofCommissionIndex extends Component
     {
         $this->filter_month = Carbon::now()->format('Y-m');
         // $this->filter_month = Carbon::parse('2024-04')->format('Y-m');
-        $this->categories   = Category::where('type', 'roof')->get();
+        $this->categories   = Category::where('type', 'roof')->where('version', 1)->get();
     }
 
     public function hydrate()
@@ -59,7 +59,7 @@ class RoofCommissionIndex extends Component
     {
         $get_commission = Commission::whereHas('user', function ($query) use ($user_id) {
             $query->where('id', $user_id);
-        })->where('year', (int)Carbon::parse($this->filter_month)->format('Y'))->where('month', (int)Carbon::parse($this->filter_month)->format('m'))->where('category_id', $category?->id)->first();
+        })->where('year', (int)Carbon::parse($this->filter_month)->format('Y'))->where('month', (int)Carbon::parse($this->filter_month)->format('m'))->where('category_id', $category?->id)->where('version', 1)->first();
 
         return $get_commission;
     }
@@ -68,7 +68,7 @@ class RoofCommissionIndex extends Component
     {
         $get_commission = Commission::whereHas('user', function ($query) use ($user_id) {
             $query->where('id', $user_id);
-        })->where('year', (int)Carbon::parse($this->filter_month)->format('Y'))->where('month', (int)Carbon::parse($this->filter_month)->format('m'))->where('category_id', $category?->id)->first();
+        })->where('year', (int)Carbon::parse($this->filter_month)->format('Y'))->where('month', (int)Carbon::parse($this->filter_month)->format('m'))->where('category_id', $category?->id)->where('version', 1)->first();
         // dd($user_id, $category, $get_commission);
 
         if (!$get_commission ) {
@@ -81,7 +81,7 @@ class RoofCommissionIndex extends Component
     {
         $get_commission = Commission::whereHas('user', function ($query) use ($user_id) {
             $query->where('id', $user_id);
-        })->where('year', (int)Carbon::parse($this->filter_month)->format('Y'))->where('month', (int)Carbon::parse($this->filter_month)->format('m'))->where('category_id', $category?->id)->first();
+        })->where('year', (int)Carbon::parse($this->filter_month)->format('Y'))->where('month', (int)Carbon::parse($this->filter_month)->format('m'))->where('category_id', $category?->id)->where('version', 1)->first();
 
         if (!$get_commission || $get_commission?->status == 'not-reach') {
             return null;

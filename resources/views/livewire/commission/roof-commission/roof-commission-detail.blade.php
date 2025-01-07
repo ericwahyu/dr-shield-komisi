@@ -16,10 +16,6 @@
     <hr class="my-3">
     <div class="col-md-12">
         <div class="mb-4 card">
-            {{-- <h5 class="card-header d-flex justify-content-between align-items-center">Data Akun Admin</h5> --}}
-            {{-- <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0" style="text-align: center">Data Sales</h5>
-            </div> --}}
             <div class="card-body">
                 <div class="row g-3">
                     <div class="col-3">

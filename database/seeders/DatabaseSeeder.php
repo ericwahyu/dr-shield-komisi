@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             DueDateRuleSeeder::class,
             DueDateRuleCeramicSeeder::class,
+            DueDateRuleRoofSeeder::class,
         ]);
     }
 }

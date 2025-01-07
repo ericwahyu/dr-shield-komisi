@@ -6,7 +6,10 @@ use App\Models\Auth\User;
 use App\Models\Invoice\Invoice;
 use App\Models\System\Category;
 use App\Traits\CommissionProcess;
+use App\Traits\CommissionProcess\RoofCommissionProsses;
 use App\Traits\GetSystemSetting;
+use App\Traits\InvoiceProcess\RoofInvoiceProsses;
+use App\Traits\PaymentDetailProsses\RoofPaymentDetailProsses;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -18,7 +21,7 @@ use Throwable;
 class RoofInvoice implements ShouldQueue
 {
     use Queueable;
-    use GetSystemSetting, CommissionProcess;
+    use GetSystemSetting, RoofInvoiceProsses, RoofPaymentDetailProsses, RoofCommissionProsses;
 
     protected $collections;
 
@@ -44,18 +47,18 @@ class RoofInvoice implements ShouldQueue
                     continue;
                 }
 
-                foreach ($categories as $key => $category) {
-                    $check_lower_limit = User::where('name', 'LIKE', "%". $collection[7] ."%")->whereHas('userDetail', function ($query) use ($collection) {
-                        $query->where('depo', 'LIKE', "%". $collection[6] ."%");
-                    })->first()?->lowerLimits()->where('category_id', $category?->id)->first();
+                // foreach ($categories as $key => $category) {
+                //     $check_lower_limit = User::where('name', 'ILIKE', "%". $collection[7] ."%")->whereHas('userDetail', function ($query) use ($collection) {
+                //         $query->where('depo', 'ILIKE', "%". $collection[6] ."%");
+                //     })->first()?->lowerLimits()->where('category_id', $category?->id)->first();
 
-                    if (!$check_lower_limit) {
-                        continue;
-                    }
-                }
+                //     if (!$check_lower_limit) {
+                //         continue;
+                //     }
+                // }
 
-                $get_user = User::where('name', 'LIKE', "%". $collection[7] ."%")->whereHas('userDetail', function ($query) use ($collection) {
-                    $query->where('depo', 'LIKE', "%". $collection[6] ."%");
+                $get_user = User::where('name', 'ILIKE', "%". $collection[7] ."%")->whereHas('userDetail', function ($query) use ($collection) {
+                    $query->where('depo', 'ILIKE', "%". $collection[6] ."%");
                 })->first();
 
                 $unique_invoice = Invoice::where('invoice_number', $collection[1])->first();
@@ -65,6 +68,14 @@ class RoofInvoice implements ShouldQueue
                 if (!$get_user || $unique_invoice || (int)$check_year < 2010) {
                     continue;
                 }
+
+                //value_tax
+                $collection[11] = $collection[11] == null ? $collection[10] * 0.11 : $collection[11];
+                $collection[14] = $collection[14] == null ? $collection[13] * 0.11 : $collection[14];
+
+                //amount
+                $collection[12] = $collection[12] == null ? $collection[10] + $collection[11] : $collection[12];
+                $collection[15] = $collection[15] == null ? $collection[13] + $collection[14] : $collection[15];
 
                 DB::transaction(function () use ($collection, $get_user, $categories) {
 
@@ -79,36 +90,71 @@ class RoofInvoice implements ShouldQueue
                             'income_tax'     => (int)$collection[10] + (int)$collection[13],
                             'value_tax'      => (int)$collection[11] + (int)$collection[14],
                             'amount'         => (int)$collection[12] + (int)$collection[15],
-                            'due_date'       => $collection[9],
+                            'due_date'       => $collection[9] ?? 30,
                         ]
                     );
 
-                    $this->createDueDateRule($invoice, $collection[9]);
-                    foreach ($categories as $key => $category) {
-                        $index = 10;
-                        if ($category?->slug == 'dr-shield') {
-                            $index = 10;
-                        } elseif ($category?->slug == 'dr-sonne') {
-                            $index = 13;
-                        } else {
-                            $index = 100;
-                        }
-                        $invoice->paymentDetails()->updateOrCreate(
-                            [
-                                'category_id' => $category?->id
-                            ],
-                            [
-                                'category_id' => $category?->id,
-                                'income_tax'  => (int)number_format($collection[$index], 0, ',', ''),
-                                'value_tax'   => (int)number_format($collection[$index + 1], 0, ',', ''),
-                                'amount'      => (int)number_format($collection[$index + 2], 0, ',', ''),
-                            ]
-                        );
+                    $income_taxs = array(
+                        'dr-shield' => (int)$collection[10],
+                        'dr-sonne'  => (int)$collection[13],
+                    );
 
+                    $value_taxs = array(
+                        'dr-shield' => (int)$collection[11],
+                        'dr-sonne'  => (int)$collection[14],
+                    );
+
+                    $amounts = array(
+                        'dr-shield' => (int)$collection[12],
+                        'dr-sonne'  => (int)$collection[15],
+                    );
+
+                    $datas = array(
+                        'version'     => 1,
+                        'income_taxs' => $income_taxs,
+                        'value_taxs'  => $value_taxs,
+                        'amounts'     => $amounts,
+                    );
+
+                    $this->_paymentDetail($invoice, $datas);
+
+                    $datas = array(
+                        'version'     => 2,
+                        'income_taxs' => $income_taxs,
+                        'value_taxs'  => $value_taxs,
+                        'amounts'     => $amounts,
+                    );
+                    $this->_paymentDetail($invoice, $datas);
+
+                    //Invoice Proses
+                    $datas = array(
+                        'version'  => 1,
+                        'due_date' => $collection[9]
+                    );
+                    $this->_roofInvoice($invoice, $datas);
+
+                    $datas = array(
+                        'version'  => 2,
+                        'due_date' => $collection[9]
+                    );
+                    $this->_roofInvoice($invoice, $datas);
+
+                    $categories = ['dr-shield', 'dr-sonne'];
+                    foreach ($categories as $key => $category) {
+                        $get_category = Category::where('slug', $category)->where('version', 1)->first();
                         $datas = array(
-                            'sales_id'   => $invoice?->user?->id,
+                            'version' => 1
                         );
-                        $this->roofCommission($invoice, $category, $datas);
+                        $this->_roofCommission($invoice, $get_category, $datas);
+                    }
+
+                    $categories = [null, 'dr-sonne'];
+                    foreach ($categories as $key => $category) {
+                        $get_category = Category::where('slug', $category)->where('version', 2)->first();
+                        $datas = array(
+                            'version' => 2
+                        );
+                        $this->_roofCommission($invoice, $get_category, $datas);
                     }
                 });
             }
@@ -141,7 +187,6 @@ class RoofInvoice implements ShouldQueue
                 $invoice->dueDateRules()->create(
                     [
                         'type'     => 'roof',
-                        'number'   => $key,
                         'due_date' => $data_due_date['due_date'],
                         'value'    => $data_due_date['value'],
                     ]
@@ -150,17 +195,15 @@ class RoofInvoice implements ShouldQueue
                 $invoice->dueDateRules()->create(
                     [
                         'type'     => 'roof',
-                        'number'   => $key,
                         'due_date' => $due_date <= 30 ? 30 + (int)$data_due_date['due_date'] : (int)$due_date + (int)$data_due_date['due_date'],
                         'value'    => $data_due_date['value'],
                     ]
                 );
             } elseif ($key > 1) {
-                $get_due_date_rule = $invoice->dueDateRules()->orderBy('number', 'DESC')->first();
+                $get_due_date_rule = $invoice->dueDateRules()->orderBy('value', 'ASC')->first();
                 $invoice->dueDateRules()->create(
                     [
                         'type'     => 'roof',
-                        'number'   => $key,
                         'due_date' => (int)$get_due_date_rule?->due_date + (int)$data_due_date['due_date'],
                         'value'    => $data_due_date['value'],
                     ]

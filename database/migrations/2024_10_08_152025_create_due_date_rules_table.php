@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('due_date_rules', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('invoice_id')->nullable();
-            $table->integer('number')->nullable()->comment('urutan aturan jatuh tempo (1,2,3,..)');
+            $table->integer('version')->nullable()->comment('versi komisi');
             $table->integer('due_date')->nullable()->comment('diffDays');
             $table->integer('value')->nullable()->comment('nilai format %');
             $table->timestamps();

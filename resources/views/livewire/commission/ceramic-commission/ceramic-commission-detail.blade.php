@@ -1,4 +1,4 @@
-@section('title', 'Detail Komisi Keramik')
+@section('title', 'Detail Komisi Keramik Versi 1')
 @php
     use Carbon\Carbon;
 @endphp
@@ -7,7 +7,7 @@
     <div class="d-flex align-items-center">
         <a href="{{ route('ceramic.commission') }}" class="btn btn-icon" style="margin-right: 15px"><i class="fa-solid fa-arrow-left"></i></a>
         <div>
-            <h3 class="mb-0 fw-semibold">Detail Komisi Keramik</h3>
+            <h3 class="mb-0 fw-semibold">Detail Komisi Keramik Versi 1</h3>
         </div>
         <div class="ms-auto">
             {{-- <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modal">Tambah <i class="fa-solid fa-circle-plus fa-fw ms-2"></i></button> --}}

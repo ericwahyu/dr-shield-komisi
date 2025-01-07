@@ -6,7 +6,9 @@ use App\Models\Auth\User;
 use App\Models\Invoice\DueDateRuleCeramic;
 use App\Models\Invoice\Invoice;
 use App\Traits\CommissionProcess;
+use App\Traits\CommissionProcess\CeramicCommissionProsses;
 use App\Traits\GetSystemSetting;
+use App\Traits\InvoiceProcess\CeramicInvoiceProsses;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -18,7 +20,7 @@ use Throwable;
 class CeramicInvoice implements ShouldQueue
 {
     use Queueable;
-    use GetSystemSetting, CommissionProcess;
+    use GetSystemSetting, CeramicInvoiceProsses, CeramicCommissionProsses;
 
     protected $collections;
 
@@ -44,17 +46,17 @@ class CeramicInvoice implements ShouldQueue
                     continue;
                 }
 
-                $check_lower_limit = User::where('name', 'LIKE', "%". $collection[7] ."%")->whereHas('userDetail', function ($query) use ($collection) {
-                    $query->where('depo', 'LIKE', "%". $collection[6] ."%");
-                })->first()?->lowerLimits()->whereNull('category_id')->first();
-
-                $get_user = User::where('name', 'LIKE', "%". $collection[7] ."%")->whereHas('userDetail', function ($query) use ($collection) {
-                    $query->where('depo', 'LIKE', "%". $collection[6] ."%");
+                $get_user = User::where('name', 'ILIKE', "%". $collection[7] ."%")->whereHas('userDetail', function ($query) use ($collection) {
+                    $query->where('depo', 'ILIKE', "%". $collection[6] ."%");
                 })->first();
+
+                $check_lower_limit = $get_user?->lowerLimits()->whereNull('category_id')->first();
 
                 $unique_invoice = Invoice::where('invoice_number', $collection[1])->first();
 
                 $check_year = Carbon::parse($collection[0])->format('Y');
+
+                // dd($collection[7],  $collection[6], $get_user);
 
                 if (!$check_lower_limit || !$get_user || $unique_invoice || (int)$check_year < 2010) {
                     continue;
@@ -69,46 +71,65 @@ class CeramicInvoice implements ShouldQueue
                             'invoice_number' => $collection[1],
                             'customer'       => $collection[2],
                             'id_customer'    => $collection[8],
-                            'income_tax'     => $collection[3],
-                            'value_tax'      => $collection[4],
-                            'amount'         => $collection[5],
+                            'income_tax'     => (int)$collection[3],
+                            'value_tax'      => (int)$collection[4],
+                            'amount'         => (int)$collection[5],
                             'due_date'       => $collection[9],
                         ]
                     );
 
-                    $invoice->paymentDetails()->updateOrCreate(
+                    $invoice->paymentDetails()->create(
                         [
                            'category_id' => null,
-                           'income_tax'     => $collection[3],
-                           'value_tax'      => $collection[4],
-                           'amount'         => $collection[5],
+                           'version'     => 1,
+                           'income_tax'     => (int)$collection[3],
+                           'value_tax'      => (int)$collection[4],
+                           'amount'         => (int)$collection[5],
                         ]
                     );
 
-                    $due_date_rule_ceramics = DueDateRuleCeramic::where('type', 'ceramic')->orderBy('due_date', 'ASC')->get();
-                    foreach ($due_date_rule_ceramics as $key => $due_date_rule_ceramic) {
-                        $invoice->dueDateRules()->create(
-                            [
-                                'type'     => 'ceramic',
-                                'due_date' => $due_date_rule_ceramic?->due_date,
-                                'value'    => $due_date_rule_ceramic?->value,
-                            ]
-                        );
-                    }
+                    $invoice->paymentDetails()->create(
+                        [
+                           'category_id' => null,
+                           'version'     => 2,
+                           'income_tax'     => (int)$collection[3],
+                           'value_tax'      => (int)$collection[4],
+                           'amount'         => (int)$collection[5],
+                        ]
+                    );
+
+                     //proses invoice
+                    $datas = array(
+                        'due_date' =>  $collection[9],
+                        'version'  => 1,
+                    );
+                    $this->_ceramicInvoice($invoice, $datas);
+
+                    $datas = array(
+                        'due_date' =>  $collection[9],
+                        'version'  => 2,
+                    );
+                    $this->_ceramicInvoice($invoice, $datas);
 
                     //create commission
                     $datas = array(
-                        'sales_id'   => $invoice?->user?->id,
-                        'income_tax' => $collection[3],
+                        'income_tax' => (int)$collection[3],
+                        'version'    => 1,
                     );
-                    $this->ceramicCommission($invoice, $datas);
+                    $this->_ceramicCommission($invoice, $datas);
+
+                    $datas = array(
+                        'income_tax' => (int)$collection[3],
+                        'version'    => 2,
+                    );
+                    $this->_ceramicCommission($invoice, $datas);
                 });
             }
 
         } catch (Exception | Throwable $th) {
             DB::rollBack();
-            Log::error($th->getMessage());
             Log::error("Ada kesalahan saat import faktur keramik");
+            throw new Exception($th->getMessage());
         }
     }
 }

@@ -15,6 +15,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignUuid('invoice_id');
             $table->foreignUuid('category_id')->nullable()->comment('kategori');
+            $table->integer('version')->nullable()->comment('versi komisi');
             $table->bigInteger('income_tax')->nullable()->comment('nominal DPP'); //DPP
             $table->bigInteger('value_tax')->nullable()->comment('nominal PPN'); //PPN
             $table->bigInteger('amount')->nullable()->comment('DPP + PPN'); //DPP + PPN

@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('categories', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->enum('type', ['roof', 'ceramic'])->nullable()->comment('tipe keramik atau atap');
+            $table->integer('version')->nullable()->comment('versi komisi');
             $table->string('name')->nullable()->comment('nama kategori');
             $table->string('slug')->nullable()->comment('slug nama kategori');
             $table->timestamps();

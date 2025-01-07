@@ -16,23 +16,25 @@ class CeramicCommissionIndex extends Component
     protected $paginationTheme = 'bootstrap';
     public $perPage = 10, $search;
 
-    public $filter_month;
+    public $filter_month, $version;
     public $selectYear, $selectMonth;
 
     public function render()
     {
         $users =  User::search($this->search);
-
+        // dd($users);
         return view('livewire.commission.ceramic-commission.ceramic-commission-index', [
             'sales' => $users->role('sales')->whereHas('userDetail', function ($query) {
                 $query->where('sales_type', 'ceramic');
-            })->paginate($this->perPage)
+            })->get()
         ])->extends('layouts.layout.app')->section('content');
     }
 
     public function mount()
     {
+        // $this->filter_month = Carbon::parse('2024-04-01')->format('Y-m');
         $this->filter_month = Carbon::now()->format('Y-m');
+        $this->version      = 1;
     }
 
     public function hydrate()
@@ -56,7 +58,7 @@ class CeramicCommissionIndex extends Component
     {
         $get_commission = Commission::whereHas('user', function ($query) use ($user_id) {
             $query->where('id', $user_id);
-        })->where('year', (int)Carbon::parse($this->filter_month)->format('Y'))->where('month', (int)Carbon::parse($this->filter_month)->format('m'))->first();
+        })->where('year', (int)Carbon::parse($this->filter_month)->format('Y'))->where('month', (int)Carbon::parse($this->filter_month)->format('m'))->where('version', 1)->first();
 
         return $get_commission;
     }
@@ -65,7 +67,7 @@ class CeramicCommissionIndex extends Component
     {
         $get_commission = Commission::whereHas('user', function ($query) use ($user_id) {
             $query->where('id', $user_id);
-        })->where('year', (int)Carbon::parse($this->filter_month)->format('Y'))->where('month', (int)Carbon::parse($this->filter_month)->format('m'))->first();
+        })->where('year', (int)Carbon::parse($this->filter_month)->format('Y'))->where('month', (int)Carbon::parse($this->filter_month)->format('m'))->where('version', 1)->first();
 
         if (!$get_commission ) {
             return [];
@@ -77,7 +79,7 @@ class CeramicCommissionIndex extends Component
     {
         $get_commission = Commission::whereHas('user', function ($query) use ($user_id) {
             $query->where('id', $user_id);
-        })->where('year', (int)Carbon::parse($this->filter_month)->format('Y'))->where('month', (int)Carbon::parse($this->filter_month)->format('m'))->first();
+        })->where('year', (int)Carbon::parse($this->filter_month)->format('Y'))->where('month', (int)Carbon::parse($this->filter_month)->format('m'))->where('version', 1)->first();
 
         if (!$get_commission || $get_commission?->status == 'not-reach') {
             return null;

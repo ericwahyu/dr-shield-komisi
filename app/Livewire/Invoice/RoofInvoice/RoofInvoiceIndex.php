@@ -9,6 +9,9 @@ use App\Models\Invoice\Invoice;
 use App\Models\Invoice\PaymentDetail;
 use App\Models\System\Category;
 use App\Traits\CommissionProcess;
+use App\Traits\CommissionProcess\RoofCommissionProsses;
+use App\Traits\InvoiceProcess\RoofInvoiceProsses;
+use App\Traits\PaymentDetailProsses\RoofPaymentDetailProsses;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\DB;
@@ -22,7 +25,7 @@ use Throwable;
 
 class RoofInvoiceIndex extends Component
 {
-    use LivewireAlert, WithPagination, WithFileUploads, CommissionProcess;
+    use LivewireAlert, WithPagination, WithFileUploads, RoofInvoiceProsses, RoofPaymentDetailProsses, RoofCommissionProsses;
     protected $paginationTheme = 'bootstrap';
     public $perPage = 10, $search;
 
@@ -70,7 +73,7 @@ class RoofInvoiceIndex extends Component
             ],
         ];
 
-        $this->categories = Category::where('type', 'roof')->get();
+        $this->categories = Category::where('type', 'roof')->distinct('slug')->get();
     }
 
     public function hydrate()
@@ -114,21 +117,21 @@ class RoofInvoiceIndex extends Component
 
     public function saveData()
     {
-        foreach ($this->categories as $key => $category) {
-            $check_lower_limit = User::find($this->sales_id)->lowerLimits()->whereHas('category', fn ($query) => $query->where('id', $category?->id))->first();
-            if (!$check_lower_limit) {
-                return $this->alert('warning', 'Peringatan', [
-                    'text' => "Data target batas bawah untuk $category?->name belum diatur !"
-                ]);
-            }
-        }
+        // foreach ($this->categories as $key => $category) {
+        //     $check_lower_limit = User::find($this->sales_id)->lowerLimits()->whereHas('category', fn ($query) => $query->where('id', $category?->id))->first();
+        //     if (!$check_lower_limit) {
+        //         return $this->alert('warning', 'Peringatan', [
+        //             'text' => "Data target batas bawah untuk $category?->name belum diatur !"
+        //         ]);
+        //     }
+        // }
 
         $this->validate([
             'sales_id'       => 'required',
             'date'           => 'required|date',
             'invoice_number' => 'required',
             'customer'       => 'required',
-            'id_customer'    => 'required',
+            'id_customer'    => 'nullable',
             'due_date'       => 'required|numeric',
             'income_tax'     => 'required|numeric',
             'value_tax'      => 'required|numeric',
@@ -155,55 +158,52 @@ class RoofInvoiceIndex extends Component
                     ]
                 );
 
-                foreach ($this->categories as $key => $category) {
-                    $invoice->paymentDetails()->updateOrCreate(
-                        [
-                            'category_id' => $category?->id
-                        ],
-                        [
-                            'category_id' => $category?->id,
-                            'income_tax'  => isset($this->income_taxs[$category?->slug]) ? (int)number_format($this->income_taxs[$category?->slug], 0, ',', '') : null,
-                            'value_tax'   => isset($this->value_taxs[$category?->slug]) ? (int)number_format($this->value_taxs[$category?->slug], 0, ',', '') : null,
-                            'amount'      => isset($this->amounts[$category?->slug]) ? (int)number_format($this->amounts[$category?->slug], 0, ',', '') : null,
-                        ]
-                    );
-                }
-
-                // dd($invoice->paymentDetails()->get());
-
-                if ($this->id_data == null) {
-                    $this->createDueDateRule($invoice);
-
-                } elseif ($this?->get_invoice?->due_date != $this->due_date || $this->get_invoice?->date != $this->date) {
-                    $invoice->dueDateRules()->delete();
-                    $this->createDueDateRule($invoice);
-                    foreach ($invoice?->invoiceDetails as $key => $invoice_detail) {
-                        $percentage     = null;
-                        $get_diffDay    = Carbon::parse($invoice?->date)->diffInDays($invoice_detail?->date);
-                        $desc_due_dates = $invoice->dueDateRules()->orderBy('due_date', 'DESC')->get();
-
-                        if (Carbon::parse($invoice_detail?->date)->toDateString() <= Carbon::parse($invoice?->date)->toDateString()) {
-                            $percentage = 100;
-                        } else {
-                            foreach ($desc_due_dates as $key => $desc_due_date) {
-                                if ((int)$get_diffDay >= (int)$desc_due_date?->due_date) {
-                                    $percentage = $desc_due_date?->value;
-                                    break;
-                                }
-                            }
-                        }
-
-                        $invoice->invoiceDetails()->where('id', $invoice_detail?->id)->first()?->update([
-                            'percentage' => $percentage
-                        ]);
-                    }
-                }
+                //payment detail
+                $datas = array(
+                    'version'     => 1,
+                    'income_taxs' => $this->income_taxs,
+                    'value_taxs'  => $this->value_taxs,
+                    'amounts'     => $this->amounts,
+                );
+                $this->_paymentDetail($invoice, $datas);
 
                 $datas = array(
-                    'sales_id'   => $invoice?->user?->id,
+                    'version'     => 2,
+                    'income_taxs' => $this->income_taxs,
+                    'value_taxs'  => $this->value_taxs,
+                    'amounts'     => $this->amounts,
                 );
-                foreach ($this->categories as $key => $category) {
-                    $this->roofCommission($invoice, $category, $datas);
+                $this->_paymentDetail($invoice, $datas);
+
+                //Invoice Proses
+                $datas = array(
+                    'version'  => 1,
+                    'due_date' => $this->due_date
+                );
+                $this->_roofInvoice($invoice, $datas);
+
+                $datas = array(
+                    'version'  => 2,
+                    'due_date' => $this->due_date
+                );
+                $this->_roofInvoice($invoice, $datas);
+
+                $categories = ['dr-shield', 'dr-sonne'];
+                foreach ($categories as $key => $category) {
+                    $get_category = Category::where('slug', $category)->where('version', 1)->first();
+                    $datas = array(
+                        'version' => 1
+                    );
+                    $this->_roofCommission($invoice, $get_category, $datas);
+                }
+
+                $categories = [null, 'dr-sonne'];
+                foreach ($categories as $key => $category) {
+                    $get_category = Category::where('slug', $category)->where('version', 2)->first();
+                    $datas = array(
+                        'version' => 2
+                    );
+                    $this->_roofCommission($invoice, $get_category, $datas);
                 }
             });
         } catch (Exception | Throwable $th) {
@@ -229,7 +229,6 @@ class RoofInvoiceIndex extends Component
                 $invoice->dueDateRules()->create(
                     [
                         'type'     => 'roof',
-                        'number'   => $key,
                         'due_date' => $data_due_date['due_date'],
                         'value'    => $data_due_date['value'],
                     ]
@@ -238,17 +237,15 @@ class RoofInvoiceIndex extends Component
                 $invoice->dueDateRules()->create(
                     [
                         'type'     => 'roof',
-                        'number'   => $key,
                         'due_date' => $this?->due_date <= 30 ? 30 + (int)$data_due_date['due_date'] : (int)$this?->due_date + (int)$data_due_date['due_date'],
                         'value'    => $data_due_date['value'],
                     ]
                 );
             } elseif ($key > 1) {
-                $get_due_date_rule = $invoice->dueDateRules()->orderBy('number', 'DESC')->first();
+                $get_due_date_rule = $invoice->dueDateRules()->orderBy('value', 'ASC')->first();
                 $invoice->dueDateRules()->create(
                     [
                         'type'     => 'roof',
-                        'number'   => $key,
                         'due_date' => (int)$get_due_date_rule?->due_date + (int)$data_due_date['due_date'],
                         'value'    => $data_due_date['value'],
                     ]
@@ -262,6 +259,7 @@ class RoofInvoiceIndex extends Component
         $this->get_invoice    = Invoice::find($id);
         $this->id_data        = $this->get_invoice?->id;
         $this->sales_id       = $this->get_invoice?->user?->id;
+        $this->sales_code     = User::find($this->sales_id) ? User::find($this->sales_id)?->userDetail?->sales_code : null;
         $this->date           = $this->get_invoice?->date?->format('Y-m-d');
         $this->invoice_number = $this->get_invoice?->invoice_number;
         $this->customer       = $this->get_invoice?->customer;
@@ -301,13 +299,27 @@ class RoofInvoiceIndex extends Component
             DB::transaction(function () use ($data) {
                 $result = Invoice::find($data['inputAttributes']['id']);
                 $invoice = $result;
+                $result->invoiceDetails()->delete();
+                $result->paymentDetails()->delete();
+                $result->dueDateRules()->delete();
                 $result?->delete();
 
-                $datas = array(
-                    'sales_id'   => $invoice?->user?->id,
-                );
-                foreach ($this->categories as $key => $category) {
-                    $this->roofCommission($invoice, $category, $datas, );
+                $categories = ['dr-shield', 'dr-sonne'];
+                foreach ($categories as $key => $category) {
+                    $get_category = Category::where('slug', $category)->where('version', 1)->first();
+                    $datas = array(
+                        'version' => 1
+                    );
+                    $this->_roofCommission($invoice, $get_category, $datas);
+                }
+
+                $categories = [null, 'dr-sonne'];
+                foreach ($categories as $key => $category) {
+                    $get_category = Category::where('slug', $category)->where('version', 2)->first();
+                    $datas = array(
+                        'version' => 2
+                    );
+                    $this->_roofCommission($invoice, $get_category, $datas);
                 }
             });
 

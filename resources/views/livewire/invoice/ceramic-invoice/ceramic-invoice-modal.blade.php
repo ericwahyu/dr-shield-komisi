@@ -48,7 +48,7 @@
                         @enderror
                     </div>
                     <div class="col-4">
-                        <div class="form-label">Id Pelanggan <span class="text-danger">*</span></div>
+                        <div class="form-label">Id Pelanggan <span class="text-danger"></span></div>
                         <input type="text" class="form-control @error('id_customer') is-invalid @enderror" wire:model="id_customer" placeholder="Contoh : C/ABC/BDG/00121">
                         @error('id_customer')
                             <div class="invalid-feedback d-block">{{ $message }}</div>
