@@ -114,5 +114,7 @@ class RoofInvoiceDetail implements ShouldQueue
             Log::error($th->getMessage());
             Log::error("Ada kesalahan saat import detail faktur atap");
         }
+
+        Log::info('Import Roof Invoice Detail berhasil');
     }
 }

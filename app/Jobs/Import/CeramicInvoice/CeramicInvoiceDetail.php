@@ -110,5 +110,7 @@ class CeramicInvoiceDetail implements ShouldQueue
             Log::error("Ada kesalahan saat import detail faktur keramik");
             throw new Exception($th->getMessage());
         }
+
+        Log::info('Import Ceramic Invoice Detail berhasil');
     }
 }

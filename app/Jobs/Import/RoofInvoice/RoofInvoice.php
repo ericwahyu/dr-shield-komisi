@@ -163,6 +163,8 @@ class RoofInvoice implements ShouldQueue
             Log::error($th->getMessage());
             Log::error("Ada kesalahan saat import faktur atap");
         }
+
+        Log::info('Import Roof Invoice berhasil');
     }
 
     private function createDueDateRule($invoice, $due_date)
