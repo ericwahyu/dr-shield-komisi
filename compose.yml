@@ -1,0 +1,48 @@
+version: "3.9"
+
+services:
+  frankenphp:
+    build:
+      context: .
+    entrypoint: php artisan octane:frankenphp --workers=4 --max-requests=1000
+    ports:
+      - "8001:8000"
+    volumes:
+      - .:/app  # Ini sudah mencakup seluruh aplikasi
+    environment:
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: komisi_drshieldapp_com
+      DB_USERNAME: idtotech
+      DB_PASSWORD: '@Enterhalnerd1'
+      APP_ENV: production
+      APP_DEBUG: false
+      APP_URL: https://komisi.drshieldapp.com
+    depends_on:
+      - postgres
+    networks:
+      - app_network_komisi
+    restart: always
+
+  postgres:
+    image: postgres:15
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_USER: idtotech
+      POSTGRES_PASSWORD: '@Enterhalnerd1'
+      POSTGRES_DB: komisi_drshieldapp_com
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app_network_komisi
+    restart: always
+
+volumes:
+  postgres_data:
+
+networks:
+  app_network_komisi:
+    name: app_network_komisi
+    driver: bridge
