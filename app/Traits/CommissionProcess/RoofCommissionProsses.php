@@ -167,7 +167,8 @@ trait RoofCommissionProsses
                 })->when($category != null, function ($query) use ($category) {
                     $query->where('category_id', $category?->id);
                 })->when($category == null, function ($query) use ($category) {
-                    $query->whereNull('category_id');
+                    // $query->whereNull('category_id');
+                    $query->where('version', 2);
                 })->sum('income_tax');
 
                 $get_lower_limit_commission = $get_commission?->lowerLimitCommissions() ->when($category != null, function ($query) use ($category) {
@@ -200,7 +201,7 @@ trait RoofCommissionProsses
                             'value_of_due_date' => $commission_detail?->total_income * ($percentage_value_commission/100)
                         ]);
                     }
-                    
+
                     if ($get_commission->commissionDetails()->whereNot('percentage_of_due_date', 0)->sum('value_of_due_date') > 0) {
                         $get_commission->update([
                             'value_commission' => $get_commission->commissionDetails()->whereNot('percentage_of_due_date', 0)->sum('value_of_due_date')

@@ -35,6 +35,15 @@ class UserSeeder extends Seeder
 
         $ewa->assignRole('admin');
 
+        $erlita = User::create([
+            'name'     => 'ERLITA',
+            'email'    => 'erlitahimah13@gmail.com',
+            'username' => 'erlita',
+            'password' => Hash::make('12345678')
+        ]);
+
+        $erlita->assignRole('admin');
+
         $datas = [
             //Keramik
             [

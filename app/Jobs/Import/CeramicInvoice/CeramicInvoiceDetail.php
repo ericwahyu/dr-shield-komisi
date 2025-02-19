@@ -50,10 +50,10 @@ class CeramicInvoiceDetail implements ShouldQueue
 
                 $check_year = Carbon::parse($collection[2])->format('Y');
 
-                $invoice_detail_v1 = $get_invoice?->invoiceDetails()->where('version', 1)->whereNull('category_id')->where('amount', (int)$collection[1])->where('date', Carbon::parse($collection[2])->toDateString())->first();
-                $invoice_detail_v2 = $get_invoice?->invoiceDetails()->where('version', 2)->whereNull('category_id')->where('amount', (int)$collection[1])->where('date', Carbon::parse($collection[2])->toDateString())->first();
+                // $invoice_detail_v1 = $get_invoice?->invoiceDetails()->where('version', 1)->whereNull('category_id')->where('amount', (int)$collection[1])->where('date', Carbon::parse($collection[2])->toDateString())->first();
+                // $invoice_detail_v2 = $get_invoice?->invoiceDetails()->where('version', 2)->whereNull('category_id')->where('amount', (int)$collection[1])->where('date', Carbon::parse($collection[2])->toDateString())->first();
 
-                if (!$get_invoice || (int)$check_year < 2010 || $invoice_detail_v1 || $invoice_detail_v2) {
+                if (!$get_invoice || (int)$check_year < 2010) {
                     continue;
                 }
 

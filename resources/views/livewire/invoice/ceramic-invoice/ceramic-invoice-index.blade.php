@@ -75,6 +75,7 @@
                     </tr>
                 </thead>
                 <tbody>
+                    {{-- @dd($ceramic_invoices) --}}
                     @forelse ($ceramic_invoices as $result)
                         <tr>
                             <td class = "text-center">{{ $ceramic_invoices?->currentPage() * $perPage - $perPage + $loop->iteration }}</td>
@@ -103,6 +104,16 @@
                         </tr>
                     @endforelse
                 </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="4" style="text-align: end">Total Penjualan Versi 1</td>
+                        <td><b>{{ "Rp. " .number_format($this->sumIncomeTax(1), 0, ',', '.') }}</b></td>
+                    </tr>
+                    {{-- <tr>
+                        <td colspan="4" style="text-align: end">Total Penjualan Versi 2</td>
+                        <td><b>{{ "Rp. " .number_format($this->sumIncomeTax(2), 0, ',', '.') }}</b></td>
+                    </tr> --}}
+                </tfoot>
             </table>
         </div>
         <div class="card-body">

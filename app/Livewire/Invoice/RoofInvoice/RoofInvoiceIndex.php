@@ -138,6 +138,14 @@ class RoofInvoiceIndex extends Component
             'amount'         => 'required|numeric',
         ]);
 
+        $unique_invoice = Invoice::where('invoice_number', $this->invoice_number)->first();
+
+        if ($unique_invoice) {
+            return $this->alert('warning', 'Maaf', [
+                'text' => 'Nomor Faktur sudah ada pada database!'
+            ]);
+        }
+
         try {
             DB::transaction(function () {
                 $invoice = Invoice::updateOrCreate(
@@ -363,5 +371,22 @@ class RoofInvoiceIndex extends Component
         return $this->alert('success', 'Berhasil', [
             'text' => 'Data Faktur Atap berhasil disimpan !, silahkan tunggu beberapa saat'
         ]);
+    }
+
+    public function sumIncomeTax($version, $slug_category)
+    {
+        return Invoice::search($this->search)->where('type', 'roof')
+                ->when($this->filter_sales, function ($query) {
+                    $query->where('user_id', $this->filter_sales);
+                })
+                ->when($this->filter_month, function ($query) {
+                    $query->whereYear('date', (int)Carbon::parse($this->filter_month)->format('Y'))->whereMonth('date', (int)Carbon::parse($this->filter_month)->format('m'));
+                })->withSum(['paymentDetails' => function ($query) use ($version, $slug_category) {
+                    $get_category = Category::where('version', $version)->where('slug', $slug_category)->first();
+                    if ($get_category) {
+                        $query->where('category_id', $get_category?->id);
+                    }
+                    $query->where('version', $version);
+                }], 'income_tax')->get()->sum('payment_details_sum_income_tax');
     }
 }

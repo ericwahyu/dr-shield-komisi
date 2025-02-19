@@ -103,6 +103,26 @@
                         </tr>
                     @endforelse
                 </tbody>
+                <tfoot>
+                    <tr>
+                        <td class = "text-center" colspan="3" rowspan="2">Versi 1</td>
+                        <td class = "text-center" colspan="1">Dr Shield</td>
+                        <td class = "text-center" colspan="1"><b>{{ "Rp. " .number_format($this->sumIncomeTax(1, 'dr-shield'), 0, ',', '.') }}</b></td>
+                    </tr>
+                    <tr>
+                        <td class = "text-center" colspan="1">Dr Sonne</td>
+                        <td class = "text-center" colspan="1"><b>{{ "Rp. " .number_format($this->sumIncomeTax(1, 'dr-sonne'), 0, ',', '.') }}</b></td>
+                    </tr>
+                    {{-- <tr>
+                        <td class = "text-center" colspan="3" rowspan="2">Versi 2</td>
+                        <td class = "text-center" colspan="1">All</td>
+                        <td class = "text-center" colspan="1">1.234.456</td>
+                    </tr>
+                    <tr>
+                        <td class = "text-center" colspan="1">Dr Sonne</td>
+                        <td class = "text-center" colspan="1">1.234.456</td>
+                    </tr> --}}
+                </tfoot>
             </table>
         </div>
         <div class="card-body">

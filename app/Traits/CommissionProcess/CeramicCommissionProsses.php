@@ -124,7 +124,7 @@ trait CeramicCommissionProsses
 
                 foreach ($get_commission?->commissionDetails()->get() as $key => $commission_detail) {
                     $commission_detail->update([
-                        'value_of_due_date' => $commission_detail?->total_income * ($percentage_value_commission/100)
+                        'value_of_due_date' => (int)($commission_detail?->total_income * ($percentage_value_commission/100))
                     ]);
                 }
             }
