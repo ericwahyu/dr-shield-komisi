@@ -24,7 +24,7 @@
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('assets/image/favicon_io/favicon-32x32.png') }}">
     <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('assets/image/favicon_io/favicon-16x16.png') }}">
     <link rel="manifest" href="{{ asset('assets/image/favicon_io/site.webmanifest') }}">
-    
+
     <script src="https://site-assets.fontawesome.com/releases/v6.4.0/js/all.js" data-auto-add-css="false" data-auto-replace-svg="false"></script>
     <script src="https://cdn.jsdelivr.net/npm/@ryangjchandler/alpine-tooltip@1.x.x/dist/cdn.min.js" defer></script>
     <style>
