@@ -40,22 +40,14 @@ class RoofInvoice implements ShouldQueue
     public function handle(): void
     {
         //
+
         $categories = Category::where('type', 'roof')->get();
         try {
             foreach ($this->collections as $key => $collection) {
                 if ($key == 0) {
                     continue;
                 }
-
-                // foreach ($categories as $key => $category) {
-                //     $check_lower_limit = User::where('name', 'ILIKE', "%". $collection[7] ."%")->whereHas('userDetail', function ($query) use ($collection) {
-                //         $query->where('depo', 'ILIKE', "%". $collection[6] ."%");
-                //     })->first()?->lowerLimits()->where('category_id', $category?->id)->first();
-
-                //     if (!$check_lower_limit) {
-                //         continue;
-                //     }
-                // }
+                // dd($collection);
 
                 $get_user = User::where('name', 'ILIKE', "%". $collection[7] ."%")->whereHas('userDetail', function ($query) use ($collection) {
                     $query->where('depo', 'ILIKE', "%". $collection[6] ."%");
@@ -161,8 +153,12 @@ class RoofInvoice implements ShouldQueue
             }
         } catch (Exception | Throwable $th) {
             DB::rollBack();
-            Log::error($th->getMessage());
-            Log::error("Ada kesalahan saat import faktur atap");
+            $error = [
+                'message' => json_decode($th->getMessage()),
+                'file'    => $th->getFile(),
+                'line'    => $th->getLine(),
+            ];
+            Log::error("Ada kesalahan saat import faktur atap", $error);
         }
 
         Log::info('Import Roof Invoice berhasil');

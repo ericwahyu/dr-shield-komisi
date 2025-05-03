@@ -43,7 +43,7 @@ class RoofInvoiceIndex extends Component
         return view('livewire.invoice.roof-invoice.roof-invoice-index', [
             'sales' => User::role('sales')->whereHas('userDetail', function ($query) {
                     $query->where('sales_type', 'roof');
-                })->get(),
+                })->select('id', 'name')->orderBy('name', "ASC")->get(),
 
             'roof_invoices' => $roof_invoices->where('type', 'roof')
                 ->when($this->filter_sales, function ($query) {
@@ -52,6 +52,7 @@ class RoofInvoiceIndex extends Component
                 ->when($this->filter_month, function ($query) {
                     $query->whereYear('date', (int)Carbon::parse($this->filter_month)->format('Y'))->whereMonth('date', (int)Carbon::parse($this->filter_month)->format('m'));
                 })
+                ->with('user')
                 ->paginate($this->perPage),
         ])->extends('layouts.layout.app')->section('content');
     }

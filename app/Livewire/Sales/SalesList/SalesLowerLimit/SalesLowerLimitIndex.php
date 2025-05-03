@@ -65,7 +65,7 @@ class SalesLowerLimitIndex extends Component
         ]);
 
         $get_unique_lower_limit = $this->get_user->lowerLimits()->whereHas('category', fn ($query) => $query->where('type', $this->get_user?->userDetail?->sales_type)->where('version', 1)->where('slug', $this->category))->where('value', $this->value)->first();
-        if ($get_unique_lower_limit) {
+        if ($get_unique_lower_limit && $this->id_data == null) {
             $this->closeModal();
             return $this->alert('warning', 'Pemberitahuan', [
                 'text' => 'Persentase Batas Bawah Target sudah tersedia !'

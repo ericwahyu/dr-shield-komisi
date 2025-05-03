@@ -49,36 +49,56 @@ class RoofInvoiceDetail implements ShouldQueue
 
                 $check_year = Carbon::parse($collection[2])->format('Y');
 
-                // $category          = Category::where('slug', $collection[1] ?? 'dr-shield')->where('version', 1)->first();
-                // $invoice_detail_v1 = $get_invoice?->invoiceDetails()->where('version', 1)->where('category_id', $category?->id)->where('amount', (int)$collection[2])->where('date', Carbon::parse($collection[3])->toDateString())->first();
-
-                // $category          = Category::where('slug', $collection[1] ?? 'dr-shield')->where('version', 2)->first();
-                // $invoice_detail_v2 = $get_invoice?->invoiceDetails()->where('version', 2)->where('category_id', $category?->id)->where('amount', (int)$collection[2])->where('date', Carbon::parse($collection[3])->toDateString())->first();
-
                 if (!$get_invoice || (int)$check_year < 2010) {
-                    // dd(!$get_invoice, (int)$check_year < 2010, $invoice_detail_v1, $invoice_detail_v2, $collection);
                     continue;
                 }
 
-                DB::transaction(function () use ($get_invoice, $collection) {
-                    //version 1
+                $this->invoiceDetailV1($get_invoice, $collection);
+                $this->invoiceDetailV2($get_invoice, $collection);
+
+            }
+        } catch (Exception | Throwable $th) {
+            DB::rollBack();
+            Log::error($th->getMessage());
+            Log::error("Ada kesalahan saat import detail faktur atap");
+        }
+
+        Log::info('Import Roof Invoice Detail berhasil');
+    }
+
+    private function invoiceDetailV1($get_invoice, $collection)
+    {
+        try {
+            $dr_shield_category = Category::where('type', 'roof')->where('slug', 'dr-shield')->where('version', 1)->first();
+
+            $dr_sonne_category = Category::where('type', 'roof')->where('slug', 'dr-sonne')->where('version', 1)->first();
+
+            $value_payment_of_dr_shield = $get_invoice?->paymentDetails()->where('category_id', $dr_shield_category?->id)->sum('amount');
+
+            $value_payment_of_dr_sonne = $get_invoice?->paymentDetails()->where('category_id', $dr_sonne_category?->id)->sum('amount');
+
+            $sum_payment = (int)$value_payment_of_dr_shield + (int)$value_payment_of_dr_sonne;
+
+            $value_invoice_of_dr_shield = $get_invoice->invoiceDetails()->where('category_id', $dr_shield_category?->id)->sum('amount');
+
+            $value_invoice_of_dr_sonne = $get_invoice->invoiceDetails()->where('category_id', $dr_sonne_category?->id)->sum('amount');
+
+            $sum_value_invoice = (int)$value_invoice_of_dr_shield + (int)$value_invoice_of_dr_sonne;
+
+            if ((int)$sum_value_invoice + $collection[1] < (int)$sum_payment + 10000) {
+
+                DB::beginTransaction();
                     $datas = array(
                         'invoice_detail_date' => Carbon::parse($collection[2])->toDateString(),
                         'version'             => 1,
                     );
                     $percentage = $this->_percentageRoofInvoiceDetail($get_invoice, $datas);
 
-                    $category_id_v1 = null;
-
-                    $dr_shield_category = Category::where('type', 'roof')->where('slug', 'dr-shield')->where('version', 1)->first();
-
-                    $value_payment_of_dr_shield = $get_invoice?->paymentDetails()->where('category_id', $dr_shield_category?->id)->sum('amount');
-
                     if ((int)$value_payment_of_dr_shield > 0) {
 
                         $value_invoice_of_dr_shield = $get_invoice->invoiceDetails()->where('category_id', $dr_shield_category?->id)->sum('amount');
 
-                        if ((int)$value_invoice_of_dr_shield + (int)$collection[1] < (int)$value_payment_of_dr_shield) {
+                        if ((int)$value_invoice_of_dr_shield + (int)$collection[1] < (int)$value_payment_of_dr_shield || (int)$value_payment_of_dr_sonne == 0) {
 
                             $datas = array(
                                 'id_data'               => null,
@@ -133,7 +153,35 @@ class RoofInvoiceDetail implements ShouldQueue
                         'invoice_detail_date' => Carbon::parse($collection[2])->toDateString()
                     );
                     $this->_roofCommissionDetail($get_invoice, $datas);
+                DB::commit();
+            }
 
+        } catch (Exception | Throwable $th) {
+            throw $th;
+        }
+    }
+
+    private function invoiceDetailV2($get_invoice, $collection)
+    {
+        try {
+            $dr_shield_category = Category::where('type', 'roof')->where('slug', 'dr-shield')->where('version', 2)->first();
+
+            $dr_sonne_category = Category::where('type', 'roof')->where('slug', 'dr-sonne')->where('version', 2)->first();
+
+            $value_payment_of_dr_shield = $get_invoice?->paymentDetails()->where('category_id', $dr_shield_category?->id)->sum('amount');
+
+            $value_payment_of_dr_sonne = $get_invoice?->paymentDetails()->where('category_id', $dr_sonne_category?->id)->sum('amount');
+
+            $sum_payment = (int)$value_payment_of_dr_shield + (int)$value_payment_of_dr_sonne;
+
+            $value_invoice_of_dr_shield = $get_invoice->invoiceDetails()->where('category_id', $dr_shield_category?->id)->sum('amount');
+
+            $value_invoice_of_dr_sonne = $get_invoice->invoiceDetails()->where('category_id', $dr_sonne_category?->id)->sum('amount');
+
+            $sum_value_invoice = (int)$value_invoice_of_dr_shield + (int)$value_invoice_of_dr_sonne;
+
+            if ((int)$sum_value_invoice + $collection[1] < (int)$sum_payment + 10000) {
+                DB::beginTransaction();
                     //version 2
                     $datas = array(
                         'version'             => 2,
@@ -159,15 +207,11 @@ class RoofInvoiceDetail implements ShouldQueue
                         'invoice_detail_date' => Carbon::parse($collection[2])->toDateString()
                     );
                     $this->_roofCommissionDetail($get_invoice, $datas);
-
-                });
+                DB::commit();
             }
-        } catch (Exception | Throwable $th) {
-            DB::rollBack();
-            Log::error($th->getMessage());
-            Log::error("Ada kesalahan saat import detail faktur atap");
-        }
 
-        Log::info('Import Roof Invoice Detail berhasil');
+        } catch (Exception | Throwable $th) {
+            throw $th;
+        }
     }
 }

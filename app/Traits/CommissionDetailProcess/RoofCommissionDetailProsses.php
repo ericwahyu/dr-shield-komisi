@@ -31,7 +31,12 @@ trait RoofCommissionDetailProsses
             }
 
         } catch (Exception | Throwable $th) {
-            Log::error("Ada kesalahan proses detail komisi keramik");
+            $error = [
+                'message' => $th->getMessage(),
+                'file'    => $th->getFile(),
+                'line'    => $th->getLine(),
+            ];
+            Log::error("Ada kesalahan proses detail komisi keramik", $error);
             throw new Exception($th->getMessage());
         }
     }
@@ -41,7 +46,6 @@ trait RoofCommissionDetailProsses
         try {
             $get_commission = Commission::where('user_id', $invoice?->user?->id)->where('year', (int)$invoice?->date?->format('Y'))->where('month', (int)$invoice?->date?->format('m'))->where('category_id', $category?->id)->where('version', 1)->first();
             if ($get_commission) {
-
                 $invoice_details = InvoiceDetail::whereHas('invoice', function ($query) use ($category, $invoice) {
                     $query->whereYear('date', (int)$invoice?->date?->format('Y'))->whereMonth('date', (int)$invoice?->date?->format('m'))->where('user_id', $invoice?->user?->id);
                 })->where('category_id', $category?->id)->where('version', 1);
@@ -82,7 +86,12 @@ trait RoofCommissionDetailProsses
                             });
                         } catch (Exception | Throwable $th) {
                             DB::rollBack();
-                            Log::error("Ada kesalahan saat create roof commission detail v1");
+                            $error = [
+                                'message' => $th->getMessage(),
+                                'file'    => $th->getFile(),
+                                'line'    => $th->getLine(),
+                            ];
+                            Log::error("Ada kesalahan saat create roof commission detail v1", $error);
                             throw new Exception($th->getMessage());
                         }
                     }
@@ -100,14 +109,24 @@ trait RoofCommissionDetailProsses
                         });
                     } catch (Exception | Throwable $th) {
                         DB::rollBack();
-                        Log::error("Ada kesalahan saat set roof value commission v1");
+                        $error = [
+                            'message' => $th->getMessage(),
+                            'file'    => $th->getFile(),
+                            'line'    => $th->getLine(),
+                        ];
+                        Log::error("Ada kesalahan saat set roof value commission v1", $error);
                         throw new Exception($th->getMessage());
                     }
                 }
             }
         } catch (Exception | Throwable $th) {
             DB::rollBack();
-            Log::error("Ada kesalahan saat proses detail komisi atap V1");
+            $error = [
+                'message' => $th->getMessage(),
+                'file'    => $th->getFile(),
+                'line'    => $th->getLine(),
+            ];
+            Log::error("Ada kesalahan saat proses detail komisi atap V1", $error);
             throw new Exception($th->getMessage());
         }
     }
@@ -219,7 +238,12 @@ trait RoofCommissionDetailProsses
                 ]);
             }
         } catch (Exception | Throwable $th) {
-            Log::error("Ada kesalahan saat proses detail komisi atap V2");
+            $error = [
+                'message' => $th->getMessage(),
+                'file'    => $th->getFile(),
+                'line'    => $th->getLine(),
+            ];
+            Log::error("Ada kesalahan saat proses detail komisi atap V2", $error);
             throw new Exception($th->getMessage());
         }
     }

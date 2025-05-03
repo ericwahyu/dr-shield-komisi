@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignUuid('lower_limit_id')->nullable();
             // $table->enum('type', ['dr-shield', 'dr-sonne'])->nullable()->comment('tipe target batas bawah');
             $table->foreignUuid('category_id')->nullable()->comment('kategori');
-            $table->integer('target_payment')->nullable()->comment('Target total dari pembayaran faktur');
+            $table->bigInteger('target_payment')->nullable()->comment('Target total dari pembayaran faktur');
             $table->double('value')->nullable()->comment('nilai format %');
             $table->timestamps();
             $table->softDeletes();

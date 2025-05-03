@@ -22,8 +22,18 @@ trait RoofCommissionProsses
                 $this->_roofCommissionV2($invoice, $category, $datas);
             }
         } catch (Exception | Throwable $th) {
-            throw new Exception($th->getMessage());
-            Log::error("Ada kesalahan saat proses payment detail atap");
+            $error = [
+                'message' => $th->getMessage(),
+                'file'    => $th->getFile(),
+                'line'    => $th->getLine(),
+            ];
+            Log::error("Ada kesalahan saat proses payment detail atap", $error);
+            throw new \Exception($th->getMessage());
+            // throw new \Exception(json_encode([
+            //     'error_message' => $th->getMessage(),
+            //     'file'          => $th->getFile(),
+            //     'line'          => $th->getLine(),
+            // ]));
         }
     }
 
@@ -95,8 +105,18 @@ trait RoofCommissionProsses
                 }
             }
         } catch (Exception | Throwable $th) {
-            throw new Exception($th->getMessage());
-            Log::error("Ada kesalahan saat proses payment detail atap v1");
+            $error = [
+                'message' => $th->getMessage(),
+                'file'    => $th->getFile(),
+                'line'    => $th->getLine(),
+            ];
+            Log::error("Ada kesalahan saat proses payment detail atap v1", $error);
+            throw new \Exception($th->getMessage());
+            // throw new \Exception(json_encode([
+            //     'error_message' => $th->getMessage(),
+            //     'file'          => $th->getFile(),
+            //     'line'          => $th->getLine(),
+            // ]));
         }
     }
 
@@ -171,7 +191,7 @@ trait RoofCommissionProsses
                     $query->where('version', 2);
                 })->sum('income_tax');
 
-                $get_lower_limit_commission = $get_commission?->lowerLimitCommissions() ->when($category != null, function ($query) use ($category) {
+                $get_lower_limit_commission = $get_commission?->lowerLimitCommissions()->when($category != null, function ($query) use ($category) {
                     $query->where('category_id', $category?->id);
                 })->when($category == null, function ($query) use ($category) {
                     $query->whereNull('category_id');
@@ -211,8 +231,18 @@ trait RoofCommissionProsses
 
             }
         } catch (Exception | Throwable $th) {
-            throw new Exception($th->getMessage());
-            Log::error("Ada kesalahan saat proses payment detail atap v2");
+            $error = [
+                'message' => $th->getMessage(),
+                'file'    => $th->getFile(),
+                'line'    => $th->getLine(),
+            ];
+            Log::error("Ada kesalahan saat proses payment detail atap v2", $error);
+            throw new \Exception($th->getMessage());
+            // throw new \Exception(json_encode([
+            //     'error_message' => $th->getMessage(),
+            //     'file'          => $th->getFile(),
+            //     'line'          => $th->getLine(),
+            // ]));
         }
     }
 }
