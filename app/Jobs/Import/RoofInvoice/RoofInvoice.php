@@ -80,9 +80,9 @@ class RoofInvoice implements ShouldQueue
                             'invoice_number' => $collection[1],
                             'customer'       => $collection[2],
                             'id_customer'    => $collection[8],
-                            'income_tax'     => (int)$collection[10] + (int)$collection[13],
-                            'value_tax'      => (int)$collection[11] + (int)$collection[14],
-                            'amount'         => (int)$collection[12] + (int)$collection[15],
+                            'income_tax'     => max(0, (int)$collection[10] - (int)$collection[13]) + (int)$collection[13],
+                            'value_tax'      => max(0, (int)$collection[11] - (int)$collection[14]) + (int)$collection[14],
+                            'amount'         => max(0, (int)$collection[12] - (int)$collection[15]) + (int)$collection[15],
                             'due_date'       => $collection[9] ?? 30,
                         ]
                     );
@@ -102,20 +102,51 @@ class RoofInvoice implements ShouldQueue
                         'dr-sonne'  => (int)$collection[15],
                     );
 
+                    $payment_details = [
+                        'version_1' => [
+                            'income_taxs' => [
+                                'dr-shield' => max(0, (int)$collection[10] - (int)$collection[13]),
+                                'dr-sonne'  => (int)$collection[13],
+                            ],
+                            'value_taxs' => [
+                                'dr-shield' => max(0, (int)$collection[11] - (int)$collection[14]),
+                                'dr-sonne'  => (int)$collection[14],
+                            ],
+                            'amounts' => [
+                                'dr-shield' => max(0, (int)$collection[12] - (int)$collection[15]),
+                                'dr-sonne'  => (int)$collection[15],
+                            ]
+                        ],
+                        'version_2' => [
+                            'income_taxs' => [
+                                'dr-shield' => (int)$collection[10],
+                                'dr-sonne'  => (int)$collection[13],
+                            ],
+                            'value_taxs' => [
+                                'dr-shield' => (int)$collection[11],
+                                'dr-sonne'  => (int)$collection[14],
+                            ],
+                            'amounts' => [
+                                'dr-shield' => (int)$collection[12],
+                                'dr-sonne'  => (int)$collection[15],
+                            ]
+                        ],
+                    ];
+
                     $datas = array(
                         'version'     => 1,
-                        'income_taxs' => $income_taxs,
-                        'value_taxs'  => $value_taxs,
-                        'amounts'     => $amounts,
+                        'income_taxs' => $payment_details['version_1']['income_taxs'],
+                        'value_taxs'  => $payment_details['version_1']['value_taxs'],
+                        'amounts'     => $payment_details['version_1']['amounts'],
                     );
 
                     $this->_paymentDetail($invoice, $datas);
 
                     $datas = array(
-                        'version'     => 2,
-                        'income_taxs' => $income_taxs,
-                        'value_taxs'  => $value_taxs,
-                        'amounts'     => $amounts,
+                       'version'     => 2,
+                       'income_taxs' => $payment_details['version_2']['income_taxs'],
+                       'value_taxs'  => $payment_details['version_2']['value_taxs'],
+                       'amounts'     => $payment_details['version_2']['amounts'],
                     );
                     $this->_paymentDetail($invoice, $datas);
 
