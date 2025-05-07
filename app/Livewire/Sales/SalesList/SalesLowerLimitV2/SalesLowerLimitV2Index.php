@@ -65,7 +65,7 @@ class SalesLowerLimitV2Index extends Component
             $query->whereNull('category_id');
         })->where('value', $this->value)->where('version', 2)->first();
 
-        if ($get_unique_lower_limit) {
+        if ($get_unique_lower_limit && $this->id_data == null) {
             // $this->closeModal();
             return $this->alert('warning', 'Pemberitahuan', [
                 'text' => 'Persentase Batas Bawah Target sudah tersedia !'

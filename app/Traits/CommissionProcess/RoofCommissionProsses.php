@@ -93,7 +93,7 @@ trait RoofCommissionProsses
                 if ($get_commission?->percentage_value_commission != null) {
                     foreach ($get_commission?->commissionDetails()->get() as $key => $commission_detail) {
                         $commission_detail->update([
-                            'value_of_due_date' => $commission_detail?->total_income * ($get_commission?->percentage_value_commission/100)
+                            'value_of_due_date' => intval($commission_detail?->total_income * ($get_commission?->percentage_value_commission/100))
                         ]);
                     }
                 }
