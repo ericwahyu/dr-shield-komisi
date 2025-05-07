@@ -59,6 +59,7 @@ class CeramicInvoice implements ShouldQueue
                 // dd($collection[7],  $collection[6], $get_user);
 
                 if (!$check_lower_limit || !$get_user || $unique_invoice || (int)$check_year < 2010) {
+                    Log::warning('Gagal memasukkan Faktur Ceramic dengan no : '.$collection[1]);
                     continue;
                 }
 

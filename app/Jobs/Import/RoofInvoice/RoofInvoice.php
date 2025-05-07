@@ -5,7 +5,6 @@ namespace App\Jobs\Import\RoofInvoice;
 use App\Models\Auth\User;
 use App\Models\Invoice\Invoice;
 use App\Models\System\Category;
-use App\Traits\CommissionProcess;
 use App\Traits\CommissionProcess\RoofCommissionProsses;
 use App\Traits\GetSystemSetting;
 use App\Traits\InvoiceProcess\RoofInvoiceProsses;
@@ -20,8 +19,8 @@ use Throwable;
 
 class RoofInvoice implements ShouldQueue
 {
+    use GetSystemSetting, RoofCommissionProsses, RoofInvoiceProsses, RoofPaymentDetailProsses;
     use Queueable;
-    use GetSystemSetting, RoofInvoiceProsses, RoofPaymentDetailProsses, RoofCommissionProsses;
 
     protected $collections;
 
@@ -49,16 +48,19 @@ class RoofInvoice implements ShouldQueue
                 }
                 // dd($collection);
 
-                $get_user = User::where('name', 'ILIKE', "%". $collection[7] ."%")->whereHas('userDetail', function ($query) use ($collection) {
-                    $query->where('depo', 'ILIKE', "%". $collection[6] ."%");
+                $get_user = User::where('name', 'ILIKE', '%'.$collection[7].'%')->whereHas('userDetail', function ($query) use ($collection) {
+                    $query->where('depo', 'ILIKE', '%'.$collection[6].'%');
                 })->first();
 
                 $unique_invoice = Invoice::where('invoice_number', $collection[1])->first();
 
                 $check_year = Carbon::parse($collection[0])->format('Y');
 
-                if (!$get_user || $unique_invoice || (int)$check_year < 2010) {
-                    Log::warning('Gagal memasukkan Faktur dengan no : '.$collection[1]);
+                if (!$get_user || $unique_invoice || (int) $check_year < 2010) {
+                    Log::warning('Gagal memasukkan Faktur Atap dengan no : '.$collection[1]);
+                    // Log::warning('user notfound : '.!$get_user ? 'true' : 'false');
+                    // Log::warning('unique invoice : '.$unique_invoice ? 'true' : 'false');
+                    // Log::warning('invoice year : '.$check_year);
                     continue;
                 }
 
@@ -74,9 +76,9 @@ class RoofInvoice implements ShouldQueue
 
                     $invoice = Invoice::create(
                         [
-                            'user_id'        => $get_user?->id,
-                            'type'           => 'roof',
-                            'date'           => $collection[0],
+                            'user_id' => $get_user?->id,
+                            'type' => 'roof',
+                            'date' => $collection[0],
                             'invoice_number' => $collection[1],
                             'customer'       => $collection[2],
                             'id_customer'    => $collection[8],
@@ -87,20 +89,20 @@ class RoofInvoice implements ShouldQueue
                         ]
                     );
 
-                    $income_taxs = array(
-                        'dr-shield' => (int)$collection[10],
-                        'dr-sonne'  => (int)$collection[13],
-                    );
+                    $income_taxs = [
+                        'dr-shield' => (int) $collection[10],
+                        'dr-sonne' => (int) $collection[13],
+                    ];
 
-                    $value_taxs = array(
-                        'dr-shield' => (int)$collection[11],
-                        'dr-sonne'  => (int)$collection[14],
-                    );
+                    $value_taxs = [
+                        'dr-shield' => (int) $collection[11],
+                        'dr-sonne' => (int) $collection[14],
+                    ];
 
-                    $amounts = array(
-                        'dr-shield' => (int)$collection[12],
-                        'dr-sonne'  => (int)$collection[15],
-                    );
+                    $amounts = [
+                        'dr-shield' => (int) $collection[12],
+                        'dr-sonne' => (int) $collection[15],
+                    ];
 
                     $payment_details = [
                         'version_1' => [
@@ -151,38 +153,38 @@ class RoofInvoice implements ShouldQueue
                     $this->_paymentDetail($invoice, $datas);
 
                     //Invoice Proses
-                    $datas = array(
-                        'version'  => 1,
-                        'due_date' => $collection[9]
-                    );
+                    $datas = [
+                        'version' => 1,
+                        'due_date' => $collection[9],
+                    ];
                     $this->_roofInvoice($invoice, $datas);
 
-                    $datas = array(
-                        'version'  => 2,
-                        'due_date' => $collection[9]
-                    );
+                    $datas = [
+                        'version' => 2,
+                        'due_date' => $collection[9],
+                    ];
                     $this->_roofInvoice($invoice, $datas);
 
                     $categories = ['dr-shield', 'dr-sonne'];
                     foreach ($categories as $key => $category) {
                         $get_category = Category::where('slug', $category)->where('version', 1)->first();
-                        $datas = array(
-                            'version' => 1
-                        );
+                        $datas = [
+                            'version' => 1,
+                        ];
                         $this->_roofCommission($invoice, $get_category, $datas);
                     }
 
                     $categories = [null, 'dr-sonne'];
                     foreach ($categories as $key => $category) {
                         $get_category = Category::where('slug', $category)->where('version', 2)->first();
-                        $datas = array(
-                            'version' => 2
-                        );
+                        $datas = [
+                            'version' => 2,
+                        ];
                         $this->_roofCommission($invoice, $get_category, $datas);
                     }
                 });
             }
-        } catch (Exception | Throwable $th) {
+        } catch (Exception|Throwable $th) {
             DB::rollBack();
             $error = [
                 'message' => json_decode($th->getMessage()),
@@ -200,15 +202,15 @@ class RoofInvoice implements ShouldQueue
         $data_due_dates = [
             [
                 'due_date' => 0,
-                'value'    => 100,
+                'value' => 100,
             ],
             [
                 'due_date' => 15,
-                'value'    => 50,
+                'value' => 50,
             ],
             [
                 'due_date' => 7,
-                'value'    => 0,
+                'value' => 0,
             ],
         ];
 
@@ -216,16 +218,16 @@ class RoofInvoice implements ShouldQueue
             if ($key == 0) {
                 $invoice->dueDateRules()->create(
                     [
-                        'type'     => 'roof',
+                        'type' => 'roof',
                         'due_date' => $data_due_date['due_date'],
-                        'value'    => $data_due_date['value'],
+                        'value' => $data_due_date['value'],
                     ]
                 );
             } elseif ($key == 1) {
                 $invoice->dueDateRules()->create(
                     [
                         'type'     => 'roof',
-                        'due_date' => $due_date <= 30 ? 30 + (int)$data_due_date['due_date'] : (int)$due_date + (int)$data_due_date['due_date'],
+                        'due_date' => $due_date <= 30 ? 30 + (int) $data_due_date['due_date'] : (int) $due_date + (int) $data_due_date['due_date'],
                         'value'    => $data_due_date['value'],
                     ]
                 );
@@ -233,9 +235,9 @@ class RoofInvoice implements ShouldQueue
                 $get_due_date_rule = $invoice->dueDateRules()->orderBy('value', 'ASC')->first();
                 $invoice->dueDateRules()->create(
                     [
-                        'type'     => 'roof',
-                        'due_date' => (int)$get_due_date_rule?->due_date + (int)$data_due_date['due_date'],
-                        'value'    => $data_due_date['value'],
+                        'type' => 'roof',
+                        'due_date' => (int) $get_due_date_rule?->due_date + (int) $data_due_date['due_date'],
+                        'value' => $data_due_date['value'],
                     ]
                 );
             }

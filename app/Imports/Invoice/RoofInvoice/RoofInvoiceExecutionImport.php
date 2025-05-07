@@ -22,8 +22,8 @@ class RoofInvoiceExecutionImport implements ToCollection
 {
     use GetSystemSetting, CommissionProcess;
     /**
-    * @param Collection $collection
-    */
+     * @param Collection $collection
+     */
     public function collection(Collection $collections)
     {
         //
