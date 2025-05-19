@@ -56,21 +56,27 @@ class RoofInvoice implements ShouldQueue
 
                 $check_year = Carbon::parse($collection[0])->format('Y');
 
-                if (!$get_user || $unique_invoice || (int) $check_year < 2010) {
-                    Log::warning('Gagal memasukkan Faktur Atap dengan no : '.$collection[1]);
-                    // Log::warning('user notfound : '.!$get_user ? 'true' : 'false');
-                    // Log::warning('unique invoice : '.$unique_invoice ? 'true' : 'false');
-                    // Log::warning('invoice year : '.$check_year);
+                if (!$get_user || $unique_invoice || (int)$check_year < 2010) {
+                    $warning = [
+                        'get_user'        => !$get_user,
+                        'unique_invoice'  => $unique_invoice,
+                        'year_under_2010' => (int)$check_year < 2010,
+                    ];
+                    Log::warning('Gagal memasukkan Faktur Atap dengan no : '.$collection[1], $warning);
                     continue;
                 }
-
-                //value_tax
-                $collection[11] = $collection[11] == null ? $collection[10] * 0.11 : $collection[11];
-                $collection[14] = $collection[14] == null ? $collection[13] * 0.11 : $collection[14];
 
                 //amount
                 $collection[12] = $collection[12] == null ? $collection[10] + $collection[11] : $collection[12];
                 $collection[15] = $collection[15] == null ? $collection[13] + $collection[14] : $collection[15];
+
+                //income_tax
+                $collection[10] = $collection[10] == null ? $collection[12] / 1.11 : $collection[10];
+                $collection[13] = $collection[13] == null ? $collection[15] / 1.11 : $collection[13];
+
+                //value_tax
+                $collection[11] = $collection[11] == null ? $collection[10] * 0.11 : $collection[11];
+                $collection[14] = $collection[14] == null ? $collection[13] * 0.11 : $collection[14];
 
                 DB::transaction(function () use ($collection, $get_user, $categories) {
 
@@ -82,9 +88,12 @@ class RoofInvoice implements ShouldQueue
                             'invoice_number' => $collection[1],
                             'customer'       => $collection[2],
                             'id_customer'    => $collection[8],
-                            'income_tax'     => max(0, (int)$collection[10] - (int)$collection[13]) + (int)$collection[13],
-                            'value_tax'      => max(0, (int)$collection[11] - (int)$collection[14]) + (int)$collection[14],
-                            'amount'         => max(0, (int)$collection[12] - (int)$collection[15]) + (int)$collection[15],
+                            // 'income_tax'     => max(0, (int)$collection[10] - (int)$collection[13]) + (int)$collection[13],
+                            // 'value_tax'      => max(0, (int)$collection[11] - (int)$collection[14]) + (int)$collection[14],
+                            // 'amount'         => max(0, (int)$collection[12] - (int)$collection[15]) + (int)$collection[15],
+                            'income_tax'     => (int)$collection[10] - (int)$collection[13] + (int)$collection[13],
+                            'value_tax'      => (int)$collection[11] - (int)$collection[14] + (int)$collection[14],
+                            'amount'         => (int)$collection[12] - (int)$collection[15] + (int)$collection[15],
                             'due_date'       => $collection[9] ?? 30,
                         ]
                     );
@@ -107,29 +116,47 @@ class RoofInvoice implements ShouldQueue
                     $payment_details = [
                         'version_1' => [
                             'income_taxs' => [
-                                'dr-shield' => max(0, (int)$collection[10] - (int)$collection[13]),
+                                // 'dr-shield' => max(0, (int)$collection[10] - (int)$collection[13]),
+                                'dr-shield' => ((int)$collection[10] - (int)$collection[13]),
                                 'dr-sonne'  => (int)$collection[13],
                             ],
                             'value_taxs' => [
-                                'dr-shield' => max(0, (int)$collection[11] - (int)$collection[14]),
+                                // 'dr-shield' => max(0, (int)$collection[11] - (int)$collection[14]),
+                                'dr-shield' => ((int)$collection[11] - (int)$collection[14]),
                                 'dr-sonne'  => (int)$collection[14],
                             ],
                             'amounts' => [
-                                'dr-shield' => max(0, (int)$collection[12] - (int)$collection[15]),
+                                // 'dr-shield' => max(0, (int)$collection[12] - (int)$collection[15]),
+                                'dr-shield' => ((int)$collection[12] - (int)$collection[15]),
                                 'dr-sonne'  => (int)$collection[15],
                             ]
                         ],
                         'version_2' => [
+                            // 'income_taxs' => [
+                            //     'dr-shield' => (int)$collection[10],
+                            //     'dr-sonne'  => (int)$collection[13],
+                            // ],
+                            // 'value_taxs' => [
+                            //     'dr-shield' => (int)$collection[11],
+                            //     'dr-sonne'  => (int)$collection[14],
+                            // ],
+                            // 'amounts' => [
+                            //     'dr-shield' => (int)$collection[12],
+                            //     'dr-sonne'  => (int)$collection[15],
+                            // ]
                             'income_taxs' => [
-                                'dr-shield' => (int)$collection[10],
+                                // 'dr-shield' => max(0, (int)$collection[10] - (int)$collection[13]),
+                                'dr-shield' => ((int)$collection[10] - (int)$collection[13]),
                                 'dr-sonne'  => (int)$collection[13],
                             ],
                             'value_taxs' => [
-                                'dr-shield' => (int)$collection[11],
+                                // 'dr-shield' => max(0, (int)$collection[11] - (int)$collection[14]),
+                                'dr-shield' => ((int)$collection[11] - (int)$collection[14]),
                                 'dr-sonne'  => (int)$collection[14],
                             ],
                             'amounts' => [
-                                'dr-shield' => (int)$collection[12],
+                                // 'dr-shield' => max(0, (int)$collection[12] - (int)$collection[15]),
+                                'dr-shield' => ((int)$collection[12] - (int)$collection[15]),
                                 'dr-sonne'  => (int)$collection[15],
                             ]
                         ],
