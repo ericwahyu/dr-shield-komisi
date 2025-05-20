@@ -4,11 +4,8 @@ namespace App\Livewire\Invoice\RoofInvoice;
 
 use App\Imports\Invoice\RoofInvoice\RoofInvoiceImport;
 use App\Models\Auth\User;
-use App\Models\Commission\Commission;
 use App\Models\Invoice\Invoice;
-use App\Models\Invoice\PaymentDetail;
 use App\Models\System\Category;
-use App\Traits\CommissionProcess;
 use App\Traits\CommissionProcess\RoofCommissionProsses;
 use App\Traits\InvoiceProcess\RoofInvoiceProsses;
 use App\Traits\PaymentDetailProsses\RoofPaymentDetailProsses;
@@ -25,35 +22,73 @@ use Throwable;
 
 class RoofInvoiceIndex extends Component
 {
-    use LivewireAlert, WithPagination, WithFileUploads, RoofInvoiceProsses, RoofPaymentDetailProsses, RoofCommissionProsses;
-    protected $paginationTheme = 'bootstrap';
-    public $perPage = 10, $search;
+    use LivewireAlert, RoofCommissionProsses, RoofInvoiceProsses, RoofPaymentDetailProsses, WithFileUploads, WithPagination;
 
-    public $filter_month, $filter_sales;
+    protected $paginationTheme = 'bootstrap';
+
+    public $perPage = 10;
+
+    public $search;
+
+    public $filter_month;
+
+    public $filter_sales;
+
     public $data_due_dates;
-    public $get_invoice, $id_data, $sales_id, $sales_code, $date, $invoice_number, $customer, $id_customer, $due_date;
-    public $income_tax = 0, $value_tax = 0, $amount = 0;
-    public $income_taxs = [], $value_taxs = [], $amounts = [];
+
+    public $get_invoice;
+
+    public $id_data;
+
+    public $sales_id;
+
+    public $sales_code;
+
+    public $date;
+
+    public $invoice_number;
+
+    public $customer;
+
+    public $id_customer;
+
+    public $due_date;
+
+    public $income_tax = 0;
+
+    public $value_tax = 0;
+
+    public $amount = 0;
+
+    public $income_taxs = [];
+
+    public $value_taxs = [];
+
+    public $amounts = [];
+
     public $file_import;
+
     public $categories;
 
     public function render()
     {
-        $roof_invoices = Invoice::search($this->search);
+        $roof_invoices = Invoice::search($this->search)->where('type', 'roof')
+            ->when($this->filter_sales, function ($query) {
+                $query->where('user_id', $this->filter_sales);
+            })
+            ->when($this->filter_month, function ($query) {
+                $query->whereYear('date', (int) Carbon::parse($this->filter_month)->format('Y'))->whereMonth('date', (int) Carbon::parse($this->filter_month)->format('m'));
+            })
+            ->limit(5)
+            ->with('user')
+            ->paginate($this->perPage);
+
         return view('livewire.invoice.roof-invoice.roof-invoice-index', [
             'sales' => User::role('sales')->whereHas('userDetail', function ($query) {
-                    $query->where('sales_type', 'roof');
-                })->select('id', 'name')->orderBy('name', "ASC")->get(),
+                $query->where('sales_type', 'roof');
+            })->select('id', 'name')->orderBy('name', 'ASC')->get(),
 
-            'roof_invoices' => $roof_invoices->where('type', 'roof')
-                ->when($this->filter_sales, function ($query) {
-                    $query->where('user_id', $this->filter_sales);
-                })
-                ->when($this->filter_month, function ($query) {
-                    $query->whereYear('date', (int)Carbon::parse($this->filter_month)->format('Y'))->whereMonth('date', (int)Carbon::parse($this->filter_month)->format('m'));
-                })
-                ->with('user')
-                ->paginate($this->perPage),
+            'roof_invoices' => $roof_invoices,
         ])->extends('layouts.layout.app')->section('content');
     }
 
@@ -62,15 +97,15 @@ class RoofInvoiceIndex extends Component
         $this->data_due_dates = [
             [
                 'due_date' => 0,
-                'value'    => 100,
+                'value' => 100,
             ],
             [
                 'due_date' => 15,
-                'value'    => 50,
+                'value' => 50,
             ],
             [
                 'due_date' => 7,
-                'value'    => 0,
+                'value' => 0,
             ],
         ];
 
@@ -97,21 +132,21 @@ class RoofInvoiceIndex extends Component
 
         foreach ($this->categories as $key => $category) {
             if (isset($this->income_taxs[$category?->slug])) {
-                $this->value_taxs[$category?->slug] = (int)$this->income_taxs[$category?->slug] * 0.11;
-                $this->amounts[$category?->slug]    = (int)$this->income_taxs[$category?->slug] + (int)$this->value_taxs[$category?->slug];
+                $this->value_taxs[$category?->slug] = (int) $this->income_taxs[$category?->slug] * 0.11;
+                $this->amounts[$category?->slug] = (int) $this->income_taxs[$category?->slug] + (int) $this->value_taxs[$category?->slug];
             }
         }
     }
 
     public function updatedIncomeTaxs()
     {
-        $this->income_tax = $this->value_tax =  $this->amount = 0;
+        $this->income_tax = $this->value_tax = $this->amount = 0;
         foreach ($this->categories as $category) {
             $slug = $category?->slug;
             if (isset($this->income_taxs[$slug])) {
-                $this->income_tax += (int)$this->income_taxs[$slug];
-                $this->value_tax  += (int)$this->value_taxs[$slug];
-                $this->amount     += (int)$this->amounts[$slug];
+                $this->income_tax += (int) $this->income_taxs[$slug];
+                $this->value_tax += (int) $this->value_taxs[$slug];
+                $this->amount += (int) $this->amounts[$slug];
             }
         }
     }
@@ -128,22 +163,22 @@ class RoofInvoiceIndex extends Component
         // }
 
         $this->validate([
-            'sales_id'       => 'required',
-            'date'           => 'required|date',
+            'sales_id' => 'required',
+            'date' => 'required|date',
             'invoice_number' => 'required',
-            'customer'       => 'required',
-            'id_customer'    => 'nullable',
-            'due_date'       => 'required|numeric',
-            'income_tax'     => 'required|numeric',
-            'value_tax'      => 'required|numeric',
-            'amount'         => 'required|numeric',
+            'customer' => 'required',
+            'id_customer' => 'nullable',
+            'due_date' => 'required|numeric',
+            'income_tax' => 'required|numeric',
+            'value_tax' => 'required|numeric',
+            'amount' => 'required|numeric',
         ]);
 
         $unique_invoice = Invoice::where('invoice_number', $this->invoice_number)->first();
 
         if ($unique_invoice) {
             return $this->alert('warning', 'Maaf', [
-                'text' => 'Nomor Faktur sudah ada pada database!'
+                'text' => 'Nomor Faktur sudah ada pada database!',
             ]);
         }
 
@@ -151,83 +186,83 @@ class RoofInvoiceIndex extends Component
             DB::transaction(function () {
                 $invoice = Invoice::updateOrCreate(
                     [
-                        'id' => $this->id_data
+                        'id' => $this->id_data,
                     ],
                     [
-                        'user_id'        => $this->sales_id,
-                        'type'           => 'roof',
-                        'date'           => $this->date,
+                        'user_id' => $this->sales_id,
+                        'type' => 'roof',
+                        'date' => $this->date,
                         'invoice_number' => $this->invoice_number,
-                        'customer'       => $this->customer,
-                        'id_customer'    => $this->id_customer,
-                        'income_tax'     => (int)number_format($this->income_tax, 0, ',', ''),
-                        'value_tax'      => (int)number_format($this->value_tax, 0, ',', ''),
-                        'amount'         => (int)number_format($this->amount, 0, ',', ''),
-                        'due_date'       => $this->due_date,
+                        'customer' => $this->customer,
+                        'id_customer' => $this->id_customer,
+                        'income_tax' => (int) number_format($this->income_tax, 0, ',', ''),
+                        'value_tax' => (int) number_format($this->value_tax, 0, ',', ''),
+                        'amount' => (int) number_format($this->amount, 0, ',', ''),
+                        'due_date' => $this->due_date,
                     ]
                 );
 
                 //payment detail
-                $datas = array(
-                    'version'     => 1,
+                $datas = [
+                    'version' => 1,
                     'income_taxs' => $this->income_taxs,
-                    'value_taxs'  => $this->value_taxs,
-                    'amounts'     => $this->amounts,
-                );
+                    'value_taxs' => $this->value_taxs,
+                    'amounts' => $this->amounts,
+                ];
                 $this->_paymentDetail($invoice, $datas);
 
-                $datas = array(
-                    'version'     => 2,
+                $datas = [
+                    'version' => 2,
                     'income_taxs' => $this->income_taxs,
-                    'value_taxs'  => $this->value_taxs,
-                    'amounts'     => $this->amounts,
-                );
+                    'value_taxs' => $this->value_taxs,
+                    'amounts' => $this->amounts,
+                ];
                 $this->_paymentDetail($invoice, $datas);
 
                 //Invoice Proses
-                $datas = array(
-                    'version'  => 1,
-                    'due_date' => $this->due_date
-                );
+                $datas = [
+                    'version' => 1,
+                    'due_date' => $this->due_date,
+                ];
                 $this->_roofInvoice($invoice, $datas);
 
-                $datas = array(
-                    'version'  => 2,
-                    'due_date' => $this->due_date
-                );
+                $datas = [
+                    'version' => 2,
+                    'due_date' => $this->due_date,
+                ];
                 $this->_roofInvoice($invoice, $datas);
 
                 $categories = ['dr-shield', 'dr-sonne'];
                 foreach ($categories as $key => $category) {
                     $get_category = Category::where('slug', $category)->where('version', 1)->first();
-                    $datas = array(
-                        'version' => 1
-                    );
+                    $datas = [
+                        'version' => 1,
+                    ];
                     $this->_roofCommission($invoice, $get_category, $datas);
                 }
 
                 $categories = [null, 'dr-sonne'];
                 foreach ($categories as $key => $category) {
                     $get_category = Category::where('slug', $category)->where('version', 2)->first();
-                    $datas = array(
-                        'version' => 2
-                    );
+                    $datas = [
+                        'version' => 2,
+                    ];
                     $this->_roofCommission($invoice, $get_category, $datas);
                 }
             });
-        } catch (Exception | Throwable $th) {
+        } catch (Exception|Throwable $th) {
             DB::rollback();
             Log::error($th->getMessage());
-            Log::error("Terjadi Kesalahan Saat Menyimpan Data Faktur Atap!");
+            Log::error('Terjadi Kesalahan Saat Menyimpan Data Faktur Atap!');
 
             return $this->alert('error', 'Maaf', [
-                'text' => 'Terjadi Kesalahan Saat Menyimpan Data Faktur Atap !'
+                'text' => 'Terjadi Kesalahan Saat Menyimpan Data Faktur Atap !',
             ]);
         }
         $this->closeModal();
 
         return $this->alert('success', 'Berhasil', [
-            'text' => 'Data Faktur Atap Telah Disimpan !'
+            'text' => 'Data Faktur Atap Telah Disimpan !',
         ]);
     }
 
@@ -237,26 +272,26 @@ class RoofInvoiceIndex extends Component
             if ($key == 0) {
                 $invoice->dueDateRules()->create(
                     [
-                        'type'     => 'roof',
+                        'type' => 'roof',
                         'due_date' => $data_due_date['due_date'],
-                        'value'    => $data_due_date['value'],
+                        'value' => $data_due_date['value'],
                     ]
                 );
             } elseif ($key == 1) {
                 $invoice->dueDateRules()->create(
                     [
-                        'type'     => 'roof',
-                        'due_date' => $this?->due_date <= 30 ? 30 + (int)$data_due_date['due_date'] : (int)$this?->due_date + (int)$data_due_date['due_date'],
-                        'value'    => $data_due_date['value'],
+                        'type' => 'roof',
+                        'due_date' => $this?->due_date <= 30 ? 30 + (int) $data_due_date['due_date'] : (int) $this?->due_date + (int) $data_due_date['due_date'],
+                        'value' => $data_due_date['value'],
                     ]
                 );
             } elseif ($key > 1) {
                 $get_due_date_rule = $invoice->dueDateRules()->orderBy('value', 'ASC')->first();
                 $invoice->dueDateRules()->create(
                     [
-                        'type'     => 'roof',
-                        'due_date' => (int)$get_due_date_rule?->due_date + (int)$data_due_date['due_date'],
-                        'value'    => $data_due_date['value'],
+                        'type' => 'roof',
+                        'due_date' => (int) $get_due_date_rule?->due_date + (int) $data_due_date['due_date'],
+                        'value' => $data_due_date['value'],
                     ]
                 );
             }
@@ -265,22 +300,22 @@ class RoofInvoiceIndex extends Component
 
     public function edit($id)
     {
-        $this->get_invoice    = Invoice::find($id);
-        $this->id_data        = $this->get_invoice?->id;
-        $this->sales_id       = $this->get_invoice?->user?->id;
-        $this->sales_code     = User::find($this->sales_id) ? User::find($this->sales_id)?->userDetail?->sales_code : null;
-        $this->date           = $this->get_invoice?->date?->format('Y-m-d');
+        $this->get_invoice = Invoice::find($id);
+        $this->id_data = $this->get_invoice?->id;
+        $this->sales_id = $this->get_invoice?->user?->id;
+        $this->sales_code = User::find($this->sales_id) ? User::find($this->sales_id)?->userDetail?->sales_code : null;
+        $this->date = $this->get_invoice?->date?->format('Y-m-d');
         $this->invoice_number = $this->get_invoice?->invoice_number;
-        $this->customer       = $this->get_invoice?->customer;
-        $this->id_customer    = $this->get_invoice?->id_customer;
-        $this->due_date       = $this->get_invoice?->due_date;
-        $this->income_tax     = $this->get_invoice?->income_tax;
-        $this->value_tax      = $this->get_invoice?->value_tax;
-        $this->amount         = $this->get_invoice?->amount;
+        $this->customer = $this->get_invoice?->customer;
+        $this->id_customer = $this->get_invoice?->id_customer;
+        $this->due_date = $this->get_invoice?->due_date;
+        $this->income_tax = $this->get_invoice?->income_tax;
+        $this->value_tax = $this->get_invoice?->value_tax;
+        $this->amount = $this->get_invoice?->amount;
         foreach ($this->categories as $key => $category) {
             $this->income_taxs[$category?->slug] = $this->get_invoice->paymentDetails()->where('category_id', $category?->id)->first()?->income_tax;
-            $this->value_taxs[$category?->slug]  = $this->get_invoice->paymentDetails()->where('category_id', $category?->id)->first()?->value_tax;
-            $this->amounts[$category?->slug]     = $this->get_invoice->paymentDetails()->where('category_id', $category?->id)->first()?->amount;
+            $this->value_taxs[$category?->slug] = $this->get_invoice->paymentDetails()->where('category_id', $category?->id)->first()?->value_tax;
+            $this->amounts[$category?->slug] = $this->get_invoice->paymentDetails()->where('category_id', $category?->id)->first()?->amount;
         }
 
         $this->dispatch('openModal');
@@ -289,10 +324,10 @@ class RoofInvoiceIndex extends Component
     public function deleteConfirm($id)
     {
         $this->confirm('Konfirmasi', [
-            'inputAttributes'    => ['id' => $id],
-            'onConfirmed'        => 'delete',
-            'text'               => 'Data yang dihapus tidak dapat di kembalikan lagi',
-            'reverseButtons'     => 'true',
+            'inputAttributes' => ['id' => $id],
+            'onConfirmed' => 'delete',
+            'text' => 'Data yang dihapus tidak dapat di kembalikan lagi',
+            'reverseButtons' => 'true',
             'confirmButtonColor' => '#24B464',
         ]);
     }
@@ -316,37 +351,37 @@ class RoofInvoiceIndex extends Component
                 $categories = ['dr-shield', 'dr-sonne'];
                 foreach ($categories as $key => $category) {
                     $get_category = Category::where('slug', $category)->where('version', 1)->first();
-                    $datas = array(
-                        'version' => 1
-                    );
+                    $datas = [
+                        'version' => 1,
+                    ];
                     $this->_roofCommission($invoice, $get_category, $datas);
                 }
 
                 $categories = [null, 'dr-sonne'];
                 foreach ($categories as $key => $category) {
                     $get_category = Category::where('slug', $category)->where('version', 2)->first();
-                    $datas = array(
-                        'version' => 2
-                    );
+                    $datas = [
+                        'version' => 2,
+                    ];
                     $this->_roofCommission($invoice, $get_category, $datas);
                 }
             });
 
             DB::commit();
-        } catch (Throwable | Exception $e) {
+        } catch (Throwable|Exception $e) {
             DB::rollBack();
 
             Log::error($e->getMessage());
 
             return $this->alert('error', 'Maaf', [
-                'text' => 'Terjadi Kesalahan Saat Menghapus Data Faktur Atap!'
+                'text' => 'Terjadi Kesalahan Saat Menghapus Data Faktur Atap!',
             ]);
         }
 
         $this->closeModal();
 
         return $this->alert('success', 'Berhasil', [
-            'text' => 'Data Faktur Atap Telah Dihapus !'
+            'text' => 'Data Faktur Atap Telah Dihapus !',
         ]);
     }
 
@@ -358,36 +393,39 @@ class RoofInvoiceIndex extends Component
 
         try {
             Excel::import(new RoofInvoiceImport, $this->file_import);
-        } catch (Exception | Throwable $th) {
+        } catch (Exception|Throwable $th) {
             Log::error($th->getMessage());
-            Log::error("Ada kesalahan saat Import data faktur atap");
+            Log::error('Ada kesalahan saat Import data faktur atap');
             $this->closeModal();
+
             return $this->alert('error', 'Gagal', [
-                'text' => 'Ada kesalahan saat Import data faktur atap !'
+                'text' => 'Ada kesalahan saat Import data faktur atap !',
             ]);
         }
 
         $this->closeModal();
 
         return $this->alert('success', 'Berhasil', [
-            'text' => 'Data Faktur Atap berhasil disimpan !, silahkan tunggu beberapa saat'
+            'text' => 'Data Faktur Atap berhasil disimpan !, silahkan tunggu beberapa saat',
         ]);
     }
 
     public function sumIncomeTax($version, $slug_category)
     {
-        return Invoice::search($this->search)->where('type', 'roof')
-                ->when($this->filter_sales, function ($query) {
-                    $query->where('user_id', $this->filter_sales);
-                })
-                ->when($this->filter_month, function ($query) {
-                    $query->whereYear('date', (int)Carbon::parse($this->filter_month)->format('Y'))->whereMonth('date', (int)Carbon::parse($this->filter_month)->format('m'));
-                })->withSum(['paymentDetails' => function ($query) use ($version, $slug_category) {
-                    $get_category = Category::where('version', $version)->where('slug', $slug_category)->first();
-                    if ($get_category) {
-                        $query->where('category_id', $get_category?->id);
-                    }
-                    $query->where('version', $version);
-                }], 'income_tax')->get()->sum('payment_details_sum_income_tax');
+        $category = Category::where('version', $version)
+            ->where('slug', $slug_category)
+            ->first();
+
+        return Invoice::search($this->search)
+            ->where('type', 'roof')
+            ->when($this->filter_sales, fn ($q) => $q->where('user_id', $this->filter_sales))
+            ->when($this->filter_month, function ($q) {
+                $month = Carbon::parse($this->filter_month);
+                $q->whereYear('date', $month->year)->whereMonth('date', $month->month);
+            })
+            ->join('payment_details', 'payment_details.invoice_id', '=', 'invoices.id')
+            ->when($category, fn ($q) => $q->where('payment_details.category_id', $category->id))
+            ->where('payment_details.version', $version)
+            ->sum('payment_details.income_tax');
     }
 }

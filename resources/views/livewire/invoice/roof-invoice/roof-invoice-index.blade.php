@@ -1,8 +1,8 @@
 @section('title', 'Faktur Atap')
 <div>
     {{-- Because she competes with no one, no one can compete with her. --}}
-    @include('livewire.invoice.roof-invoice.roof-invoice-modal')
-    @include('livewire.invoice.roof-invoice.roof-invoice-modal-import')
+    {{-- @include('livewire.invoice.roof-invoice.roof-invoice-modal')
+    @include('livewire.invoice.roof-invoice.roof-invoice-modal-import') --}}
     <div wire:loading.block wire:target="importInvoiceData">
         @include('layouts.layout.loading-screen')
     </div>
@@ -40,7 +40,7 @@
                             <select class="form-select @error('filter_sales') is-invalid @enderror" id="status" wire:model.live="filter_sales" aria-label="Default select example">
                                 <option value="" selected>-- Pilih Sales --</option>
                                 @foreach ($sales as $sales)
-                                    <option value="{{ $sales?->id }}" {{ $filter_sales == $sales?->id ? "selected" : "" }}>{{ Str::title($sales?->name) }}</option>
+                                    <option value="{{ $sales?->id }}" {{ $filter_sales == $sales?->id ? 'selected' : '' }}>{{ Str::title($sales?->name) }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -107,11 +107,11 @@
                     <tr>
                         <td class = "text-center" colspan="3" rowspan="2">Versi 1</td>
                         <td class = "text-center" colspan="1">Dr Shield</td>
-                        <td class = "text-center" colspan="1"><b>{{ "Rp. " .number_format($this->sumIncomeTax(1, 'dr-shield'), 0, ',', '.') }}</b></td>
+                        <td class = "text-center" colspan="1"><b>{{ 'Rp. ' . number_format($this->sumIncomeTax(1, 'dr-shield'), 0, ',', '.') }}</b></td>
                     </tr>
                     <tr>
                         <td class = "text-center" colspan="1">Dr Sonne</td>
-                        <td class = "text-center" colspan="1"><b>{{ "Rp. " .number_format($this->sumIncomeTax(1, 'dr-sonne'), 0, ',', '.') }}</b></td>
+                        <td class = "text-center" colspan="1"><b>{{ 'Rp. ' . number_format($this->sumIncomeTax(1, 'dr-sonne'), 0, ',', '.') }}</b></td>
                     </tr>
                     {{-- <tr>
                         <td class = "text-center" colspan="3" rowspan="2">Versi 2</td>

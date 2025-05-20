@@ -36,17 +36,33 @@ class SudoController extends BaseController
         try {
             DB::beginTransaction();
 
-                $invoice_ids = Invoice::whereDate('created_at', $request?->created_at)->pluck('id')->toArray();
-                InvoiceDetail::whereIn('invoice_id', $invoice_ids)->forcoDelete();
-                PaymentDetail::whereIn('invoice_id', $invoice_ids)->forcoDelete();
-                DueDateRule::whereIn('invoice_id', $invoice_ids)->forcoDelete();
+                $invoice_ids = Invoice::whereDate('created_at', $request?->created_at)->when($request?->user_id != null, function ($query) use ($request) {
+                    $query->where('user_id', $request?->user_id);
+                })->pluck('id')->toArray();
+                InvoiceDetail::whereIn('invoice_id', $invoice_ids)->forceDelete();
+                PaymentDetail::whereIn('invoice_id', $invoice_ids)->forceDelete();
+                DueDateRule::whereIn('invoice_id', $invoice_ids)->forceDelete();
 
-                $commission_ids = Commission::whereDate('created_at', $request?->created_at)->pluck('id')->toArray();
-                LowerLimitCommission::whereIn('commission_id', $commission_ids)->forcoDelete();
-                CommissionDetail::whereIn('commission_id', $commission_ids)->forcoDelete();
+                $commission_ids = Commission::whereDate('created_at', $request?->created_at)->when($request?->user_id != null, function ($query) use ($request) {
+                    $query->where('user_id', $request?->user_id);
+                })->pluck('id')->toArray();
+                LowerLimitCommission::whereIn('commission_id', $commission_ids)->forceDelete();
+                CommissionDetail::whereIn('commission_id', $commission_ids)->forceDelete();
 
-                Invoice::whereDate('created_at', $request?->created_at)->forcoDelete();
-                Commission::whereDate('created_at', $request?->created_at)->forcoDelete();
+                Invoice::whereDate('created_at', $request?->created_at)->when($request?->user_id != null, function ($query) use ($request) {
+                    $query->where('user_id', $request?->user_id);
+                })->forceDelete();
+                Commission::whereDate('created_at', $request?->created_at)->when($request?->user_id != null, function ($query) use ($request) {
+                    $query->where('user_id', $request?->user_id);
+                })->forceDelete();
+
+                // InvoiceDetail::whereDate('created_at', $request?->created_at)->forceDelete();
+                // PaymentDetail::whereDate('created_at', $request?->created_at)->forceDelete();
+                // DueDateRule::whereDate('created_at', $request?->created_at)->forceDelete();
+
+                // LowerLimitCommission::whereDate('created_at', $request?->created_at)->forceDelete();
+                // CommissionDetail::whereDate('created_at', $request?->created_at)->forceDelete();
+
 
             DB::commit();
         } catch (Exception | Throwable $th) {
