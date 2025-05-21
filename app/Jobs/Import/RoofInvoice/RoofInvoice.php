@@ -67,16 +67,17 @@ class RoofInvoice implements ShouldQueue
                 }
 
                 //amount
-                $collection[12] = $collection[12] == null ? $collection[10] + $collection[11] : $collection[12];
-                $collection[15] = $collection[15] == null ? $collection[13] + $collection[14] : $collection[15];
+                $collection[12] = $collection[12] == null ? (int)$collection[10] + (int)$collection[11] : (int)$collection[12];
+                $collection[15] = $collection[15] == null ? (int)$collection[13] + (int)$collection[14] : (int)$collection[15];
 
                 //income_tax
-                $collection[10] = $collection[10] == null ? $collection[12] / 1.11 : $collection[10];
-                $collection[13] = $collection[13] == null ? $collection[15] / 1.11 : $collection[13];
+                $collection[10] = $collection[10] == null ? (int)$collection[12] / 1.11 : (int)$collection[10];
+                $collection[13] = $collection[13] == null ? (int)$collection[15] / 1.11 : (int)$collection[13];
 
                 //value_tax
-                $collection[11] = $collection[11] == null ? $collection[10] * 0.11 : $collection[11];
-                $collection[14] = $collection[14] == null ? $collection[13] * 0.11 : $collection[14];
+                $collection[11] = $collection[11] == null ? (int)$collection[10] * 0.11 : (int)$collection[11];
+                $collection[14] = $collection[14] == null ? (int)$collection[13] * 0.11 : (int)$collection[14];
+
 
                 DB::transaction(function () use ($collection, $get_user, $categories) {
 
@@ -98,21 +99,6 @@ class RoofInvoice implements ShouldQueue
                         ]
                     );
 
-                    $income_taxs = [
-                        'dr-shield' => (int) $collection[10],
-                        'dr-sonne' => (int) $collection[13],
-                    ];
-
-                    $value_taxs = [
-                        'dr-shield' => (int) $collection[11],
-                        'dr-sonne' => (int) $collection[14],
-                    ];
-
-                    $amounts = [
-                        'dr-shield' => (int) $collection[12],
-                        'dr-sonne' => (int) $collection[15],
-                    ];
-
                     $payment_details = [
                         'version_1' => [
                             'income_taxs' => [
@@ -132,18 +118,6 @@ class RoofInvoice implements ShouldQueue
                             ]
                         ],
                         'version_2' => [
-                            // 'income_taxs' => [
-                            //     'dr-shield' => (int)$collection[10],
-                            //     'dr-sonne'  => (int)$collection[13],
-                            // ],
-                            // 'value_taxs' => [
-                            //     'dr-shield' => (int)$collection[11],
-                            //     'dr-sonne'  => (int)$collection[14],
-                            // ],
-                            // 'amounts' => [
-                            //     'dr-shield' => (int)$collection[12],
-                            //     'dr-sonne'  => (int)$collection[15],
-                            // ]
                             'income_taxs' => [
                                 // 'dr-shield' => max(0, (int)$collection[10] - (int)$collection[13]),
                                 'dr-shield' => ((int)$collection[10] - (int)$collection[13]),

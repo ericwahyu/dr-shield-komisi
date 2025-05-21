@@ -227,6 +227,12 @@ trait RoofCommissionProsses
                             'value_commission' => $get_commission->commissionDetails()->whereNot('percentage_of_due_date', 0)->sum('value_of_due_date')
                         ]);
                     }
+
+                }
+
+                //fee intersif DR SONNE
+                if ($category != null) {
+                    $this->feeIntensif($sum_income_tax, $get_commission);
                 }
 
             }
@@ -243,6 +249,23 @@ trait RoofCommissionProsses
             //     'file'          => $th->getFile(),
             //     'line'          => $th->getLine(),
             // ]));
+        }
+    }
+
+    private function feeIntensif($sum_income_tax, $get_commission)
+    {
+        if ($sum_income_tax >= 25000000 && $sum_income_tax <= 50000000) {
+            $get_commission->update([
+                 'add_on_commission' => 200000
+            ]);
+        } elseif ($sum_income_tax >= 50000000 && $sum_income_tax <= 100000000) {
+            $get_commission->update([
+                 'add_on_commission' => 300000
+            ]);
+        } elseif ($sum_income_tax >= 100000000) {
+            $get_commission->update([
+                 'add_on_commission' => 400000
+            ]);
         }
     }
 }

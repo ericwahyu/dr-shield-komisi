@@ -62,7 +62,7 @@
                             $row_span = 0;
                             foreach ($categories as $key => $category) {
                                 $row_span += count($this->lowerLimiCommissions($result?->id, $category)) > 0 ? count($this->lowerLimiCommissions($result?->id, $category)) : 1;
-                                $total_commission = $this->commissionSales($result?->id, $categories[0])?->value_commission + $this->commissionSales($result?->id, $categories[1])?->value_commission;
+                                $total_commission = ($this->commissionSales($result?->id, $categories[0])?->value_commission + $this->commissionSales($result?->id, $categories[1])?->value_commission) + ($this->commissionSales($result?->id, $categories[0])?->add_on_commission + $this->commissionSales($result?->id, $categories[1])?->add_on_commission);
                             }
                             // dd($row_span);
                         @endphp
@@ -152,7 +152,7 @@
                                             <span class="badge rounded-pill bg-warning bg-glow">Tidak Mencapai Target</span>
                                         @endif
                                     </td>
-                                    <td rowspan="{{ count($this->lowerLimiCommissions($result?->id, $category)) > 0 ? count($this->lowerLimiCommissions($result?->id, $category)) : '' }}" class="text-center">{{ $this->commissionSales($result?->id, $category)?->value_commission ? "Rp. ". number_format($this->commissionSales($result?->id, $category)?->value_commission ?? 0, 0, ',', '.') : '-' }}</td>
+                                    <td rowspan="{{ count($this->lowerLimiCommissions($result?->id, $category)) > 0 ? count($this->lowerLimiCommissions($result?->id, $category)) : '' }}" class="text-center">{{ $this->commissionSales($result?->id, $category)?->value_commission || $this->commissionSales($result?->id, $category)?->add_on_commission ? "Rp. ". number_format($this->commissionSales($result?->id, $category)?->value_commission + $this->commissionSales($result?->id, $category)?->add_on_commission  ?? 0, 0, ',', '.') : '-' }}</td>
                                     <td rowspan="{{ count($this->lowerLimiCommissions($result?->id, $category)) > 0 ? count($this->lowerLimiCommissions($result?->id, $category)) : '' }}" class="text-center">
                                         <a class="btn btn-secondary btn-sm" style="pointer-events: none;" href="{{ route('roof.commission.detail.v2', [$result?->id, $filter_month, $category]) }}" x-data="{ tooltip: 'Detail Komisi' }" x-tooltip="tooltip"><i class="fa-solid fa-circle-info fa-fw"></i></a>
                                     </td>
