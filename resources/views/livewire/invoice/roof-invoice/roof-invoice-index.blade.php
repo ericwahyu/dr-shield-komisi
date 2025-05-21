@@ -19,9 +19,9 @@
     <div class="card">
         <div class="card-body">
             <div class="row justify-content-between g-3">
-                <div class="col-12 col-lg-4">
+                <div class="col-12 col-lg-3">
                     <div class="row">
-                        <div class="gap-2 col-lg-6 col-12 d-flex align-items-center">
+                        <div class="gap-2 col-lg-12 col-12 d-flex align-items-center">
                             <div>Lihat</div>
                             <select class="form-select" wire:model.live="perPage">
                                 <option value="10">10</option>
@@ -33,10 +33,12 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-12 col-lg-4">
-                    <div class="row">
-                        <div class="gap-2 col-lg-10 col-12 d-flex align-items-center">
+                <div class="col-12 col-lg-5">
+                    <div class="d-flex align-items-center gap-2">
+                        <div>
                             <input class="form-control" type="month" wire:model.live="filter_month" id="html5-date-input">
+                        </div>
+                        <div>
                             <select class="form-select @error('filter_sales') is-invalid @enderror" id="status" wire:model.live="filter_sales" aria-label="Default select example">
                                 <option value="" selected>-- Pilih Sales --</option>
                                 @foreach ($sales as $sales)
