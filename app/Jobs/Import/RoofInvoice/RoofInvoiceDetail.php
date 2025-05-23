@@ -50,6 +50,11 @@ class RoofInvoiceDetail implements ShouldQueue
                 $check_year = Carbon::parse($collection[2])->format('Y');
 
                 if (!$get_invoice || (int)$check_year < 2010) {
+                    $warning = [
+                        'get_invoice'     => !$get_invoice,
+                        'year_under_2010' => (int)$check_year < 2010,
+                    ];
+                    Log::warning('Gagal memasukkan Detail Faktur Atap dengan no : '.$collection[1], $warning);
                     continue;
                 }
 
