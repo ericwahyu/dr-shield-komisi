@@ -112,11 +112,6 @@ trait RoofCommissionProsses
             ];
             Log::error("Ada kesalahan saat proses payment detail atap v1", $error);
             throw new \Exception($th->getMessage());
-            // throw new \Exception(json_encode([
-            //     'error_message' => $th->getMessage(),
-            //     'file'          => $th->getFile(),
-            //     'line'          => $th->getLine(),
-            // ]));
         }
     }
 
@@ -187,9 +182,9 @@ trait RoofCommissionProsses
                 })->when($category != null, function ($query) use ($category) {
                     $query->where('category_id', $category?->id);
                 })->when($category == null, function ($query) use ($category) {
-                    // $query->whereNull('category_id');
-                    $query->where('version', 2);
-                })->sum('income_tax');
+                    $query->whereNull('category_id');
+                    // $query->where('version', 2);
+                })->where('version', 2)->sum('income_tax');
 
                 $get_lower_limit_commission = $get_commission?->lowerLimitCommissions()->when($category != null, function ($query) use ($category) {
                     $query->where('category_id', $category?->id);
@@ -244,11 +239,6 @@ trait RoofCommissionProsses
             ];
             Log::error("Ada kesalahan saat proses payment detail atap v2", $error);
             throw new \Exception($th->getMessage());
-            // throw new \Exception(json_encode([
-            //     'error_message' => $th->getMessage(),
-            //     'file'          => $th->getFile(),
-            //     'line'          => $th->getLine(),
-            // ]));
         }
     }
 
