@@ -120,17 +120,17 @@ class RoofInvoice implements ShouldQueue
                         'version_2' => [
                             'income_taxs' => [
                                 // 'dr-shield' => max(0, (int)$collection[10] - (int)$collection[13]),
-                                'dr-shield' => ((int)$collection[10] - (int)$collection[13]),
+                                'dr-shield' => (int)$collection[10],
                                 'dr-sonne'  => (int)$collection[13],
                             ],
                             'value_taxs' => [
                                 // 'dr-shield' => max(0, (int)$collection[11] - (int)$collection[14]),
-                                'dr-shield' => ((int)$collection[11] - (int)$collection[14]),
+                                'dr-shield' => (int)$collection[11],
                                 'dr-sonne'  => (int)$collection[14],
                             ],
                             'amounts' => [
                                 // 'dr-shield' => max(0, (int)$collection[12] - (int)$collection[15]),
-                                'dr-shield' => ((int)$collection[12] - (int)$collection[15]),
+                                'dr-shield' => (int)$collection[12],
                                 'dr-sonne'  => (int)$collection[15],
                             ]
                         ],
