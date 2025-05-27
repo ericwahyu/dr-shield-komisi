@@ -184,7 +184,7 @@ trait CeramicCommissionDetailProsses
                     'month'       => Carbon::parse($datas['invoice_detail_date'])->format('m'),
                     'year'        => Carbon::parse($datas['invoice_detail_date'])->format('Y'),
                     'version'     => $datas['version'],
-                    'total_sales' => (int)$datas['income_tax'],
+                    // 'total_sales' => (int)$datas['income_tax'],
                     'status'      => 'not-reach'
                 ]);
 

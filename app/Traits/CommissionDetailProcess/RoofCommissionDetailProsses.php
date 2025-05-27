@@ -172,7 +172,6 @@ trait RoofCommissionDetailProsses
                         } else {
                              $total_income = round((int)$total_income / floatval($this->getSystemSetting()?->value_of_total_income)*((int)$percentage_invoice_detail > 0 ? (int)$percentage_invoice_detail/100 : 1), 2);
                          }
-                            // $total_income = round((int)$total_income / floatval($this->getSystemSetting()?->value_of_total_income)*((int)$percentage_invoice_detail > 0 ? (int)$percentage_invoice_detail/100 : 1), 2);
 
                         $get_commission->commissionDetails()->updateOrCreate(
                             [
@@ -231,7 +230,7 @@ trait RoofCommissionDetailProsses
                 $get_lower_limit_commission = $get_lower_limit_commission ?? null;
 
                 $get_commission?->update([
-                    'total_sales'                 => (int)$total_income,
+                    // 'total_sales'                 => (int)$total_income,
                     'percentage_value_commission' => $get_lower_limit_commission,
                     'status'                      => $get_lower_limit_commission != null ? 'reached' : 'not-reach',
                     'value_commission'            => $get_commission?->status == 'reached' ? $this->__getCommissionDrSonneV2((int)$total_income) : null
