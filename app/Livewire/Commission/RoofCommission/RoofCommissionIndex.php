@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Commission\RoofCommission;
 
+use App\Exports\Commission\RoofCommission\RoofCommissionVersion2;
 use App\Models\Auth\User;
 use App\Models\Commission\Commission;
 use App\Models\System\Category;
@@ -9,6 +10,7 @@ use Carbon\Carbon;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Maatwebsite\Excel\Facades\Excel;
 
 class RoofCommissionIndex extends Component
 {
@@ -19,6 +21,8 @@ class RoofCommissionIndex extends Component
     public $filter_month;
     public $selectYear, $selectMonth;
     public $categories;
+
+    public $export_version, $export_month;
 
     public function render()
     {
@@ -46,7 +50,7 @@ class RoofCommissionIndex extends Component
 
     public function closeModal()
     {
-        $this->reset('');
+        // $this->reset('');
         $this->dispatch('closeModal');
     }
 
@@ -88,5 +92,19 @@ class RoofCommissionIndex extends Component
         }
 
         return $get_commission?->commissionDetails()->whereNotIn('percentage_of_due_date', [0])->sum('value_of_due_date');
+    }
+
+    public function exportData()
+    {
+        $this->validate([
+            'export_version' => 'required',
+            'export_month'   => 'required',
+        ]);
+
+        $export_month = $this->export_month;
+
+        $this->closeModal();
+
+        return Excel::download(new RoofCommissionVersion2($export_month), 'Komisi Atap V2-' . Carbon::parse($this->export_month)->format('Y-m') . '.xlsx');
     }
 }

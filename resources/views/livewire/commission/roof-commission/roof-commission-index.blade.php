@@ -1,12 +1,16 @@
 @section('title', 'Komisi Atap')
 <div>
     {{-- Nothing in the world is as soft and yielding as water. --}}
+    <div wire:loading.block wire:target="exportData">
+        @include('layouts.layout.loading-screen')
+    </div>
+    @include('livewire.commission.roof-commission.roof-commission-export-modal')
     <div class="d-flex align-items-center">
         <div>
             <h3 class="mb-0 fw-semibold">Komisi Atap</h3>
         </div>
         <div class="ms-auto">
-            {{-- <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modal">Tambah <i class="fa-solid fa-circle-plus fa-fw ms-2"></i></button> --}}
+            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modal-export">Export Komisi <i class="fa-solid fa-circle-plus fa-fw ms-2"></i></button>
         </div>
     </div>
     <hr class="my-3">
@@ -206,3 +210,18 @@
         </div>
     </div>
 </div>
+@push('scripts')
+    <script>
+        $(document).ready(function() {
+            Livewire.on("openModal", () => {
+                jQuery('#modal').modal('show');
+            });
+            Livewire.on("closeModal", () => {
+                jQuery('#modal').modal('hide');
+            });
+            Livewire.on("closeModal", () => {
+                jQuery('#modal-export').modal('hide');
+            });
+        });
+    </script>
+@endpush

@@ -245,15 +245,18 @@ trait RoofCommissionProsses
     {
         if ($sum_income_tax >= 25000000 && $sum_income_tax <= 50000000) {
             $get_commission->update([
-                 'add_on_commission' => 200000
+                'status'            => 'reached',
+                'add_on_commission' => 200000
             ]);
         } elseif ($sum_income_tax >= 50000000 && $sum_income_tax <= 100000000) {
             $get_commission->update([
-                 'add_on_commission' => 300000
+                'status'            => 'reached',
+                'add_on_commission' => 300000
             ]);
         } elseif ($sum_income_tax >= 100000000) {
             $get_commission->update([
-                 'add_on_commission' => 400000
+                'status'            => 'reached',
+                'add_on_commission' => 400000
             ]);
         }
     }
