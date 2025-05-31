@@ -26,30 +26,7 @@ class RoofCommissionVersion2 implements FromView
         $categories = [null, 'dr-sonne'];
         $sales      = User::role('sales')->whereHas('userDetail', function ($query) {
                         $query->where('sales_type', 'roof');
-                    })->whereLike('name', '%mukurama%')->get();
-
-        // // siapkan data sekali saja biar tidak berubah2 saat loop blade
-        // $data = [];
-
-        // foreach ($sales as $sale) {
-        //     $saleData = [
-        //         'sale' => $sale,
-        //         'commissions' => [],
-        //     ];
-
-        //     foreach ($categories as $category) {
-        //         $comm   = $this->ExportRoofCommissionVersion2->commissionSales($sale->id, $category);
-        //         $limits = $this->ExportRoofCommissionVersion2->lowerLimiCommissions($sale->id, $category);
-
-        //         $saleData['commissions'][] = [
-        //             'category'   => $category,
-        //             'commission' => $comm,
-        //             'limits'     => $limits,
-        //         ];
-        //     }
-
-        //     $data[] = $saleData;
-        // }
+                    })->get();
 
         return view('layouts.export.roof-commission-version-2', [
             'categories' => $categories,
