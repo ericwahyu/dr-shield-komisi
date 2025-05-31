@@ -80,7 +80,7 @@
                                             <tr>
                                                 <td class = "text-center">{{ $loop->iteration }}</td>
                                                 <td class = "text-center">{{ $year }}</td>
-                                                <td class = "text-center">{{ Carbon::createFromFormat('m', $month)->translatedFormat('F') }}</td>
+                                                <td class = "text-center">{{ Carbon::create()->month($month)->locale('id')->translatedFormat('F') }}</td>
                                                 <td class = "text-end">{{ $this->getDetailCommission($year, $month, 100)?->total_income ? "Rp. ". number_format($this->getDetailCommission($year, $month, 100)?->total_income, 0, ',', '.') : '-' }}</td>
                                                 <td class = "text-center">{{ $this->getDetailCommission($year, $month, 100)?->value_of_due_date ? "Rp. ". number_format($this->getDetailCommission($year, $month, 100)?->value_of_due_date, 0, ',', '.') : '-' }}</td>
                                                 <td class = "text-end">{{ $this->getDetailCommission($year, $month, 50)?->total_income ? "Rp. ". number_format($this->getDetailCommission($year, $month, 50)?->total_income, 0, ',', '.') : '-' }}</td>

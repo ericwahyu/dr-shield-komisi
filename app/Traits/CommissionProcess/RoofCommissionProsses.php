@@ -183,7 +183,6 @@ trait RoofCommissionProsses
                     $query->where('category_id', $category?->id);
                 })->when($category == null, function ($query) use ($category) {
                     $query->whereNull('category_id');
-                    // $query->where('version', 2);
                 })->where('version', 2)->sum('income_tax');
 
                 $get_lower_limit_commission = $get_commission?->lowerLimitCommissions()->when($category != null, function ($query) use ($category) {
@@ -226,7 +225,7 @@ trait RoofCommissionProsses
                 }
 
                 //fee intersif DR SONNE
-                if ($category != null) {
+                if ($category != null && $get_commission?->status == 'reached') {
                     $this->feeIntensif($sum_income_tax, $get_commission);
                 }
 
