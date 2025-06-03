@@ -16,13 +16,17 @@ class CategorySeeder extends Seeder
     {
         //
         $datas_v1 = [
+            // [
+            //     'type' => 'roof',
+            //     'name' => 'Dr Shield',
+            // ],
+            // [
+            //     'type' => 'roof',
+            //     'name' => 'Dr Sonne',
+            // ],
             [
                 'type' => 'roof',
-                'name' => 'Dr Shield',
-            ],
-            [
-                'type' => 'roof',
-                'name' => 'Dr Sonne',
+                'name' => 'Dr Houz',
             ]
         ];
 

@@ -82,10 +82,8 @@
                                         foreach ($categories as $key => $category) {
                                             $row_span += count($this->lowerLimiCommissions($result?->id, $category)) > 0 ? count($this->lowerLimiCommissions($result?->id, $category)) : 1;
                                         }
-                                        // dd($row_span);
                                     @endphp
                                     <tr wire:key='{{ rand() }}'>
-                                        {{-- <td rowspan="{{ $row_span > 0 ? $row_span : count($categories) }}" class="text-center">{{ $sales?->currentPage() * $perPage - $perPage + $loop->iteration }}</td> --}}
                                         <td rowspan="{{ $row_span > 0 ? $row_span : count($categories) }}" class="text-center">{{ $loop->iteration }}</td>
                                         <td rowspan="{{ $row_span > 0 ? $row_span : count($categories) }}" class="sorting_1">
                                             <div class="d-flex justify-content-start align-items-center product-name">
@@ -144,7 +142,7 @@
                                                 @continue
                                             @endif
                                             <tr>
-                                                <td rowspan="{{ count($this->lowerLimiCommissions($result?->id, $category)) > 0 ? count($this->lowerLimiCommissions($result?->id, $category)) : '' }}"class="text-center"><b>Dr Sonne</b></td>
+                                                <td rowspan="{{ count($this->lowerLimiCommissions($result?->id, $category)) > 0 ? count($this->lowerLimiCommissions($result?->id, $category)) : '' }}" class="text-center"><b>{{ $category?->name }}</b></td>
                                                 <td rowspan="{{ count($this->lowerLimiCommissions($result?->id, $category)) > 0 ? count($this->lowerLimiCommissions($result?->id, $category)) : '' }}" class="text-center">{{ "Rp. ". number_format($this->commissionSales($result?->id, $category)?->total_sales ?? 0, 0, ',', '.') }}</td>
                                                 <td class="text-center">
                                                     @if (count($this->lowerLimiCommissions($result?->id, $category)) > 0)
