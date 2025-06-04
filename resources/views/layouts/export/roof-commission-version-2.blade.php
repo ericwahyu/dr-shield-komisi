@@ -130,5 +130,28 @@
                 @endforeach
             @endif
         @endforeach
+        <tr></tr>
+        <tr></tr>
+        <tr>
+            <td colspan="3" style="text-align: center; vertical-align: middle">Dibuat Oleh,</td>
+            <td></td>
+            <td colspan="6" style="text-align: center; vertical-align: middle">Mengetahui,</td>
+            <td></td>
+            <td colspan="3" style="text-align: center; vertical-align: middle">Mengetahui,</td>
+        </tr>
+        <tr></tr>
+        <tr></tr>
+        <tr></tr>
+        <tr></tr>
+        <tr>
+            <td colspan="3" style="text-align: center; vertical-align: middle">Admin</td>
+            <td></td>
+            <td colspan="3" style="text-align: center; vertical-align: middle">RM 1</td>
+            <td colspan="3" style="text-align: center; vertical-align: middle">RM 2</td>
+            <td></td>
+            <td colspan="1" style="text-align: center; vertical-align: middle">NOM</td>
+            <td></td>
+            <td colspan="1" style="text-align: center; vertical-align: middle">Direktur ABC</td>
+        </tr>
     </tbody>
 </table>
