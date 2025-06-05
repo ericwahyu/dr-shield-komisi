@@ -74,7 +74,7 @@ class RoofInvoiceDetail implements ShouldQueue
     {
         try {
             $categories = ['dr-shield', 'dr-sonne', 'dr-houz'];
-            
+
             $payment = (int) $collection[1];
 
             foreach ($categories as $key => $category) {
