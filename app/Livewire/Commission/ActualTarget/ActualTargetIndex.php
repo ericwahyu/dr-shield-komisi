@@ -24,7 +24,7 @@ class ActualTargetIndex extends Component
     public function render()
     {
         return view('livewire.commission.actual-target.actual-target-index', [
-            'categories' => Category::where('type', 'roof')->distinct()->pluck('slug')->toArray(),
+            'categories' => Category::where('type', 'roof')->where('version', 1)->pluck('slug')->toArray(),
             'actuals'    => ActualTarget::whereHas('category', fn ($query) => $query->where('type', 'roof'))->distinct()->orderBy('actual', 'DESC')->pluck('actual')->toArray(),
         ])->extends('layouts.layout.app')->section('content');
     }

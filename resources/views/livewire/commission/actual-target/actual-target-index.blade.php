@@ -67,14 +67,15 @@
                     @forelse ($categories as $category)
                         @php
                             $targets = $this->getTargets($category);
+                            // @dd(count($targets) > 0 )
                         @endphp
                         <tr>
-                            <td rowspan="{{ count($targets) > 0 ? count($targets) : '' }}" class="text-center"><b>{{ Str::title(Str::replace('-', ' ', $category)) }}</b></td>
-                            <td class="text-center">Rp. {{ number_format($targets[0], 0, ',', '.') }}</td>
+                            <td rowspan="{{ count($targets) > 0 ? count($targets) : 1 }}" class="text-center"><b>{{ Str::title(Str::replace('-', ' ', $category)) }}</b></td>
+                            <td class="text-center">Rp. {{ count($targets) > 0 ? number_format($targets[0], 0, ',', '.') : '-' }}</td>
                             @foreach ($actuals as $actual)
-                                <td class="text-center">Rp. {{ number_format($this->getActualTarget($category, $actual, $targets[0])?->value_commission, 0, ',', '.') }}</td>
+                                <td class="text-center"> {{ count($targets) > 0 ? "Rp. ".number_format($this->getActualTarget($category, $actual, $targets[0])?->value_commission, 0, ',', '.') : '-' }}</td>
                                 <td class="text-center">
-                                    @if ($this->getActualTarget($category, $actual, $targets[0]) != null)
+                                    @if (count($targets) > 0 && $this->getActualTarget($category, $actual, $targets[0]) != null)
                                         <button class="btn btn-danger btn-sm" wire:click="deleteConfirm('{{ $category }}', {{ $actual }}, {{ $targets[0] }})" x-data="{ tooltip: 'Hapus' }" x-tooltip="tooltip"><i class="fa-solid fa-trash-alt fa-fw"></i></button>
                                         <button class="btn btn-warning btn-sm" wire:click="edit('{{ $category }}', {{ $actual }}, {{ $targets[0] }})" x-data="{ tooltip: 'Edit' }" x-tooltip="tooltip"><i class="fa-solid fa-pencil-alt fa-fw"></i></button>
                                     @endif
