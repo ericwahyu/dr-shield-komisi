@@ -12,6 +12,7 @@
                         <select class="form-select @error('export_version') is-invalid @enderror" id="status" wire:model="export_version" aria-label="Default select example">
                             <option value=""selected style="display: none">-- Pilih Versi --</option>
                             {{-- <option value="roof" {{ $export_version == 1 ? "selected" : "" }}>Versi 1</option> --}}
+                            <option value="1" selected >Versi 1</option>
                             <option value="2" selected >Versi 2</option>
                         </select>
                         @error('export_version')

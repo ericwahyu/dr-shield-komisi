@@ -2,7 +2,7 @@
     <thead>
         <tr>
             <th rowspan = "2" style = "font-weight: bold;border: 1.5px solid black;background-color: #eeeeee;text-align: center;text-transform: uppercase;width: 50px;">No</th>
-            <th rowspan = "2" style = "font-weight: bold;border: 1.5px solid black;background-color: #eeeeee;text-align: center;text-transform: uppercase;width: 150px;">Nama Sales</th>
+            <th rowspan = "2" style = "font-weight: bold;border: 1.5px solid black;background-color: #eeeeee;text-align: center;text-transform: uppercase;width: 200px;">Nama Sales</th>
             <th rowspan = "2" style = "font-weight: bold;border: 1.5px solid black;background-color: #eeeeee;text-align: center;text-transform: uppercase;width: 150px;">NIK</th>
             <th rowspan = "2" style = "font-weight: bold;border: 1.5px solid black;background-color: #eeeeee;text-align: center;text-transform: uppercase;width: 150px;">Produk</th>
             <th rowspan = "2" style = "font-weight: bold;border: 1.5px solid black;background-color: #eeeeee;text-align: center;text-transform: uppercase;width: 150px;">Total Penjualan</th>
@@ -137,7 +137,7 @@
             <td></td>
             <td colspan="6" style="text-align: center; vertical-align: middle">Mengetahui,</td>
             <td></td>
-            <td colspan="3" style="text-align: center; vertical-align: middle">Mengetahui,</td>
+            <td colspan="3" style="text-align: center; vertical-align: middle">Menyetujui,</td>
         </tr>
         <tr></tr>
         <tr></tr>

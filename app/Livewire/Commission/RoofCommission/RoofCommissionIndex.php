@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Commission\RoofCommission;
 
+use App\Exports\Commission\RoofCommission\RoofCommissionVersion1;
 use App\Exports\Commission\RoofCommission\RoofCommissionVersion2;
 use App\Models\Auth\User;
 use App\Models\Commission\Commission;
@@ -105,6 +106,11 @@ class RoofCommissionIndex extends Component
 
         $this->closeModal();
 
-        return Excel::download(new RoofCommissionVersion2($export_month), 'Komisi Atap V2-' . Carbon::parse($this->export_month)->format('Y-m') . '.xlsx');
+        if ($this->export_version == 1) {
+            return Excel::download(new RoofCommissionVersion1($export_month), 'Komisi Atap V1-' . Carbon::parse($this->export_month)->format('Y-m') . '.xlsx');
+        } else if ($this->export_version == 2) {
+            return Excel::download(new RoofCommissionVersion2($export_month), 'Komisi Atap V2-' . Carbon::parse($this->export_month)->format('Y-m') . '.xlsx');
+        }
+
     }
 }
