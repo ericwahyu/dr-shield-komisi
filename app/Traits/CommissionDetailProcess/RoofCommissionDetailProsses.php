@@ -232,7 +232,7 @@ trait RoofCommissionDetailProsses
 
                 $get_commission?->update([
                     'percentage_value_commission' => $get_lower_limit_commission,
-                    'status'                      => $get_lower_limit_commission != null ? 'reached' : 'not-reach',
+                    // 'status'                      => $get_lower_limit_commission != null ? 'reached' : 'not-reach',
                     'value_commission'            => $get_commission?->status == 'reached' ? $this->__getCommissionDrSonneV2((int)$total_income) : null
                 ]);
             }

@@ -40,6 +40,7 @@ trait RoofCommissionProsses
     private function _roofCommissionV1($invoice, $category, $datas)
     {
         try {
+            DB::beginTransaction();
             $get_commission = Commission::where('user_id', $invoice?->user?->id)->where('month', (int)$invoice?->date?->format('m'))->where('year', (int)$invoice?->date?->format('Y'))->where('category_id', $category?->id)->where('version', 1)->first();
             if (!$get_commission) {
                 $commission = Commission::create([
@@ -104,6 +105,7 @@ trait RoofCommissionProsses
                     ]);
                 }
             }
+            DB::commit();
         } catch (Exception | Throwable $th) {
             $error = [
                 'message' => $th->getMessage(),
@@ -118,6 +120,7 @@ trait RoofCommissionProsses
     private function _roofCommissionV2($invoice, $category, $datas)
     {
         try {
+            DB::beginTransaction();
             $get_commission = Commission::where('user_id', $invoice?->user?->id)->where('month', (int)$invoice?->date?->format('m'))->where('year', (int)$invoice?->date?->format('Y'))
             ->when($category != null, function ($query) use ($category) {
                 $query->where('category_id', $category?->id);
@@ -228,8 +231,8 @@ trait RoofCommissionProsses
                 if ($category != null && $get_commission?->status == 'reached') {
                     $this->feeIntensif($sum_income_tax, $get_commission);
                 }
-
             }
+            DB::commit();
         } catch (Exception | Throwable $th) {
             $error = [
                 'message' => $th->getMessage(),

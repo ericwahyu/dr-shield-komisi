@@ -23,8 +23,7 @@ class RoofCommissionIndexV2 extends Component
 
     public function render()
     {
-        $users =  User::search($this->search)->whereLike('name', 'Mathias Marthinus')->orWhereLike('name', 'mukurama')->orwhereLike('name', 'indrawan');
-
+        $users =  User::search($this->search);
         return view('livewire.commission.roof-commission.roof-commission-v2.roof-commission-index-v2', [
             'sales' => $users->role('sales')->whereHas('userDetail', function ($query) {
                 $query->where('sales_type', 'roof');
