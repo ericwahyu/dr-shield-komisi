@@ -83,137 +83,41 @@ class RoofInvoiceDetail implements ShouldQueue
 
                 $value_invoice_detail = $get_invoice?->invoiceDetails()->where('category_id', Category::where('type', 'roof')->where('slug', $category)->where('version', 1)->first()?->id)->sum('amount');
 
-                if ((int)$value_invoice_detail < (int)$value_payment_detail && (int)$payment > 0) {
+                $get_category = Category::where('type', 'roof')->where('slug', $category)->where('version', 1)->first();
 
-                    DB::beginTransaction();
-                    if ((int)$payment - ((int)$value_payment_detail - (int)$value_invoice_detail) > 0) {
+                $remaining_price = (int)$value_payment_detail - (int)$value_invoice_detail;
 
-                        $payment = (int)$payment - ((int)$value_payment_detail - (int)$value_invoice_detail);
-
-                        $datas = array(
-                            'invoice_detail_date' => Carbon::parse($collection[2])->toDateString(),
-                            'version'             => 1,
-                        );
-                        $percentage = $this->_percentageRoofInvoiceDetail($get_invoice, $datas);
-
-                        $datas = array(
-                            'id_data'               => null,
-                            'version'               => 1,
-                            'category_id'           => Category::where('type', 'roof')->where('slug', $category)->where('version', 1)->first()?->id,
-                            'invoice_detail_amount' => $payment,
-                            'invoice_detail_date'   => Carbon::parse($collection[2])->toDateString(),
-                            'percentage'            => $percentage,
-                        );
-                        $this->_roofInvoiceDetail($get_invoice, $datas);
-
-                    } else {
-
-                        $datas = array(
-                            'invoice_detail_date' => Carbon::parse($collection[2])->toDateString(),
-                            'version'             => 1,
-                        );
-                        $percentage = $this->_percentageRoofInvoiceDetail($get_invoice, $datas);
-
-                        $datas = array(
-                            'id_data'               => null,
-                            'version'               => 1,
-                            'category_id'           => Category::where('type', 'roof')->where('slug', $category)->where('version', 1)->first()?->id,
-                            'invoice_detail_amount' => $payment,
-                            'invoice_detail_date'   => Carbon::parse($collection[2])->toDateString(),
-                            'percentage'            => $percentage,
-                        );
-                        $this->_roofInvoiceDetail($get_invoice, $datas);
-
-                        $payment = 0;
-                    }
-                    DB::commit();
+                if ((int)$value_invoice_detail >= (int)$value_payment_detail) {
+                    continue;
                 }
+
+                if ($remaining_price <= 0 || $payment <= 0) continue;
+
+                $invoice_amount = min($remaining_price, $payment);
+
+                DB::beginTransaction();
+
+                    $datas = array(
+                        'invoice_detail_date' => Carbon::parse($collection[2])->toDateString(),
+                        'version'             => 1,
+                    );
+                    $percentage = $this->_percentageRoofInvoiceDetail($get_invoice, $datas);
+
+                    $datas = array(
+                        'id_data'               => null,
+                        'version'               => 1,
+                        'category_id'           => $get_category?->id,
+                        'invoice_detail_amount' => (int)$invoice_amount,
+                        'invoice_detail_date'   => Carbon::parse($collection[2])->toDateString(),
+                        'percentage'            => $percentage,
+                    );
+                    $this->_roofInvoiceDetail($get_invoice, $datas);
+
+                    $payment -= $invoice_amount;
+
+                DB::commit();
+
             }
-
-            // $dr_shield_category = Category::where('type', 'roof')->where('slug', 'dr-shield')->where('version', 1)->first();
-
-            // $dr_sonne_category = Category::where('type', 'roof')->where('slug', 'dr-sonne')->where('version', 1)->first();
-
-            // $value_payment_of_dr_shield = $get_invoice?->paymentDetails()->where('category_id', $dr_shield_category?->id)->sum('amount');
-
-            // $value_payment_of_dr_sonne = $get_invoice?->paymentDetails()->where('category_id', $dr_sonne_category?->id)->sum('amount');
-
-            // $sum_payment = (int)$value_payment_of_dr_shield + (int)$value_payment_of_dr_sonne;
-
-            // $value_invoice_of_dr_shield = $get_invoice->invoiceDetails()->where('category_id', $dr_shield_category?->id)->sum('amount');
-
-            // $value_invoice_of_dr_sonne = $get_invoice->invoiceDetails()->where('category_id', $dr_sonne_category?->id)->sum('amount');
-
-            // $sum_value_invoice = (int)$value_invoice_of_dr_shield + (int)$value_invoice_of_dr_sonne;
-
-            // if ((int)$sum_value_invoice + $collection[1] < (int)$sum_payment + 10000) {
-
-            //     DB::beginTransaction();
-            //     $datas = array(
-            //         'invoice_detail_date' => Carbon::parse($collection[2])->toDateString(),
-            //         'version'             => 1,
-            //     );
-            //     $percentage = $this->_percentageRoofInvoiceDetail($get_invoice, $datas);
-
-            //     if ((int)$value_payment_of_dr_shield > 0) {
-
-            //         $value_invoice_of_dr_shield = $get_invoice->invoiceDetails()->where('category_id', $dr_shield_category?->id)->sum('amount');
-
-            //         if ((int)$value_invoice_of_dr_shield + (int)$collection[1] < (int)$value_payment_of_dr_shield || (int)$value_payment_of_dr_sonne == 0) {
-
-            //             $datas = array(
-            //                 'id_data'               => null,
-            //                 'version'               => 1,
-            //                 'category_id'           => Category::where('type', 'roof')->where('slug', 'dr-shield')->where('version', 1)->first()?->id,
-            //                 'invoice_detail_amount' => $collection[1],
-            //                 'invoice_detail_date'   => Carbon::parse($collection[2])->toDateString(),
-            //                 'percentage'            => $percentage,
-            //             );
-            //             $this->_roofInvoiceDetail($get_invoice, $datas);
-            //         } else {
-            //             $value_for_dr_shield = (int)$value_payment_of_dr_shield - (int)$value_invoice_of_dr_shield;
-
-            //             $datas = array(
-            //                 'id_data'               => null,
-            //                 'version'               => 1,
-            //                 'category_id'           => Category::where('type', 'roof')->where('slug', 'dr-shield')->where('version', 1)->first()?->id,
-            //                 'invoice_detail_amount' => $value_for_dr_shield,
-            //                 'invoice_detail_date'   => Carbon::parse($collection[2])->toDateString(),
-            //                 'percentage'            => $percentage,
-            //             );
-            //             $this->_roofInvoiceDetail($get_invoice, $datas);
-
-            //             $value_for_dr_sonne = (int)$collection[1] - (int)$value_for_dr_shield;
-            //             $datas = array(
-            //                 'id_data'               => null,
-            //                 'version'               => 1,
-            //                 'category_id'           => Category::where('type', 'roof')->where('slug', 'dr-sonne')->where('version', 1)->first()?->id,
-            //                 'invoice_detail_amount' => $value_for_dr_sonne,
-            //                 'invoice_detail_date'   => Carbon::parse($collection[2])->toDateString(),
-            //                 'percentage'            => $percentage,
-            //             );
-            //             $this->_roofInvoiceDetail($get_invoice, $datas);
-            //         }
-            //     } else {
-
-            //         $datas = array(
-            //             'id_data'               => null,
-            //             'version'               => 1,
-            //             'category_id'           => Category::where('type', 'roof')->where('slug', 'dr-sonne')->where('version', 1)->first()?->id,
-            //             'invoice_detail_amount' => $collection[1],
-            //             'invoice_detail_date'   => Carbon::parse($collection[2])->toDateString(),
-            //             'percentage'            => $percentage,
-            //         );
-            //         $this->_roofInvoiceDetail($get_invoice, $datas);
-            //     }
-
-            //     $datas = array(
-            //         'version'             => 1,
-            //         'invoice_detail_date' => Carbon::parse($collection[2])->toDateString()
-            //     );
-            //     $this->_roofCommissionDetail($get_invoice, $datas);
-            //     DB::commit();
-            // }
         } catch (Exception | Throwable $th) {
             throw $th;
         }

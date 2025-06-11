@@ -70,17 +70,17 @@ class RoofInvoice implements ShouldQueue
                 //amount
                 $collection[12] = $collection[12] == null ? (int) $collection[10] + (int) $collection[11] : (int) $collection[12];
                 $collection[15] = $collection[15] == null ? (int) $collection[13] + (int) $collection[14] : (int) $collection[15];
-                // $collection[18] = $collection[18] == null ? (int) $collection[16] + (int) $collection[17] : (int) $collection[18];
+                $collection[18] = $collection[18] == null ? (int) $collection[16] + (int) $collection[17] : (int) $collection[18];
 
                 //income_tax
                 $collection[10] = $collection[10] == null ? (int) $collection[12] / 1.11 : (int) $collection[10];
                 $collection[13] = $collection[13] == null ? (int) $collection[15] / 1.11 : (int) $collection[13];
-                // $collection[16] = $collection[16] == null ? (int) $collection[18] / 1.11 : (int) $collection[16];
+                $collection[16] = $collection[16] == null ? (int) $collection[18] / 1.11 : (int) $collection[16];
 
                 //value_tax
                 $collection[11] = $collection[11] == null ? (int) $collection[10] * 0.11 : (int) $collection[11];
                 $collection[14] = $collection[14] == null ? (int) $collection[13] * 0.11 : (int) $collection[14];
-                // $collection[17] = $collection[17] == null ? (int) $collection[16] * 0.11 : (int) $collection[17];
+                $collection[17] = $collection[17] == null ? (int) $collection[16] * 0.11 : (int) $collection[17];
 
 
                 DB::transaction(function () use ($collection, $get_user, $categories) {
@@ -104,24 +104,24 @@ class RoofInvoice implements ShouldQueue
                         'version_1' => [
                             'income_taxs' => [
                                 // 'dr-shield' => max(0, (int)$collection[10] - (int)$collection[13]),
-                                'dr-shield' => ((int) $collection[10] - (int) $collection[13]),
+                                'dr-shield' => ((int) $collection[10] - (int) $collection[13] - (int) $collection[16]),
                                 'dr-sonne'  => (int) $collection[13],
-                                'dr-houz'   => (int) $collection[10] - (int) $collection[13] - ((int) $collection[10] - (int) $collection[13]),
-                                // 'dr-houz'   => (int) $collection[16],
+                                // 'dr-houz'   => (int) $collection[10] - (int) $collection[13] - ((int) $collection[10] - (int) $collection[13]),
+                                'dr-houz'   => (int) $collection[16],
                             ],
                             'value_taxs' => [
                                 // 'dr-shield' => max(0, (int)$collection[11] - (int)$collection[14]),
-                                'dr-shield' => ((int) $collection[11] - (int) $collection[14]),
+                                'dr-shield' => ((int) $collection[11] - (int) $collection[14] - (int) $collection[17]),
                                 'dr-sonne'  => (int) $collection[14],
-                                'dr-houz'  => (int) $collection[11] - (int) $collection[14] - ((int) $collection[11] - (int) $collection[14]),
-                                // 'dr-houz'  => (int) $collection[17],
+                                // 'dr-houz'  => (int) $collection[11] - (int) $collection[14] - ((int) $collection[11] - (int) $collection[14]),
+                                'dr-houz'  => (int) $collection[17],
                             ],
                             'amounts' => [
                                 // 'dr-shield' => max(0, (int)$collection[12] - (int)$collection[15]),
-                                'dr-shield' => ((int) $collection[12] - (int) $collection[15]),
+                                'dr-shield' => ((int) $collection[12] - (int) $collection[15] - (int) $collection[18]),
                                 'dr-sonne'  => (int) $collection[15],
-                                'dr-houz'  => (int) $collection[12] - (int) $collection[15] - ((int) $collection[12] - (int) $collection[15]),
-                                // 'dr-houz'  => (int) $collection[18],
+                                // 'dr-houz'  => (int) $collection[12] - (int) $collection[15] - ((int) $collection[12] - (int) $collection[15]),
+                                'dr-houz'  => (int) $collection[18],
                             ],
                         ],
                         'version_2' => [
