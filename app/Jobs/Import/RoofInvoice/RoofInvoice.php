@@ -46,7 +46,6 @@ class RoofInvoice implements ShouldQueue
                 if ($key == 0) {
                     continue;
                 }
-                // dd($collection);
 
                 $get_user = User::where('name', 'ILIKE', '%'.$collection[7].'%')->whereHas('userDetail', function ($query) use ($collection) {
                     $query->where('depo', 'ILIKE', '%'.$collection[6].'%');
@@ -104,21 +103,21 @@ class RoofInvoice implements ShouldQueue
                         'version_1' => [
                             'income_taxs' => [
                                 // 'dr-shield' => max(0, (int)$collection[10] - (int)$collection[13]),
-                                'dr-shield' => ((int) $collection[10] - (int) $collection[13] - (int) $collection[16]),
+                                'dr-shield' => (int) $collection[10] - (int) $collection[13] - (int) $collection[16],
                                 'dr-sonne'  => (int) $collection[13],
                                 // 'dr-houz'   => (int) $collection[10] - (int) $collection[13] - ((int) $collection[10] - (int) $collection[13]),
                                 'dr-houz'   => (int) $collection[16],
                             ],
                             'value_taxs' => [
                                 // 'dr-shield' => max(0, (int)$collection[11] - (int)$collection[14]),
-                                'dr-shield' => ((int) $collection[11] - (int) $collection[14] - (int) $collection[17]),
+                                'dr-shield' => (int) $collection[11] - (int) $collection[14] - (int) $collection[17],
                                 'dr-sonne'  => (int) $collection[14],
                                 // 'dr-houz'  => (int) $collection[11] - (int) $collection[14] - ((int) $collection[11] - (int) $collection[14]),
                                 'dr-houz'  => (int) $collection[17],
                             ],
                             'amounts' => [
                                 // 'dr-shield' => max(0, (int)$collection[12] - (int)$collection[15]),
-                                'dr-shield' => ((int) $collection[12] - (int) $collection[15] - (int) $collection[18]),
+                                'dr-shield' => (int) $collection[12] - (int) $collection[15] - (int) $collection[18],
                                 'dr-sonne'  => (int) $collection[15],
                                 // 'dr-houz'  => (int) $collection[12] - (int) $collection[15] - ((int) $collection[12] - (int) $collection[15]),
                                 'dr-houz'  => (int) $collection[18],
@@ -174,7 +173,7 @@ class RoofInvoice implements ShouldQueue
                     ];
                     $this->_roofInvoice($invoice, $datas);
 
-                    $categories = ['dr-shield', 'dr-sonne'];
+                    $categories = Category::where('type', 'roof')->where('version', 1)->pluck('slug')->toArray();
                     foreach ($categories as $key => $category) {
                         $get_category = Category::where('slug', $category)->where('version', 1)->first();
                         $datas = [

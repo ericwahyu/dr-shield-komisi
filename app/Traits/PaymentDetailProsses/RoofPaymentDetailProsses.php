@@ -27,7 +27,7 @@ trait RoofPaymentDetailProsses
     public function _paymentDetailV1($invoice, $datas)
     {
         try {
-            $categories = ['dr-shield', 'dr-sonne', 'dr-houz'];
+            $categories = Category::where('type', 'roof')->where('version', 1)->pluck('slug')->toArray();
 
             foreach ($categories as $key => $category) {
                 $invoice->paymentDetails()->updateOrCreate(

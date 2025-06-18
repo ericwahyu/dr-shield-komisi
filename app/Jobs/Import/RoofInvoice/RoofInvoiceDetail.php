@@ -54,7 +54,7 @@ class RoofInvoiceDetail implements ShouldQueue
                         'get_invoice'     => !$get_invoice,
                         'year_under_2010' => (int)$check_year < 2010,
                     ];
-                    Log::warning('Gagal memasukkan Detail Faktur Atap dengan no : ' . $collection[0], $warning);
+                    // Log::warning('Gagal memasukkan Detail Faktur Atap dengan no : ' . $collection[0], $warning);
                     continue;
                 }
 
@@ -73,7 +73,7 @@ class RoofInvoiceDetail implements ShouldQueue
     private function invoiceDetailV1($get_invoice, $collection)
     {
         try {
-            $categories = ['dr-shield', 'dr-sonne', 'dr-houz'];
+            $categories = Category::where('type', 'roof')->where('version', 1)->pluck('slug')->toArray();
 
             $payment = (int) $collection[1];
 
@@ -93,7 +93,13 @@ class RoofInvoiceDetail implements ShouldQueue
 
                 if ($remaining_price <= 0 || $payment <= 0) continue;
 
-                $invoice_amount = min($remaining_price, $payment);
+                $check_next_value_payment = $get_invoice?->paymentDetails()->where('category_id', Category::where('type', 'roof')->where('slug', $categories[$key + 1] ?? '')->where('version', 1)->first()?->id)->sum('amount');
+
+                if ($check_next_value_payment) {
+                    $invoice_amount = min($remaining_price, $payment);
+                } else {
+                    $invoice_amount = $payment;
+                }
 
                 DB::beginTransaction();
 
@@ -112,11 +118,14 @@ class RoofInvoiceDetail implements ShouldQueue
                         'percentage'            => $percentage,
                     );
                     $this->_roofInvoiceDetail($get_invoice, $datas);
-
                     $payment -= $invoice_amount;
 
+                    $datas = array(
+                        'version'             => 1,
+                        'invoice_detail_date' => Carbon::parse($collection[2])->toDateString()
+                    );
+                    $this->_roofCommissionDetail($get_invoice, $datas);
                 DB::commit();
-
             }
         } catch (Exception | Throwable $th) {
             throw $th;

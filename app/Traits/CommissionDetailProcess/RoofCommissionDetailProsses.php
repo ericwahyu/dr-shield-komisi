@@ -66,11 +66,17 @@ trait RoofCommissionDetailProsses
 
                         try {
                             DB::transaction(function () use ($get_commission, $year_month_invoice_detail, $percentage_invoice_detail, $total_income, $category) {
-                                if (in_array($category?->slug, ['dr-shield'])) {
-                                    $total_income = round((int)$total_income / floatval($this->getSystemSetting()?->value_of_total_income)*((int)$percentage_invoice_detail > 0 ? (int)$percentage_invoice_detail/100 : 1), 2);
-                                 } else {
-                                     $total_income = round((int)$total_income / floatval((int)$percentage_invoice_detail > 0 ? (int)$percentage_invoice_detail/100 : 1), 2);
-                                 }
+                                // if (in_array($category?->slug, ['dr-shield'])) {
+                                //     $total_income = round((int)$total_income / floatval($this->getSystemSetting()?->value_of_total_income) * ((int)$percentage_invoice_detail > 0 ? (int)$percentage_invoice_detail/100 : 1), 2);
+                                // } else {
+                                //     $total_income = round((int)$total_income / floatval((int)$percentage_invoice_detail > 0 ? (int)$percentage_invoice_detail/100 : 1), 2);
+                                // }
+
+                                if ((int)$percentage_invoice_detail > 0) {
+                                    $total_income = round((int)$total_income / floatval($this->getSystemSetting()?->value_of_total_income) * ((int)$percentage_invoice_detail > 0 ? (int)$percentage_invoice_detail/100 : 1), 2);
+                                } else {
+                                    $total_income = (int)$total_income;
+                                }
 
                                  $get_commission->commissionDetails()->updateOrCreate(
                                      [
