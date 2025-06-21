@@ -11,7 +11,10 @@ use App\Traits\InvoiceDetailProcess\RoofInvoiceDetailProsses;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
@@ -19,8 +22,14 @@ use Throwable;
 
 class RoofInvoiceDetail implements ShouldQueue
 {
-    use Queueable, LivewireAlert;
+    use Queueable;
     use GetSystemSetting, RoofInvoiceDetailProsses, RoofCommissionDetailProsses;
+
+    public $tries = 5;                    // Max retry attempts
+    public $timeout = 600;                // 10 menit timeout
+    public $maxExceptions = 3;            // Max exceptions before fail
+    public $backoff = [60, 180, 300];     // Delay between retries (1min, 3min, 5min)
+    public $failOnTimeout = true;         // Fail jika timeout
 
     protected $collections;
 
@@ -39,35 +48,62 @@ class RoofInvoiceDetail implements ShouldQueue
     public function handle(): void
     {
         //
+        // Set memory limit lebih tinggi
+        ini_set('memory_limit', '1024M');
         try {
-            foreach ($this->collections as $key => $collection) {
-                if ($key == 0) {
-                    continue;
+             // Process dalam chunks untuk data besar
+            $chunks = array_chunk($this->collections, 50); // 50 items per chunk
+            foreach ($chunks as $chunkIndex => $chunk) {
+                Log::info("Processing chunk {$chunkIndex}, memory: " . memory_get_usage(true) / 1024 / 1024 . " MB");
+
+                foreach ($chunk as $key => $collection) {
+                    if ($key == 0 && $chunkIndex == 0) continue;
+
+                        $get_invoice = Invoice::where('invoice_number', $collection[0])->first();
+
+                        $check_year = Carbon::parse($collection[2])->format('Y');
+
+                        if (!$get_invoice || (int)$check_year < 2010) {
+                            $warning = [
+                                'get_invoice'     => $get_invoice,
+                                'year_under_2010' => (int)$check_year,
+                            ];
+                            // Log::warning('Gagal memasukkan Detail Faktur Atap dengan no : ' . $collection[0], $warning);
+                            continue;
+                        }
+
+                        $this->invoiceDetailV1($get_invoice, $collection);
+                        $this->invoiceDetailV2($get_invoice, $collection);
+                    }
+
+                    unset($chunk);
+                    gc_collect_cycles();
                 }
 
-                $get_invoice = Invoice::where('invoice_number', $collection[0])->first();
-
-                $check_year = Carbon::parse($collection[2])->format('Y');
-
-                if (!$get_invoice || (int)$check_year < 2010) {
-                    $warning = [
-                        'get_invoice'     => !$get_invoice,
-                        'year_under_2010' => (int)$check_year < 2010,
-                    ];
-                    // Log::warning('Gagal memasukkan Detail Faktur Atap dengan no : ' . $collection[0], $warning);
-                    continue;
-                }
-
-                $this->invoiceDetailV1($get_invoice, $collection);
-                $this->invoiceDetailV2($get_invoice, $collection);
-            }
         } catch (Exception | Throwable $th) {
             DB::rollBack();
-            Log::error($th->getMessage());
-            Log::error("Ada kesalahan saat import detail faktur atap");
+            $error = [
+                'Import failed'          => $th->getMessage(),
+                'Stack trace'            => $th->getTraceAsString(),
+                'Job failed with memory' => memory_get_usage(true) / 1024 / 1024 . ' MB'
+            ];
+            Log::error("Ada kesalahan saat import detail faktur atap", $error);
+
+            throw $th;
         }
 
         Log::info('Import Roof Invoice Detail berhasil');
+    }
+
+    public function failed(\Throwable $exception)
+    {
+        $error = [
+            'error' => $exception->getMessage(),
+            'trace' => $exception->getTraceAsString(),
+            'collections_count' => count($this->collections),
+            'memory_peak' => memory_get_peak_usage(true) / 1024 / 1024 . ' MB'
+        ];
+        Log::error('RoofInvoiceDetail permanently failed', $error);
     }
 
     private function invoiceDetailV1($get_invoice, $collection)
@@ -100,9 +136,6 @@ class RoofInvoiceDetail implements ShouldQueue
                 } else {
                     $invoice_amount = $payment;
                 }
-
-                DB::beginTransaction();
-
                     $datas = array(
                         'invoice_detail_date' => Carbon::parse($collection[2])->toDateString(),
                         'version'             => 1,
@@ -125,7 +158,6 @@ class RoofInvoiceDetail implements ShouldQueue
                         'invoice_detail_date' => Carbon::parse($collection[2])->toDateString()
                     );
                     $this->_roofCommissionDetail($get_invoice, $datas);
-                DB::commit();
             }
         } catch (Exception | Throwable $th) {
             throw $th;
@@ -152,7 +184,6 @@ class RoofInvoiceDetail implements ShouldQueue
             $sum_value_invoice = (int)$value_invoice_of_dr_shield + (int)$value_invoice_of_dr_sonne;
 
             if ((int)$sum_value_invoice + $collection[1] < (int)$sum_payment + 10000) {
-                DB::beginTransaction();
                 //version 2
                 $datas = array(
                     'version'             => 2,
@@ -178,7 +209,6 @@ class RoofInvoiceDetail implements ShouldQueue
                     'invoice_detail_date' => Carbon::parse($collection[2])->toDateString()
                 );
                 $this->_roofCommissionDetail($get_invoice, $datas);
-                DB::commit();
             }
         } catch (Exception | Throwable $th) {
             throw $th;
