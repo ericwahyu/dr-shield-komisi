@@ -43,6 +43,7 @@ trait RoofCommissionProsses
             DB::beginTransaction();
             $get_commission = Commission::where('user_id', $invoice?->user?->id)->where('month', (int)$invoice?->date?->format('m'))->where('year', (int)$invoice?->date?->format('Y'))->where('category_id', $category?->id)->where('version', 1)->first();
             if (!$get_commission) {
+
                 $commission = Commission::create([
                     'user_id'     => $invoice?->user?->id,
                     'category_id' => $category?->id,
@@ -65,6 +66,7 @@ trait RoofCommissionProsses
                     }
                 }
             } else {
+
                 if (count($get_commission->lowerLimitCommissions) == 0) {
                     $lower_limit_ceramics = User::find($invoice?->user?->id)->lowerLimits()->where('category_id', $category?->id)->get();
                     foreach ($lower_limit_ceramics as $key => $lower_limit_ceramic) {
@@ -76,6 +78,7 @@ trait RoofCommissionProsses
                         ]);
                     }
                 }
+
                 $sum_income_tax = PaymentDetail::whereHas('invoice', function ($query) use ($invoice) {
                     $query->whereHas('user', function ($query) use ($invoice) {
                         $query->where('id', $invoice?->user?->id);

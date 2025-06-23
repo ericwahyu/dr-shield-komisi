@@ -22,6 +22,12 @@ class RoofInvoice implements ShouldQueue
     use GetSystemSetting, RoofCommissionProsses, RoofInvoiceProsses, RoofPaymentDetailProsses;
     use Queueable;
 
+    public $tries = 5;                    // Max retry attempts
+    public $timeout = 600;                // 10 menit timeout
+    public $maxExceptions = 3;            // Max exceptions before fail
+    public $backoff = [60, 180, 300];     // Delay between retries (1min, 3min, 5min)
+    public $failOnTimeout = true;         // Fail jika timeout
+
     protected $collections;
 
     /**
@@ -39,158 +45,168 @@ class RoofInvoice implements ShouldQueue
     public function handle(): void
     {
         //
+         // Set memory limit lebih tinggi
+        ini_set('memory_limit', '1024M');
 
         $categories = Category::where('type', 'roof')->get();
         try {
-            foreach ($this->collections as $key => $collection) {
-                if ($key == 0) {
-                    continue;
-                }
+             // Process dalam chunks untuk data besar
+            $chunks = array_chunk($this->collections, 50); // 50 items per chunk
+            foreach ($chunks as $chunkIndex => $chunk) {
+                Log::info("Processing chunk {$chunkIndex}, memory: " . memory_get_usage(true) / 1024 / 1024 . " MB");
+                foreach ($this->collections as $key => $collection) {
+                    if ($key == 0) {
+                        continue;
+                    }
 
-                $get_user = User::where('name', 'ILIKE', '%'.$collection[7].'%')->whereHas('userDetail', function ($query) use ($collection) {
-                    $query->where('depo', 'ILIKE', '%'.$collection[6].'%');
-                })->first();
+                    $get_user = User::where('name', 'ILIKE', '%'.$collection[7].'%')->whereHas('userDetail', function ($query) use ($collection) {
+                        $query->where('depo', 'ILIKE', '%'.$collection[6].'%');
+                    })->first();
 
-                $unique_invoice = Invoice::where('invoice_number', $collection[1])->first();
+                    $unique_invoice = Invoice::where('invoice_number', $collection[1])->first();
 
-                $check_year = Carbon::parse($collection[0])->format('Y');
+                    $check_year = Carbon::parse($collection[0])->format('Y');
 
-                if (! $get_user || $unique_invoice || (int) $check_year < 2010) {
-                    $warning = [
-                        'get_user' => ! $get_user,
-                        'unique_invoice' => $unique_invoice,
-                        'year_under_2010' => (int) $check_year < 2010,
-                    ];
-                    Log::warning('Gagal memasukkan Faktur Atap dengan no : '.$collection[1], $warning);
+                    if (! $get_user || $unique_invoice || (int) $check_year < 2010) {
+                        $warning = [
+                            'get_user' => ! $get_user,
+                            'unique_invoice' => $unique_invoice,
+                            'year_under_2010' => (int) $check_year < 2010,
+                        ];
+                        Log::warning('Gagal memasukkan Faktur Atap dengan no : '.$collection[1], $warning);
 
-                    continue;
-                }
+                        continue;
+                    }
 
-                //amount
-                $collection[12] = $collection[12] == null ? (int) $collection[10] + (int) $collection[11] : (int) $collection[12];
-                $collection[15] = $collection[15] == null ? (int) $collection[13] + (int) $collection[14] : (int) $collection[15];
-                $collection[18] = $collection[18] == null ? (int) $collection[16] + (int) $collection[17] : (int) $collection[18];
+                    //amount
+                    $collection[12] = $collection[12] == null ? (int) $collection[10] + (int) $collection[11] : (int) $collection[12];
+                    $collection[15] = $collection[15] == null ? (int) $collection[13] + (int) $collection[14] : (int) $collection[15];
+                    $collection[18] = $collection[18] == null ? (int) $collection[16] + (int) $collection[17] : (int) $collection[18];
 
-                //income_tax
-                $collection[10] = $collection[10] == null ? (int) $collection[12] / 1.11 : (int) $collection[10];
-                $collection[13] = $collection[13] == null ? (int) $collection[15] / 1.11 : (int) $collection[13];
-                $collection[16] = $collection[16] == null ? (int) $collection[18] / 1.11 : (int) $collection[16];
+                    //income_tax
+                    $collection[10] = $collection[10] == null ? (int) $collection[12] / 1.11 : (int) $collection[10];
+                    $collection[13] = $collection[13] == null ? (int) $collection[15] / 1.11 : (int) $collection[13];
+                    $collection[16] = $collection[16] == null ? (int) $collection[18] / 1.11 : (int) $collection[16];
 
-                //value_tax
-                $collection[11] = $collection[11] == null ? (int) $collection[10] * 0.11 : (int) $collection[11];
-                $collection[14] = $collection[14] == null ? (int) $collection[13] * 0.11 : (int) $collection[14];
-                $collection[17] = $collection[17] == null ? (int) $collection[16] * 0.11 : (int) $collection[17];
+                    //value_tax
+                    $collection[11] = $collection[11] == null ? (int) $collection[10] * 0.11 : (int) $collection[11];
+                    $collection[14] = $collection[14] == null ? (int) $collection[13] * 0.11 : (int) $collection[14];
+                    $collection[17] = $collection[17] == null ? (int) $collection[16] * 0.11 : (int) $collection[17];
 
 
-                DB::transaction(function () use ($collection, $get_user, $categories) {
+                    DB::transaction(function () use ($collection, $get_user, $categories) {
 
-                    $invoice = Invoice::create(
-                        [
-                            'user_id'        => $get_user?->id,
-                            'type'           => 'roof',
-                            'date'           => $collection[0],
-                            'invoice_number' => $collection[1],
-                            'customer'       => $collection[2],
-                            'id_customer'    => $collection[8],
-                            'income_tax'     => (int) $collection[10] - (int) $collection[13] + (int) $collection[13],
-                            'value_tax'      => (int) $collection[11] - (int) $collection[14] + (int) $collection[14],
-                            'amount'         => (int) $collection[12] - (int) $collection[15] + (int) $collection[15],
-                            'due_date'       => $collection[9] ?? 30,
-                        ]
-                    );
+                        $invoice = Invoice::create(
+                            [
+                                'user_id'        => $get_user?->id,
+                                'type'           => 'roof',
+                                'date'           => $collection[0],
+                                'invoice_number' => $collection[1],
+                                'customer'       => $collection[2],
+                                'id_customer'    => $collection[8],
+                                'income_tax'     => (int) $collection[10] - (int) $collection[13] + (int) $collection[13],
+                                'value_tax'      => (int) $collection[11] - (int) $collection[14] + (int) $collection[14],
+                                'amount'         => (int) $collection[12] - (int) $collection[15] + (int) $collection[15],
+                                'due_date'       => $collection[9] ?? 30,
+                            ]
+                        );
 
-                    $payment_details = [
-                        'version_1' => [
-                            'income_taxs' => [
-                                // 'dr-shield' => max(0, (int)$collection[10] - (int)$collection[13]),
-                                'dr-shield' => (int) $collection[10] - (int) $collection[13] - (int) $collection[16],
-                                'dr-sonne'  => (int) $collection[13],
-                                // 'dr-houz'   => (int) $collection[10] - (int) $collection[13] - ((int) $collection[10] - (int) $collection[13]),
-                                'dr-houz'   => (int) $collection[16],
+                        $payment_details = [
+                            'version_1' => [
+                                'income_taxs' => [
+                                    // 'dr-shield' => max(0, (int)$collection[10] - (int)$collection[13]),
+                                    'dr-shield' => (int) $collection[10] - (int) $collection[13] - (int) $collection[16],
+                                    'dr-sonne'  => (int) $collection[13],
+                                    // 'dr-houz'   => (int) $collection[10] - (int) $collection[13] - ((int) $collection[10] - (int) $collection[13]),
+                                    'dr-houz'   => (int) $collection[16],
+                                ],
+                                'value_taxs' => [
+                                    // 'dr-shield' => max(0, (int)$collection[11] - (int)$collection[14]),
+                                    'dr-shield' => (int) $collection[11] - (int) $collection[14] - (int) $collection[17],
+                                    'dr-sonne'  => (int) $collection[14],
+                                    // 'dr-houz'  => (int) $collection[11] - (int) $collection[14] - ((int) $collection[11] - (int) $collection[14]),
+                                    'dr-houz'  => (int) $collection[17],
+                                ],
+                                'amounts' => [
+                                    // 'dr-shield' => max(0, (int)$collection[12] - (int)$collection[15]),
+                                    'dr-shield' => (int) $collection[12] - (int) $collection[15] - (int) $collection[18],
+                                    'dr-sonne'  => (int) $collection[15],
+                                    // 'dr-houz'  => (int) $collection[12] - (int) $collection[15] - ((int) $collection[12] - (int) $collection[15]),
+                                    'dr-houz'  => (int) $collection[18],
+                                ],
                             ],
-                            'value_taxs' => [
-                                // 'dr-shield' => max(0, (int)$collection[11] - (int)$collection[14]),
-                                'dr-shield' => (int) $collection[11] - (int) $collection[14] - (int) $collection[17],
-                                'dr-sonne'  => (int) $collection[14],
-                                // 'dr-houz'  => (int) $collection[11] - (int) $collection[14] - ((int) $collection[11] - (int) $collection[14]),
-                                'dr-houz'  => (int) $collection[17],
+                            'version_2' => [
+                                'income_taxs' => [
+                                    // 'dr-shield' => max(0, (int)$collection[10] - (int)$collection[13]),
+                                    'dr-shield' => (int) $collection[10],
+                                    'dr-sonne'  => (int) $collection[13],
+                                    // 'dr-houz'   => (int)$collection[13],
+                                ],
+                                'value_taxs' => [
+                                    // 'dr-shield' => max(0, (int)$collection[11] - (int)$collection[14]),
+                                    'dr-shield' => (int) $collection[11],
+                                    'dr-sonne'  => (int) $collection[14],
+                                ],
+                                'amounts' => [
+                                    // 'dr-shield' => max(0, (int)$collection[12] - (int)$collection[15]),
+                                    'dr-shield' => (int) $collection[12],
+                                    'dr-sonne'  => (int) $collection[15],
+                                ],
                             ],
-                            'amounts' => [
-                                // 'dr-shield' => max(0, (int)$collection[12] - (int)$collection[15]),
-                                'dr-shield' => (int) $collection[12] - (int) $collection[15] - (int) $collection[18],
-                                'dr-sonne'  => (int) $collection[15],
-                                // 'dr-houz'  => (int) $collection[12] - (int) $collection[15] - ((int) $collection[12] - (int) $collection[15]),
-                                'dr-houz'  => (int) $collection[18],
-                            ],
-                        ],
-                        'version_2' => [
-                            'income_taxs' => [
-                                // 'dr-shield' => max(0, (int)$collection[10] - (int)$collection[13]),
-                                'dr-shield' => (int) $collection[10],
-                                'dr-sonne' => (int) $collection[13],
-                                // 'dr-houz'   => (int)$collection[13],
-                            ],
-                            'value_taxs' => [
-                                // 'dr-shield' => max(0, (int)$collection[11] - (int)$collection[14]),
-                                'dr-shield' => (int) $collection[11],
-                                'dr-sonne' => (int) $collection[14],
-                            ],
-                            'amounts' => [
-                                // 'dr-shield' => max(0, (int)$collection[12] - (int)$collection[15]),
-                                'dr-shield' => (int) $collection[12],
-                                'dr-sonne' => (int) $collection[15],
-                            ],
-                        ],
-                    ];
+                        ];
 
-                    $datas = [
-                        'version' => 1,
-                        'income_taxs' => $payment_details['version_1']['income_taxs'],
-                        'value_taxs' => $payment_details['version_1']['value_taxs'],
-                        'amounts' => $payment_details['version_1']['amounts'],
-                    ];
+                        $datas = [
+                            'version'     => 1,
+                            'income_taxs' => $payment_details['version_1']['income_taxs'],
+                            'value_taxs'  => $payment_details['version_1']['value_taxs'],
+                            'amounts'     => $payment_details['version_1']['amounts'],
+                        ];
 
-                    $this->_paymentDetail($invoice, $datas);
+                        $this->_paymentDetail($invoice, $datas);
 
-                    $datas = [
-                        'version' => 2,
-                        'income_taxs' => $payment_details['version_2']['income_taxs'],
-                        'value_taxs' => $payment_details['version_2']['value_taxs'],
-                        'amounts' => $payment_details['version_2']['amounts'],
-                    ];
-                    $this->_paymentDetail($invoice, $datas);
+                        $datas = [
+                            'version'     => 2,
+                            'income_taxs' => $payment_details['version_2']['income_taxs'],
+                            'value_taxs'  => $payment_details['version_2']['value_taxs'],
+                            'amounts'     => $payment_details['version_2']['amounts'],
+                        ];
+                        $this->_paymentDetail($invoice, $datas);
 
-                    //Invoice Proses
-                    $datas = [
-                        'version' => 1,
-                        'due_date' => $collection[9],
-                    ];
-                    $this->_roofInvoice($invoice, $datas);
-
-                    $datas = [
-                        'version' => 2,
-                        'due_date' => $collection[9],
-                    ];
-                    $this->_roofInvoice($invoice, $datas);
-
-                    $categories = Category::where('type', 'roof')->where('version', 1)->pluck('slug')->toArray();
-                    foreach ($categories as $key => $category) {
-                        $get_category = Category::where('slug', $category)->where('version', 1)->first();
+                        //Invoice Proses
                         $datas = [
                             'version' => 1,
+                            'due_date' => $collection[9],
                         ];
-                        $this->_roofCommission($invoice, $get_category, $datas);
-                    }
+                        $this->_roofInvoice($invoice, $datas);
 
-                    $categories = [null, 'dr-sonne'];
-                    foreach ($categories as $key => $category) {
-                        $get_category = Category::where('slug', $category)->where('version', 2)->first();
                         $datas = [
                             'version' => 2,
+                            'due_date' => $collection[9],
                         ];
-                        $this->_roofCommission($invoice, $get_category, $datas);
-                    }
-                });
+                        $this->_roofInvoice($invoice, $datas);
+
+                        $categories = Category::where('type', 'roof')->where('version', 1)->pluck('slug')->toArray();
+                        foreach ($categories as $key => $category) {
+                            $get_category = Category::where('slug', $category)->where('version', 1)->first();
+                            $datas = [
+                                'version' => 1,
+                            ];
+                            $this->_roofCommission($invoice, $get_category, $datas);
+                        }
+
+                        $categories = [null, 'dr-sonne'];
+                        foreach ($categories as $key => $category) {
+                            $get_category = Category::where('slug', $category)->where('version', 2)->first();
+                            $datas = [
+                                'version' => 2,
+                            ];
+                            $this->_roofCommission($invoice, $get_category, $datas);
+                        }
+                    });
+                }
+
+                unset($chunk);
+                gc_collect_cycles();
             }
         } catch (Exception|Throwable $th) {
             DB::rollBack();
@@ -198,11 +214,25 @@ class RoofInvoice implements ShouldQueue
                 'message' => json_decode($th->getMessage()),
                 'file' => $th->getFile(),
                 'line' => $th->getLine(),
+                'Stack trace'            => $th->getTraceAsString(),
+                'Job failed with memory' => memory_get_usage(true) / 1024 / 1024 . ' MB'
             ];
             Log::error('Ada kesalahan saat import faktur atap', $error);
+            throw $th;
         }
 
         Log::info('Import Roof Invoice berhasil');
+    }
+
+    public function failed(\Throwable $exception)
+    {
+        $error = [
+            'error' => $exception->getMessage(),
+            'trace' => $exception->getTraceAsString(),
+            'collections_count' => count($this->collections),
+            'memory_peak' => memory_get_peak_usage(true) / 1024 / 1024 . ' MB'
+        ];
+        Log::error('RoofInvoiceDetail permanently failed', $error);
     }
 
     private function createDueDateRule($invoice, $due_date)

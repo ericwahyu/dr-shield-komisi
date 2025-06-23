@@ -177,7 +177,7 @@ trait RoofCommissionDetailProsses
                             $total_income = round((int)$total_income / floatval((int)$percentage_invoice_detail > 0 ? (int)$percentage_invoice_detail/100 : 1), 2);
                         } else {
                             //  $total_income = round((int)$total_income / floatval($this->getSystemSetting()?->value_of_total_income) * ((int)$percentage_invoice_detail > 0 ? (int)$percentage_invoice_detail/100 : 1), 2);
-                             $total_income = round((int)$total_income * ((int)$percentage_invoice_detail > 0 ? (int)$percentage_invoice_detail/100 : 1), 2);
+                            $total_income = round((int)$total_income * ((int)$percentage_invoice_detail > 0 ? (int)$percentage_invoice_detail/100 : 1), 2);
                          }
 
                         $get_commission->commissionDetails()->updateOrCreate(
@@ -228,7 +228,7 @@ trait RoofCommissionDetailProsses
                     $query->whereNull('category_id');
                 })->where('version', 2)->sum('amount');
 
-                $get_lower_limit_commission = $get_commission?->lowerLimitCommissions() ->when($category != null, function ($query) use ($category) {
+                $get_lower_limit_commission = $get_commission?->lowerLimitCommissions()->when($category != null, function ($query) use ($category) {
                     $query->where('category_id', $category?->id);
                 })->when($category == null, function ($query) use ($category) {
                     $query->whereNull('category_id');

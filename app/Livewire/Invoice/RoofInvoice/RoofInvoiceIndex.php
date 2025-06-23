@@ -26,33 +26,11 @@ class RoofInvoiceIndex extends Component
 
     protected $paginationTheme = 'bootstrap';
 
-    public $perPage = 10;
+    public $perPage = 10, $search;
 
-    public $search;
+    public $filter_month, $filter_sales, $data_due_dates;
 
-    public $filter_month;
-
-    public $filter_sales;
-
-    public $data_due_dates;
-
-    public $get_invoice;
-
-    public $id_data;
-
-    public $sales_id;
-
-    public $sales_code;
-
-    public $date;
-
-    public $invoice_number;
-
-    public $customer;
-
-    public $id_customer;
-
-    public $due_date;
+    public $get_invoice, $id_data, $sales_id, $sales_code, $date, $invoice_number, $customer, $id_customer, $due_date;
 
     public $income_tax = 0;
 
@@ -189,16 +167,16 @@ class RoofInvoiceIndex extends Component
                         'id' => $this->id_data,
                     ],
                     [
-                        'user_id' => $this->sales_id,
-                        'type' => 'roof',
-                        'date' => $this->date,
+                        'user_id'        => $this->sales_id,
+                        'type'           => 'roof',
+                        'date'           => $this->date,
                         'invoice_number' => $this->invoice_number,
-                        'customer' => $this->customer,
-                        'id_customer' => $this->id_customer,
-                        'income_tax' => (int) number_format($this->income_tax, 0, ',', ''),
-                        'value_tax' => (int) number_format($this->value_tax, 0, ',', ''),
-                        'amount' => (int) number_format($this->amount, 0, ',', ''),
-                        'due_date' => $this->due_date,
+                        'customer'       => $this->customer,
+                        'id_customer'    => $this->id_customer,
+                        'income_tax'     => (int) number_format($this->income_tax, 0, ',', ''),
+                        'value_tax'      => (int) number_format($this->value_tax, 0, ',', ''),
+                        'amount'         => (int) number_format($this->amount, 0, ',', ''),
+                        'due_date'       => $this->due_date,
                     ]
                 );
 
@@ -424,7 +402,7 @@ class RoofInvoiceIndex extends Component
                 $q->whereYear('date', $month->year)->whereMonth('date', $month->month);
             })
             ->join('payment_details', 'payment_details.invoice_id', '=', 'invoices.id')
-            ->when($category, fn ($q) => $q->where('payment_details.category_id', $category->id))
+            ->when($category, fn ($q) => $q->where('payment_details.category_id', $category?->id))
             ->where('payment_details.version', $version)
             ->sum('payment_details.income_tax');
     }

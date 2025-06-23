@@ -28,13 +28,6 @@
                             <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror
                     </div>
-                    {{-- <div class="col-12">
-                        <div class="form-label">Keterangan </div>
-                        <textarea class="form-control @error('description') is-invalid @enderror" id="description" rows="2" wire:model="description" placeholder="Contoh : Request Barang warna pink :)"></textarea>
-                        @error('description')
-                            <div class="invalid-feedback d-block">{{ $message }}</div>
-                        @enderror
-                    </div> --}}
                     <div class="col-6">
                         <div class="form-label">Tipe Sales <span class="text-danger">*</span></div>
                         <select class="form-select @error('sales_type') is-invalid @enderror" id="status" wire:model="sales_type" aria-label="Default select example">
