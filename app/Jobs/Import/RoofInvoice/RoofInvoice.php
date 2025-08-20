@@ -67,11 +67,12 @@ class RoofInvoice implements ShouldQueue
 
                     $check_year = Carbon::parse($collection[0])->format('Y');
 
-                    if (! $get_user || $unique_invoice || (int) $check_year < 2010) {
+                    if (!$get_user || $unique_invoice || (int) $check_year < 2010) {
                         $warning = [
-                            'get_user' => ! $get_user,
+                            'get_user' => !$get_user,
                             'unique_invoice' => $unique_invoice,
                             'year_under_2010' => (int) $check_year < 2010,
+                            'collections' => $collection
                         ];
                         Log::warning('Gagal memasukkan Faktur Atap dengan no : '.$collection[1], $warning);
 
