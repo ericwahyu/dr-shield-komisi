@@ -3,6 +3,7 @@
 namespace App\Imports\Invoice\RoofInvoice;
 
 use App\Jobs\Import\RoofInvoice\RoofInvoice as Job_Roof_Invoice;
+use App\Jobs\Import\RoofInvoice\RoofInvoiceDispatcher;
 use App\Models\Auth\User;
 use App\Models\Commission\Commission;
 use App\Models\Invoice\Invoice;
@@ -29,7 +30,8 @@ class RoofInvoiceExecutionImport implements ToCollection
         //
         try {
             //code...
-            Job_Roof_Invoice::dispatch($collections);
+            // Job_Roof_Invoice::dispatch($collections);
+            RoofInvoiceDispatcher::dispatch($collections);
         } catch (Exception | Throwable $th) {
             Log::error($th->getMessage());
             Log::error("Ada kesalahan saat import faktur atap");

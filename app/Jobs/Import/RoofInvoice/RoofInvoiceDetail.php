@@ -26,7 +26,7 @@ class RoofInvoiceDetail implements ShouldQueue
     use GetSystemSetting, RoofInvoiceDetailProsses, RoofCommissionDetailProsses;
 
     public $tries = 5;                    // Max retry attempts
-    public $timeout = 600;                // 10 menit timeout
+    public $timeout = 1200;                // 10 menit timeout
     public $maxExceptions = 3;            // Max exceptions before fail
     public $backoff = [60, 180, 300];     // Delay between retries (1min, 3min, 5min)
     public $failOnTimeout = true;         // Fail jika timeout
@@ -109,17 +109,18 @@ class RoofInvoiceDetail implements ShouldQueue
     private function invoiceDetailV1($get_invoice, $collection)
     {
         try {
-            $categories = Category::where('type', 'roof')->where('version', 1)->pluck('slug')->toArray();
+            // $categories = Category::where('type', 'roof')->where('version', 1)->pluck('slug')->toArray();
+            $categories = Category::where('type', 'roof')->where('version', 1)->get()->keyBy('slug');
 
             $payment = (int) $collection[1];
 
             foreach ($categories as $key => $category) {
 
-                $value_payment_detail = $get_invoice?->paymentDetails()->where('category_id', Category::where('type', 'roof')->where('slug', $category)->where('version', 1)->first()?->id)->sum('amount');
+                $value_payment_detail = $get_invoice?->paymentDetails()->where('category_id', $category?->id)->sum('amount');
 
-                $value_invoice_detail = $get_invoice?->invoiceDetails()->where('category_id', Category::where('type', 'roof')->where('slug', $category)->where('version', 1)->first()?->id)->sum('amount');
+                $value_invoice_detail = $get_invoice?->invoiceDetails()->where('category_id', $category?->id)->sum('amount');
 
-                $get_category = Category::where('type', 'roof')->where('slug', $category)->where('version', 1)->first();
+                $get_category = $category;
 
                 $remaining_price = (int)$value_payment_detail - (int)$value_invoice_detail;
 
