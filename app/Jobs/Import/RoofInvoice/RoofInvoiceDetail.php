@@ -110,7 +110,7 @@ class RoofInvoiceDetail implements ShouldQueue
     {
         try {
             // $categories = Category::where('type', 'roof')->where('version', 1)->pluck('slug')->toArray();
-            $categories = Category::where('type', 'roof')->where('version', 1)->get()->keyBy('slug');
+            $categories = Category::where('type', 'roof')->where('version', 1)->get();
 
             $payment = (int) $collection[1];
 
