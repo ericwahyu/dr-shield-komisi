@@ -85,13 +85,13 @@ trait RoofCommissionProsses
                     })->whereYear('date', (int)$invoice?->date->format('Y'))->whereMonth('date', (int)$invoice?->date->format('m'))->where('type', 'roof');
                 })->where('category_id', $category?->id)->sum('income_tax');
 
+                //value commission by income tax
                 $get_lower_limit_commission = $get_commission?->lowerLimitCommissions()->where('category_id', $category?->id)->where('target_payment', '<=', (int)$sum_income_tax)->max('value');
                 $get_lower_limit_commission = $get_lower_limit_commission ?? null;
-
                 $get_commission?->update([
                     'total_sales'                 => $sum_income_tax,
-                    'percentage_value_commission' => $get_lower_limit_commission,
-                    'status'                      => $get_lower_limit_commission != null ? 'reached' : 'not-reach'
+                    // 'percentage_value_commission' => $get_lower_limit_commission,
+                    // 'status'                      => $get_lower_limit_commission != null ? 'reached' : 'not-reach'
                 ]);
 
                 if ($get_commission?->percentage_value_commission != null) {

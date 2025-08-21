@@ -78,7 +78,15 @@ trait RoofCommissionDetailProsses
                                     $total_income = (int)$total_income;
                                 }
 
-                                 $get_commission->commissionDetails()->updateOrCreate(
+                                // value commission by total income
+                                $get_lower_limit_commission = $get_commission?->lowerLimitCommissions()->where('category_id', $category?->id)->where('target_payment', '<=', (int)$total_income)->max('value');
+                                $get_lower_limit_commission = $get_lower_limit_commission ?? null;
+                                $get_commission?->update([
+                                    'percentage_value_commission' => $get_lower_limit_commission,
+                                    'status'                      => $get_lower_limit_commission != null ? 'reached' : 'not-reach'
+                                ]);
+
+                                $get_commission->commissionDetails()->updateOrCreate(
                                      [
                                          'year'                   => (int)Carbon::parse($year_month_invoice_detail)->format('Y'),
                                          'month'                  => (int)Carbon::parse($year_month_invoice_detail)->format('m'),
@@ -98,8 +106,8 @@ trait RoofCommissionDetailProsses
                                 'line'    => $th->getLine(),
                             ];
                             Log::error("Ada kesalahan saat create roof commission detail v1", $error);
-                            throw new Exception($th->getMessage());
                         }
+                            throw new Exception($th->getMessage());
                     }
                 }
 
