@@ -52,33 +52,33 @@ class RoofInvoiceDetail implements ShouldQueue
         ini_set('memory_limit', '1024M');
         try {
             // Process dalam chunks untuk data besar
-            $chunks = $this->collections->chunk(50); // 50 items per chunk
-            foreach ($chunks as $chunkIndex => $chunk) {
-                Log::info("Processing chunk {$chunkIndex}, memory: " . memory_get_usage(true) / 1024 / 1024 . " MB");
+            // $chunks = $this->collections->chunk(50); // 50 items per chunk
+            // foreach ($chunks as $chunkIndex => $chunk) {
+            //     Log::info("Processing chunk {$chunkIndex}, memory: " . memory_get_usage(true) / 1024 / 1024 . " MB");
 
-                foreach ($chunk as $key => $collection) {
-                    if ($key == 0 && $chunkIndex == 0) continue;
 
-                        $get_invoice = Invoice::where('invoice_number', $collection[0])->first();
+            //     unset($chunk);
+            //     gc_collect_cycles();
+            // }
+            foreach ($this->collections as $key => $collection) {
+                if ($key == 0) continue;
 
-                        $check_year = Carbon::parse($collection[2])->format('Y');
+                    $get_invoice = Invoice::where('invoice_number', $collection[0])->first();
 
-                        if (!$get_invoice || (int)$check_year < 2010) {
-                            $warning = [
-                                'get_invoice'     => $get_invoice,
-                                'year_under_2010' => (int)$check_year,
-                            ];
-                            // Log::warning('Gagal memasukkan Detail Faktur Atap dengan no : ' . $collection[0], $warning);
-                            continue;
-                        }
+                    $check_year = Carbon::parse($collection[2])->format('Y');
 
-                        $this->invoiceDetailV1($get_invoice, $collection);
-                        $this->invoiceDetailV2($get_invoice, $collection);
+                    if (!$get_invoice || (int)$check_year < 2010) {
+                        $warning = [
+                            'get_invoice'     => $get_invoice,
+                            'year_under_2010' => (int)$check_year,
+                        ];
+                        // Log::warning('Gagal memasukkan Detail Faktur Atap dengan no : ' . $collection[0], $warning);
+                        continue;
                     }
 
-                    unset($chunk);
-                    gc_collect_cycles();
-                }
+                    $this->invoiceDetailV1($get_invoice, $collection);
+                    $this->invoiceDetailV2($get_invoice, $collection);
+            }
 
         } catch (Exception | Throwable $th) {
             DB::rollBack();
