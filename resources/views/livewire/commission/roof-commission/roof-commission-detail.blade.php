@@ -99,7 +99,7 @@
                                 <tfoot class="table-light">
                                     <tr>
                                         <td colspan="3"></td>
-                                        <td colspan="2" class="text-end"><b>{{ $this->getTotalIncome(null, null, 100) +  $this->getTotalIncome(null, null, 50) > 0 ? "Rp. ". number_format($this->getTotalIncome(null, null, 100) + $this->getTotalIncome(null, null, 50), 0, ',', '.') : '-' }}</b></td>
+                                        <td colspan="2" class="text-end"><b>{{ $this->getTotalIncome(null, null, 100) + $this->getTotalIncome(null, null, 50) > 0 ? "Rp. ". number_format($this->getTotalIncome(null, null, 100) + $this->getTotalIncome(null, null, 50), 0, ',', '.') : '-' }}</b></td>
                                         <td colspan="2" class="text-end"><b>{{ $this->getTotalIncome(null, null, null) > 0 ? "Rp. ". number_format($this->getTotalIncome(null, null, null), 0, ',', '.') : '-' }}</b></td>
                                     </tr>
                                 </tfoot>
