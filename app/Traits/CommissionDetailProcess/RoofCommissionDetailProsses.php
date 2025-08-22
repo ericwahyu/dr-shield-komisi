@@ -106,8 +106,8 @@ trait RoofCommissionDetailProsses
                                 'line'    => $th->getLine(),
                             ];
                             Log::error("Ada kesalahan saat create roof commission detail v1", $error);
-                        }
                             throw new Exception($th->getMessage());
+                        }
                     }
                 }
 
