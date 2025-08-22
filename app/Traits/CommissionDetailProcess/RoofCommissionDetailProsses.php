@@ -78,14 +78,6 @@ trait RoofCommissionDetailProsses
                                     $total_income = (int)$total_income;
                                 }
 
-                                // value commission by total income
-                                $get_lower_limit_commission = $get_commission?->lowerLimitCommissions()->where('category_id', $category?->id)->where('target_payment', '<=', (int)$total_income)->max('value');
-                                $get_lower_limit_commission = $get_lower_limit_commission ?? null;
-                                $get_commission?->update([
-                                    'percentage_value_commission' => $get_lower_limit_commission,
-                                    'status'                      => $get_lower_limit_commission != null ? 'reached' : 'not-reach'
-                                ]);
-
                                 // if ($get_commission?->percentage_value_commission != null) {
                                 //     foreach ($get_commission?->commissionDetails()->get() as $key => $commission_detail) {
                                 //         $commission_detail->update([
@@ -106,11 +98,11 @@ trait RoofCommissionDetailProsses
                                      ]
                                  );
 
-                                 if ($get_commission->commissionDetails()->whereNot('percentage_of_due_date', 0)->sum('value_of_due_date') > 0) {
-                                    $get_commission->update([
-                                        'value_commission' => $get_commission->commissionDetails()->whereNot('percentage_of_due_date', 0)->sum('value_of_due_date')
-                                    ]);
-                                }
+                                //  if ($get_commission->commissionDetails()->whereNot('percentage_of_due_date', 0)->sum('value_of_due_date') > 0) {
+                                //     $get_commission->update([
+                                //         'value_commission' => $get_commission->commissionDetails()->whereNot('percentage_of_due_date', 0)->sum('value_of_due_date')
+                                //     ]);
+                                // }
                             });
                         } catch (Exception | Throwable $th) {
                             DB::rollBack();
@@ -124,6 +116,15 @@ trait RoofCommissionDetailProsses
                         }
                     }
                 }
+
+                // value commission by total income
+                $final_total_income = $this->getTotalIncome($get_commission, null, null, 100) + $this->getTotalIncome($get_commission, null, null, 50);
+                $get_lower_limit_commission = $get_commission?->lowerLimitCommissions()->where('category_id', $category?->id)->where('target_payment', '<=', (int)$final_total_income)->max('value');
+                $get_lower_limit_commission = $get_lower_limit_commission ?? null;
+                $get_commission?->update([
+                    'percentage_value_commission' => $get_lower_limit_commission,
+                    'status'                      => $get_lower_limit_commission != null ? 'reached' : 'not-reach'
+                ]);
 
                 if ($get_commission?->status == 'reached' && $get_commission?->percentage_value_commission != null) {
                     $get_total_income  = $get_commission->user?->lowerLimits()->where('category_id', $category?->id)->max('target_payment');
@@ -158,9 +159,20 @@ trait RoofCommissionDetailProsses
             throw new Exception($th->getMessage());
         }
     }
+
+    private function getTotalIncome($get_commission, $year, $month, $percentage)
+    {
+        return $get_commission?->commissionDetails()->when($year, function ($query) use ($year) {
+            $query->where('year', $year);
+        })->when($month, function ($query) use ($month) {
+            $query->where('month', $month);
+        })->when($percentage, function ($query) use ($percentage) {
+            $query->where('percentage_of_due_date', $percentage);
+        })->sum('total_income');
+    }
+
     private function _roofCommissionDetailV2($invoice, $category, $datas)
     {
-
         try {
             $category = $category = $category != null ? Category::where('slug', $category)->where('version', 2)->first() : $category;
 
