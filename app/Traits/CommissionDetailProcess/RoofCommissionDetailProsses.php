@@ -86,6 +86,14 @@ trait RoofCommissionDetailProsses
                                     'status'                      => $get_lower_limit_commission != null ? 'reached' : 'not-reach'
                                 ]);
 
+                                // if ($get_commission?->percentage_value_commission != null) {
+                                //     foreach ($get_commission?->commissionDetails()->get() as $key => $commission_detail) {
+                                //         $commission_detail->update([
+                                //             'value_of_due_date' => intval($commission_detail?->total_income * ($get_commission?->percentage_value_commission/100))
+                                //         ]);
+                                //     }
+                                // }
+
                                 $get_commission->commissionDetails()->updateOrCreate(
                                      [
                                          'year'                   => (int)Carbon::parse($year_month_invoice_detail)->format('Y'),
@@ -97,6 +105,12 @@ trait RoofCommissionDetailProsses
                                          'value_of_due_date' => $get_commission?->percentage_value_commission != null ? round($total_income * ($get_commission?->percentage_value_commission/100), 0) : null
                                      ]
                                  );
+
+                                 if ($get_commission->commissionDetails()->whereNot('percentage_of_due_date', 0)->sum('value_of_due_date') > 0) {
+                                    $get_commission->update([
+                                        'value_commission' => $get_commission->commissionDetails()->whereNot('percentage_of_due_date', 0)->sum('value_of_due_date')
+                                    ]);
+                                }
                             });
                         } catch (Exception | Throwable $th) {
                             DB::rollBack();
