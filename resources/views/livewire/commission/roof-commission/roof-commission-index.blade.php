@@ -55,7 +55,7 @@
                             <div class="col-12 col-lg-3 text-end">
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="fa-regular fa-magnifying-glass fa-fw"></i></span>
-                                    <input class="form-control" type="text" placeholder="Cari Sesuatu.." wire:model.debounce.xms="search">
+                                    <input class="form-control" type="text" placeholder="Cari Sesuatu.." wire:model.live="search">
                                 </div>
                             </div>
                         </div>
