@@ -34,6 +34,7 @@ class RoofCommissionIndexV2 extends Component
 
     public function mount()
     {
+         $this->search = Cache::get('search_month_roof_2') ?? null;
         $this->filter_month = Cache::get('filter_month_roof_2') ?? Carbon::now()->format('Y-m');
         $this->categories   = [null, 'dr-sonne'];
     }
@@ -52,6 +53,7 @@ class RoofCommissionIndexV2 extends Component
 
     public function updated()
     {
+        Cache::put('search_month_roof_2', $this->search);
         Cache::put('filter_month_roof_2', $this->filter_month);
     }
 
