@@ -8,6 +8,7 @@ use App\Models\Auth\User;
 use App\Models\Commission\Commission;
 use App\Models\System\Category;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -38,8 +39,7 @@ class RoofCommissionIndex extends Component
 
     public function mount()
     {
-        $this->filter_month = Carbon::now()->format('Y-m');
-        // $this->filter_month = Carbon::parse('2024-04')->format('Y-m');
+        $this->filter_month = Cache::get('filter_month_roof_1') ?? Carbon::now()->format('Y-m');
         $this->categories   = Category::where('type', 'roof')->where('version', 1)->get();
     }
 
@@ -57,7 +57,7 @@ class RoofCommissionIndex extends Component
 
     public function updated()
     {
-
+        Cache::put('filter_month_roof_1', $this->filter_month);
     }
 
     public function commissionSales($user_id, $category)
