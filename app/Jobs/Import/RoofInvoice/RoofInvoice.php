@@ -233,7 +233,7 @@ class RoofInvoice implements ShouldQueue
             'collections_count' => count($this->collections),
             'memory_peak' => memory_get_peak_usage(true) / 1024 / 1024 . ' MB'
         ];
-        Log::error('RoofInvoiceDetail permanently failed', $error);
+        Log::error('RoofInvoice permanently failed', $error);
     }
 
     private function createDueDateRule($invoice, $due_date)
