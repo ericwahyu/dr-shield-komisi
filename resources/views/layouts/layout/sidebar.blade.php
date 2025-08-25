@@ -117,13 +117,13 @@
                 <div>Target Aktual Atap</div>
             </a>
         </li>
-        {{-- <li class="menu-item {{ Request::is('*perhitungan/UPVC') ? 'active' : '' }}">
-            <a href="{{ route('calculation.upvc') }}" class="menu-link">
+        <li class="menu-item {{ Request::is('*pengaturan/reset-data-faktur') ? 'active' : '' }}">
+            <a href="{{ route('factur-reset') }}" class="menu-link">
                 <i class="fa-regular fa-home-alt fa-fw me-2"></i>
-                <div>UPVC</div>
+                <div>Reset Data Faktur</div>
             </a>
         </li>
-        <li class="menu-item {{ Request::is('*perhitungan/aksesoris') ? 'active' : '' }}">
+        {{-- <li class="menu-item {{ Request::is('*perhitungan/aksesoris') ? 'active' : '' }}">
             <a href="{{ route('calculation.accesories') }}" class="menu-link">
                 <i class="fa-regular fa-home-alt fa-fw me-2"></i>
                 <div>Aksesoris</div>
@@ -182,7 +182,7 @@
                     <i class="fa-regular fa-home-alt fa-fw me-2"></i>
                     <div>Data Admin</div>
                 </a>
-            </li> --}}
+            </li>
         {{-- @endif --}}
         {{-- @if (Auth::user()->hasAnyRole('super-admin', 'admin'))
         @endif

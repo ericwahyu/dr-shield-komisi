@@ -6,9 +6,11 @@ use App\Models\Commission\Commission;
 use App\Models\Commission\LowerLimit;
 use App\Models\Commission\SalesCommision;
 use App\Models\Invoice\Invoice;
+use App\Models\System\DataReset;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -85,5 +87,15 @@ class User extends Authenticatable
     public function commissions()
     {
         return $this->hasMany(Commission::class, 'user_id', 'id');
+    }
+
+    /**
+     * Get all of the dataResets for the User
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function dataResets(): HasMany
+    {
+        return $this->hasMany(DataReset::class, 'user_id', 'id');
     }
 }

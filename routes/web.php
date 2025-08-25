@@ -15,6 +15,7 @@ use App\Livewire\Invoice\RoofInvoice\RoofInvoiceIndex;
 use App\Livewire\Sales\SalesList;
 use App\Livewire\Sales\SalesList\SalesListIndex;
 use App\Livewire\Sales\SalesList\SalesLowerLimit\SalesLowerLimitIndex;
+use App\Livewire\Setting\ResetFaktur\ResetFakturIndex;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Session;
@@ -55,6 +56,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/atap', RoofCommissionIndex::class)->name('roof.commission');
         Route::get('/atap-detail/{sales_id}/{month_commission}/{category}/1', RoofCommissionDetail::class)->name('roof.commission.detail.v1');
         Route::get('/atap-detail/{sales_id}/{month_commission}/{category}/2', RoofCommissionDetailV2::class)->name('roof.commission.detail.v2');
+    });
+
+    Route::prefix('/pengaturan')->group(function () {
+        Route::get('/reset-data-faktur', ResetFakturIndex::class)->name('factur-reset');
     });
 });
 
