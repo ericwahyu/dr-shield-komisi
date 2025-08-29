@@ -7,6 +7,7 @@ use App\Models\Invoice\Invoice;
 use App\Models\Invoice\InvoiceDetail;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class RegionCommissionService
 {
@@ -43,27 +44,29 @@ class RegionCommissionService
     {
         foreach ($request['datas'] ?? [] as $key_data => $data) {
             foreach ($data ?? [] as $key_type => $value_type) {
-                $region_commission = RegionCommission::updateOrCreate(
-                    [
-                        'month'       => $request['date'],
-                        'sales_type' => $key_data,
-                        'depo'       => $key_type,
-                    ],
-                    [
-                        'user_id'          => Auth::user()?->id,
-                        'targets'          => json_encode($value_type, true),
-                        'total_income_tax' => $this->totalIncomeTaxRoof($request['date'], $key_data, $key_type)
-                    ]
-                );
+                DB::beginTransaction();
+                    $region_commission = RegionCommission::updateOrCreate(
+                        [
+                            'month'       => $request['date'],
+                            'sales_type' => $key_data,
+                            'depo'       => $key_type,
+                        ],
+                        [
+                            'user_id'          => Auth::user()?->id,
+                            'targets'          => json_encode($value_type, true),
+                            'total_income_tax' => $this->totalIncomeTaxRoof($request['date'], $key_data, $key_type)
+                        ]
+                    );
 
-                // dd($this->getpercentageTarget($region_commission));
-                $getpercentageTarget = $this->getpercentageTargetRoof($region_commission);
-                $region_commission->update([
-                    'percentage_target'     => $getpercentageTarget,
-                    'percentage_commission' => isset($this->percentage['roof'][$getpercentageTarget]) ? $this->percentage['roof'][$getpercentageTarget] : null,
-                    'payments'              => $getpercentageTarget ? $this->getAmountInvoiceDetail($region_commission, $request['date'], $key_data, $key_type)[0] : null,
-                    'value_commission'      => $getpercentageTarget ? $this->getAmountInvoiceDetail($region_commission, $request['date'], $key_data, $key_type)[1] : 0,
-                ]);
+                    // dd($this->getpercentageTarget($region_commission));
+                    $getpercentageTarget = $this->getpercentageTargetRoof($region_commission);
+                    $region_commission->update([
+                        'percentage_target'     => $getpercentageTarget,
+                        'percentage_commission' => isset($this->percentage['roof'][$getpercentageTarget]) ? $this->percentage['roof'][$getpercentageTarget] : null,
+                        'payments'              => $getpercentageTarget ? $this->getAmountInvoiceDetail($region_commission, $request['date'], $key_data, $key_type)[0] : null,
+                        'value_commission'      => $getpercentageTarget ? $this->getAmountInvoiceDetail($region_commission, $request['date'], $key_data, $key_type)[1] : 0,
+                    ]);
+                DB::commit();
             }
         }
     }
