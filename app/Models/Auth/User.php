@@ -4,6 +4,7 @@ namespace App\Models\Auth;
 
 use App\Models\Commission\Commission;
 use App\Models\Commission\LowerLimit;
+use App\Models\Commission\RegionCommission;
 use App\Models\Commission\SalesCommision;
 use App\Models\Invoice\Invoice;
 use App\Models\System\DataReset;
@@ -97,5 +98,15 @@ class User extends Authenticatable
     public function dataResets(): HasMany
     {
         return $this->hasMany(DataReset::class, 'user_id', 'id');
+    }
+
+    /**
+     * Get all of the regionCommissions for the User
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function regionCommissions(): HasMany
+    {
+        return $this->hasMany(RegionCommission::class, 'user_id', 'id');
     }
 }

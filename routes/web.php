@@ -5,6 +5,9 @@ use App\Livewire\Commission\ActualTarget\ActualTargetIndex;
 use App\Livewire\Commission\CeramicCommission\CeramicCommissionDetail;
 use App\Livewire\Commission\CeramicCommission\CeramicCommissionIndex;
 use App\Livewire\Commission\CeramicCommission\CeramicCommissionV2\CeramicCommissionDetailV2;
+use App\Livewire\Commission\RegionCommission\RegionCommissionCreate;
+use App\Livewire\Commission\RegionCommission\RegionCommissionDetail;
+use App\Livewire\Commission\RegionCommission\RegionCommissionIndex;
 use App\Livewire\Commission\RoofCommission\RoofCommissionDetail;
 use App\Livewire\Commission\RoofCommission\RoofCommissionIndex;
 use App\Livewire\Commission\RoofCommission\RoofCommissionV2\RoofCommissionDetailV2;
@@ -56,6 +59,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/atap', RoofCommissionIndex::class)->name('roof.commission');
         Route::get('/atap-detail/{sales_id}/{month_commission}/{category}/1', RoofCommissionDetail::class)->name('roof.commission.detail.v1');
         Route::get('/atap-detail/{sales_id}/{month_commission}/{category}/2', RoofCommissionDetailV2::class)->name('roof.commission.detail.v2');
+
+        Route::get('/wilayah', RegionCommissionIndex::class)->name('region.commission');
+        Route::get('/wilayah-create', RegionCommissionCreate::class)->name('region.commission-create');
+        Route::get('/wilayah-detail/{month}', RegionCommissionDetail::class)->name('region.commission-detail');
     });
 
     Route::prefix('/pengaturan')->group(function () {

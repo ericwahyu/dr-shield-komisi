@@ -108,6 +108,12 @@
                 <div>Komisi Sales Atap</div>
             </a>
         </li>
+        <li class="menu-item {{ Request::is('*komisi/wilayah*') ? 'active' : '' }}">
+            <a href="{{ route('region.commission') }}" class="menu-link">
+                <i class="fa-regular fa-home-alt fa-fw me-2"></i>
+                <div>Komisi Wilayah</div>
+            </a>
+        </li>
         <li class="menu-header small text-uppercase">
             <span class="menu-header-text" style="font-size: 15px;color: black;">PENGATURAN</span>
         </li>
