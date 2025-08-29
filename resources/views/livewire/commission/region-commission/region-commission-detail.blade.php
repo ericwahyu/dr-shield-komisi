@@ -28,6 +28,7 @@
                                 @foreach ($target_percentage as $target_percentage_1)
                                     <th rowspan="2" class="text-center">Target {{ $target_percentage_1 }}%</th>
                                 @endforeach
+                                <th rowspan="2" class="text-center">Penjualan</th>
                                 <th rowspan="2" class="text-center">Pencapaian</th>
                                 <th colspan="{{ count($payment_percentage) }}" class="text-center">Pembayaran</th>
                                 <th rowspan="2" class="text-center">Komisi</th>
@@ -55,6 +56,7 @@
                                         {{-- @dd() --}}
                                         <td class="text-center">{{ isset($targets[$target_percentage_2]) ? "Rp. ". number_format($targets[$target_percentage_2], 0, ',', '.') : '-' }}</td>
                                     @endforeach
+                                    <td class="text-center">{{ "Rp. ". number_format($result?->total_income_tax, 0, ',', '.') }}</td>
                                     <td class="text-center">{{ $result?->percentage_target ? $result?->percentage_target."%" : 'Tidak Mencapai' }}</td>
                                     @php
                                         $payments = json_decode($result->payments, true);
