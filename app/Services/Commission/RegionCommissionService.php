@@ -35,7 +35,6 @@ class RegionCommissionService
                 $request['datas']['roof'][$key_roof][$key_percentage] = $request['datas']['roof'][$key_roof][100] * $key_percentage / 100;
             }
         }
-        // dd($this->percentage, $request, Auth::user());
         return $this->generateRegionCommissionRoof($request);
     }
 

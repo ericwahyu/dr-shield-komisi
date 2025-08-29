@@ -5,6 +5,7 @@ namespace App\Livewire\Commission\RegionCommission;
 use App\Models\Auth\UserDetail;
 use App\Services\Commission\RegionCommissionService;
 use Exception;
+use Illuminate\Support\Facades\Log;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Livewire\Component;
 use Throwable;
@@ -73,14 +74,24 @@ class RegionCommissionCreate extends Component
 
     public function generate()
     {
-        $request = [
-            'date' => $this->generate_month,
-            'datas' => [
-                'roof' => $this->data_roof_region,
-                'ceramic' => $this->data_ceramic_region,
-            ]
-        ];
+        try {
+            $request = [
+                'date' => $this->generate_month,
+                'datas' => [
+                    'roof' => $this->data_roof_region,
+                    'ceramic' => $this->data_ceramic_region,
+                ]
+            ];
 
-        return app(RegionCommissionService::class)->generate($request);
+            return app(RegionCommissionService::class)->generate($request);
+        } catch (Exception | Throwable $th) {
+            $errors = [
+                'message' => $th->getMessage(),
+                'file'    => $th->getFile(),
+                'line'    => $th->getLine(),
+            ];
+
+            Log::error("Ada kesalahan saat generate region commission $this->generate_month", $errors);
+        }
     }
 }
