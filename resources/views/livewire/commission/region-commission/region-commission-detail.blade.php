@@ -90,7 +90,7 @@
         <div class="col-md-12">
             <div class="mb-4 card">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0" style="text-align: center">Perhitungan Komisi BM/SPV Atap </h5>
+                        <h5 class="mb-0" style="text-align: center">Perhitungan Komisi BM/SPV Keramik </h5>
                     </div>
                 <div class="table-responsive scrollbar-x">
                     <table class="table table-bordered">
@@ -116,7 +116,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse ($datas as $key => $result)
+                            {{-- @forelse ($datas as $key => $result)
                                 <tr>
                                     <td class="text-center">{{ $result?->depo }}</td>
                                     <td class="text-center"></td>
@@ -126,7 +126,6 @@
                                         krsort($targets);
                                     @endphp
                                     @foreach ($target_percentage as $target_percentage_2)
-                                        {{-- @dd() --}}
                                         <td class="text-center">{{ isset($targets[$target_percentage_2]) ? "Rp. ". number_format($targets[$target_percentage_2], 0, ',', '.') : '-' }}</td>
                                     @endforeach
                                     <td class="text-center">{{ $result?->percentage_target ? $result?->percentage_target."%" : 'Tidak Mencapai' }}</td>
@@ -145,15 +144,11 @@
                                     <td class="text-center">{{ "Rp. ". number_format($totalCommission * (10/100), 0, ',', '.') }}</td>
                                     <td class="text-center">{{ "Rp. ". number_format($totalCommission * (10/100), 0, ',', '.') }}</td>
                                 </tr>
-                                {{-- <td class="text-center">{{ $key }}</td>
-                                <td class="text-center">
-                                    <a href="{{ route('region.commission-detail', "$key") }}" class="btn btn-info btn-sm" x-data="{ tooltip: 'Lihat Detail' }" x-tooltip="tooltip"><i class="fa-solid fa-circle-info fa-fw"></i></a>
-                                </td> --}}
                             @empty
                                 <tr>
                                     <td colspan="10" class="text-center fw-bold">Belum Ada Data</td>
                                 </tr>
-                            @endforelse
+                            @endforelse --}}
                         </tbody>
                     </table>
                 </div>
