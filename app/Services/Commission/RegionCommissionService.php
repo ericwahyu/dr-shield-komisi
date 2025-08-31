@@ -75,7 +75,7 @@ class RegionCommissionService
     {
         return Invoice::whereHas('user.userDetail', function ($query) use ($sales_type, $depo) {
             $query->where('sales_type', $sales_type)->where('depo', $depo);
-        })->whereYear('date', Carbon::parse($month)->year)->whereMonth('date', Carbon::parse($month)->month)->sum('income_tax');
+        })->whereYear('date', Carbon::parse($month)->year)->whereMonth('date', Carbon::parse($month)->month)->whereNotNull('customer')->whereNotNull('id_customer')->sum('income_tax');
     }
 
     private function getpercentageTargetRoof($region_commission)
@@ -107,18 +107,23 @@ class RegionCommissionService
         $payments = []; $value_commission = 0;
 
         foreach ($datas as $key => $data) {
-
-            $amount = InvoiceDetail::whereHas('invoice.user.userDetail', function ($query) use ($sales_type, $depo) {
-                $query->where('sales_type', $sales_type)->where('depo', $depo);
-            })->whereYear('date', Carbon::parse($month)->year)->whereMonth('date', Carbon::parse($month)->month)->where('percentage', $data)->sum('amount');
-
+            // if ($data == 100) continue;
+            $amount = InvoiceDetail::whereHas('invoice.user', function ($query) use ($sales_type, $depo) {
+                $query->whereHas('userDetail', function ($query) use ($sales_type, $depo) {
+                    $query->where('sales_type', $sales_type)->where('depo', $depo);
+                    // $query->where('sales_type', 'roof')->where('depo', 'BDG');
+                });
+                // ->where('name', 'Floreta');
+            })->whereYear('date', Carbon::parse($month)->year)->whereMonth('date', Carbon::parse($month)->month)->where('percentage', $data)->where('version', 2)->sum('amount');
+            
             $payments[$data] = [
-                'total_amount' => $amount ?? 0,
-                'commission'   => $region_commission?->percentage_commission ? $amount * $region_commission?->percentage_commission : 0
+                'total_amount' => (int)$amount ? (int)$amount * $data / 100 : 0,
+                'commission'   => ((int)$amount *  $data / 100) * ($region_commission?->percentage_commission / 100) ?? 0
             ];
+            
+            // dd($data, $sales_type, $depo, (int)$amount, $payments);
 
             $value_commission += $payments[$data]['commission'];
-
         }
 
         return [json_encode($payments, true), (int)$value_commission];

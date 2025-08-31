@@ -58,6 +58,9 @@
                     </div>
                 </div>
                 <div class="table-responsive text-nowrap">
+                @error('data_roof_region')
+                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                @enderror
                 <table class="table">
                     <thead>
                         <tr>

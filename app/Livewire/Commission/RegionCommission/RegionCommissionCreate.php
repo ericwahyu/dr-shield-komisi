@@ -19,7 +19,6 @@ class RegionCommissionCreate extends Component
 
     public function render()
     {
-
         return view('livewire.commission.region-commission.region-commission-create', [
             'data_roof_region' => $this->data_roof_region,
         ])->extends('layouts.layout.app')->section('content');
@@ -74,6 +73,16 @@ class RegionCommissionCreate extends Component
 
     public function generate()
     {
+        $this->validate(
+            [
+                'generate_month' => 'required',
+                'data_roof_region' => 'required',
+            ],
+            [
+                'generate_month.required' => 'Bulan wajib diisi',
+                'data_roof_region.required' => 'Data wilayah & nominal arget wajib diisi',
+            ]
+        );
         try {
             $request = [
                 'date' => $this->generate_month,
@@ -83,7 +92,7 @@ class RegionCommissionCreate extends Component
                 ]
             ];
 
-            return app(RegionCommissionService::class)->generate($request);
+            app(RegionCommissionService::class)->generate($request);
         } catch (Exception | Throwable $th) {
             $errors = [
                 'message' => $th->getMessage(),
@@ -93,5 +102,9 @@ class RegionCommissionCreate extends Component
 
             Log::error("Ada kesalahan saat generate region commission $this->generate_month", $errors);
         }
+
+        $this->reset('data_roof_region', 'data_ceramic_region');
+
+        return redirect()->route('region.commission-detail', "$this->generate_month");
     }
 }
