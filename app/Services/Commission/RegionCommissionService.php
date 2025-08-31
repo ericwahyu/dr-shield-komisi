@@ -25,6 +25,12 @@ class RegionCommissionService
                 90  => 0.25,
                 80  => 0.2,
                 70  => 0.15,
+            ],
+            'ceramic' => [
+                100 => 0.35,
+                90  => 0.30,
+                80  => 0.25,
+                70  => 0.20,
             ]
         ];
     }
@@ -36,11 +42,18 @@ class RegionCommissionService
                 $request['datas']['roof'][$key_roof][$key_percentage] = $request['datas']['roof'][$key_roof][100] * $key_percentage / 100;
             }
         }
-        return $this->generateRegionCommissionRoof($request);
+
+        foreach ($request['datas']['ceramic'] ?? [] as $key_ceramic => $ceramic) {
+            foreach ($this->percentage['ceramic'] ?? [] as $key_percentage => $percentage) {
+                $request['datas']['ceramic'][$key_ceramic][$key_percentage] = $request['datas']['ceramic'][$key_ceramic][100] * $key_percentage / 100;
+            }
+        }
+
+        return $this->generateRegionCommission($request);
     }
 
     //ROOF
-    public function generateRegionCommissionRoof($request)
+    private function generateRegionCommission($request)
     {
         foreach ($request['datas'] ?? [] as $key_data => $data) {
             foreach ($data ?? [] as $key_type => $value_type) {
@@ -54,15 +67,16 @@ class RegionCommissionService
                         [
                             'user_id'          => Auth::user()?->id,
                             'targets'          => json_encode($value_type, true),
-                            'total_income_tax' => $this->totalIncomeTaxRoof($request['date'], $key_data, $key_type)
+                            'total_income_tax' => $this->totalIncomeTax($request['date'], $key_data, $key_type)
                         ]
                     );
 
-                    // dd($this->getpercentageTarget($region_commission));
-                    $getpercentageTarget = $this->getpercentageTargetRoof($region_commission);
+                    dd($region_commission);
+
+                    $getpercentageTarget = $this->getpercentageTarget($region_commission);
                     $region_commission->update([
                         'percentage_target'     => $getpercentageTarget,
-                        'percentage_commission' => isset($this->percentage['roof'][$getpercentageTarget]) ? $this->percentage['roof'][$getpercentageTarget] : null,
+                        'percentage_commission' => isset($this->percentage[$key_type][$getpercentageTarget]) ? $this->percentage[$key_type][$getpercentageTarget] : null,
                         'payments'              => $getpercentageTarget ? $this->getAmountInvoiceDetail($region_commission, $request['date'], $key_data, $key_type)[0] : null,
                         'value_commission'      => $getpercentageTarget ? $this->getAmountInvoiceDetail($region_commission, $request['date'], $key_data, $key_type)[1] : 0,
                     ]);
@@ -71,14 +85,14 @@ class RegionCommissionService
         }
     }
 
-    private function totalIncomeTaxRoof($month, $sales_type, $depo)
+    private function totalIncomeTax($month, $sales_type, $depo)
     {
         return Invoice::whereHas('user.userDetail', function ($query) use ($sales_type, $depo) {
             $query->where('sales_type', $sales_type)->where('depo', $depo);
         })->whereYear('date', Carbon::parse($month)->year)->whereMonth('date', Carbon::parse($month)->month)->whereNotNull('customer')->whereNotNull('id_customer')->sum('income_tax');
     }
 
-    private function getpercentageTargetRoof($region_commission)
+    private function getpercentageTarget($region_commission)
     {
         $targets          = $region_commission?->targets ? json_decode($region_commission?->targets, true) : [];
         $total_income_tax = $region_commission?->total_income_tax ?? 0;
@@ -115,12 +129,12 @@ class RegionCommissionService
                 });
                 // ->where('name', 'Floreta');
             })->whereYear('date', Carbon::parse($month)->year)->whereMonth('date', Carbon::parse($month)->month)->where('percentage', $data)->where('version', 2)->sum('amount');
-            
+
             $payments[$data] = [
                 'total_amount' => (int)$amount ? (int)$amount * $data / 100 : 0,
                 'commission'   => ((int)$amount *  $data / 100) * ($region_commission?->percentage_commission / 100) ?? 0
             ];
-            
+
             // dd($data, $sales_type, $depo, (int)$amount, $payments);
 
             $value_commission += $payments[$data]['commission'];

@@ -58,13 +58,13 @@ class ResetFakturIndex extends Component
     {
         $this->validate(
             [
-                'data_reset' => 'required|date'
+                'data_reset' => 'required'
             ],
             [
                 'date_reset' => 'Tanggal data import yang akan di reset wajib diisi'
             ]
         );
-        $note = 'Melakukan reset data import yang telah di masukkan pada tanggal : '. $this->data_reset;
+        $note = 'Melakukan reset data import yang telah di masukkan pada : '. $this->data_reset;
         $note .= $this->sales_id ? ' (sales : '. User::find($this->sales_id)?->name .')' : ' (reset Semua Sales)';
 
         try {
@@ -76,23 +76,28 @@ class ResetFakturIndex extends Component
                     'date_reset' => Carbon::now()
                 ]);
 
-                $invoice_ids = Invoice::whereDate('created_at', $this->data_reset)->when($this->sales_id != null, function ($query) {
+                $invoice_ids = Invoice::whereYear('date', Carbon::parse($this->data_reset)->year)->whereMonth('date', Carbon::parse($this->data_reset)->month)->when($this->sales_id != null, function ($query) {
                     $query->where('user_id', $this->sales_id);
                 })->pluck('id')->toArray();
                 InvoiceDetail::whereIn('invoice_id', $invoice_ids)->forceDelete();
                 PaymentDetail::whereIn('invoice_id', $invoice_ids)->forceDelete();
                 DueDateRule::whereIn('invoice_id', $invoice_ids)->forceDelete();
 
-                $commission_ids = Commission::whereDate('created_at', $this->data_reset)->when($this->sales_id != null, function ($query) {
+                $commission_ids = Commission::where('year', Carbon::parse($this->data_reset)->year)->where('month', Carbon::parse($this->data_reset)->month)->when($this->sales_id != null, function ($query) {
                     $query->where('user_id', $this->sales_id);
                 })->pluck('id')->toArray();
                 LowerLimitCommission::whereIn('commission_id', $commission_ids)->forceDelete();
                 CommissionDetail::whereIn('commission_id', $commission_ids)->forceDelete();
 
-                Invoice::whereDate('created_at', $this->data_reset)->when($this->sales_id != null, function ($query) {
+                InvoiceDetail::whereYear('date', Carbon::parse($this->data_reset)->year)->whereMonth('date', Carbon::parse($this->data_reset)->month)->when($this->sales_id != null, function ($query) {
+                    $query->whereHas('invoice.user', function ($query) {
+                        $query->where('user_id', $this->sales_id);
+                    });
+                })->forceDelete();
+                Invoice::whereYear('date', Carbon::parse($this->data_reset)->year)->whereMonth('date', Carbon::parse($this->data_reset)->month)->when($this->sales_id != null, function ($query) {
                     $query->where('user_id', $this->sales_id);
                 })->forceDelete();
-                Commission::whereDate('created_at', $this->data_reset)->when($this->sales_id != null, function ($query) {
+                Commission::where('year', Carbon::parse($this->data_reset)->year)->where('month', Carbon::parse($this->data_reset)->month)->when($this->sales_id != null, function ($query) {
                     $query->where('user_id', $this->sales_id);
                 })->forceDelete();
 

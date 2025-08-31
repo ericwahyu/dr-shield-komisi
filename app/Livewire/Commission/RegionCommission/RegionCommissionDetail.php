@@ -2,14 +2,16 @@
 
 namespace App\Livewire\Commission\RegionCommission;
 
+use App\Exports\Commission\RegionCommission\RegionCommissionExport;
 use App\Models\Commission\RegionCommission;
 use Carbon\Carbon;
 use Livewire\Component;
+use Maatwebsite\Excel\Facades\Excel;
 
 class RegionCommissionDetail extends Component
 {
     public $month;
-    public $datas = [];
+    public $roof_datas = [], $ceramic_datas = [];
     public $target_percentage = [];
     public $payment_percentage = [];
 
@@ -27,7 +29,12 @@ class RegionCommissionDetail extends Component
             50  => 'Lebih 16 - 22 Hari',
             0   => 'Hangus'
         ];
-        $this->datas = RegionCommission::where('month', $month)->get();
-        
+        $this->roof_datas    = RegionCommission::where('month', $month)->where('sales_type', 'roof')->get();
+        $this->ceramic_datas = RegionCommission::where('month', $month)->where('sales_type', 'ceramic')->get();
+    }
+
+    public function exportData()
+    {
+        return Excel::download(new RegionCommissionExport($this->month), 'Komisi Wilayah ' . Carbon::parse($this->month)->format('Y-m') . '.xlsx');
     }
 }
