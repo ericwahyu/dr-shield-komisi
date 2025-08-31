@@ -94,8 +94,8 @@ class RegionCommissionCreate extends Component
                     'ceramic' => $this->data_ceramic_region,
                 ]
             ];
-            
-            return app(RegionCommissionService::class)->generate($request);
+
+            app(RegionCommissionService::class)->generate($request);
         } catch (Exception | Throwable $th) {
             $errors = [
                 'message' => $th->getMessage(),

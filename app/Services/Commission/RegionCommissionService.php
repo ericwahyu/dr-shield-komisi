@@ -71,7 +71,7 @@ class RegionCommissionService
                         ]
                     );
 
-                    dd($region_commission);
+                    // dd($region_commission);
 
                     $getpercentageTarget = $this->getpercentageTarget($region_commission);
                     $region_commission->update([
