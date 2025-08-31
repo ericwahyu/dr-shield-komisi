@@ -23,8 +23,8 @@ class SudoController extends BaseController
     public function forcoDelete(Request $request)
     {
         $rules = [
-            'created_at' => ['required', 'date'],
-            'user_id'    => ['nullable'],
+            'month'    => ['required'],
+            'sales_id' => ['nullable'],
         ];
 
         $validator = Validator::make($request->all(), $rules);
@@ -35,26 +35,31 @@ class SudoController extends BaseController
 
         try {
             DB::beginTransaction();
-
-                $invoice_ids = Invoice::whereDate('created_at', $request?->created_at)->when($request?->user_id != null, function ($query) use ($request) {
-                    $query->where('user_id', $request?->user_id);
+                $invoice_ids = Invoice::whereYear('date', Carbon::parse($request?->month)->year)->whereMonth('date', Carbon::parse($request?->month)->month)->when($request->sales_id != null, function ($query) use ($request) {
+                    $query->where('user_id', $request->sales_id);
                 })->pluck('id')->toArray();
                 InvoiceDetail::whereIn('invoice_id', $invoice_ids)->forceDelete();
                 PaymentDetail::whereIn('invoice_id', $invoice_ids)->forceDelete();
                 DueDateRule::whereIn('invoice_id', $invoice_ids)->forceDelete();
 
-                $commission_ids = Commission::whereDate('created_at', $request?->created_at)->when($request?->user_id != null, function ($query) use ($request) {
-                    $query->where('user_id', $request?->user_id);
+                $commission_ids = Commission::where('year', Carbon::parse($request?->month)->year)->where('month', Carbon::parse($request?->month)->month)->when($request->sales_id != null, function ($query) use ($request)  {
+                    $query->where('user_id', $request->sales_id);
                 })->pluck('id')->toArray();
                 LowerLimitCommission::whereIn('commission_id', $commission_ids)->forceDelete();
                 CommissionDetail::whereIn('commission_id', $commission_ids)->forceDelete();
 
-                Invoice::whereDate('created_at', $request?->created_at)->when($request?->user_id != null, function ($query) use ($request) {
-                    $query->where('user_id', $request?->user_id);
+                InvoiceDetail::whereYear('date', Carbon::parse($request?->month)->year)->whereMonth('date', Carbon::parse($request?->month)->month)->when($request?->sales_id != null, function ($query) use ($request) {
+                    $query->whereHas('invoice.user', function ($query) use ($request) {
+                        $query->where('user_id', $request?->sales_id);
+                    });
                 })->forceDelete();
-                Commission::whereDate('created_at', $request?->created_at)->when($request?->user_id != null, function ($query) use ($request) {
-                    $query->where('user_id', $request?->user_id);
+                Invoice::whereYear('date', Carbon::parse($request?->month)->year)->whereMonth('date', Carbon::parse($request?->month)->month)->when($request->sales_id != null, function ($query) use ($request)  {
+                    $query->where('user_id', $request->sales_id);
                 })->forceDelete();
+                Commission::where('year', Carbon::parse($request?->month)->year)->where('month', Carbon::parse($request?->month)->month)->when($request->sales_id != null, function ($query) use ($request)  {
+                    $query->where('user_id', $request->sales_id);
+                })->forceDelete();
+
 
                 // InvoiceDetail::whereDate('created_at', $request?->created_at)->forceDelete();
                 // PaymentDetail::whereDate('created_at', $request?->created_at)->forceDelete();

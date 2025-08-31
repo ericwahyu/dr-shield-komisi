@@ -8,8 +8,8 @@
             <div class="modal-body">
                 <div class="row g-3">
                     <div class="col-12">
-                        <div class="form-label">Tanggal Import yang akan di reset <span class="text-danger">*</span></div>
-                        <input type="date" class="form-control @error('data_reset') is-invalid @enderror" wire:model="data_reset" placeholder="">
+                        <div class="form-label">Bulan yang akan di reset (invoice, pembayaran, komisi)<span class="text-danger">*</span></div>
+                        <input type="month" class="form-control @error('data_reset') is-invalid @enderror" wire:model="data_reset" placeholder="">
                         @error('data_reset')
                             <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror

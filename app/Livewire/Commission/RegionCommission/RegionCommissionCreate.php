@@ -21,6 +21,7 @@ class RegionCommissionCreate extends Component
     {
         return view('livewire.commission.region-commission.region-commission-create', [
             'data_roof_region' => $this->data_roof_region,
+            'data_ceramic_region' => $this->data_ceramic_region,
         ])->extends('layouts.layout.app')->section('content');
     }
 
@@ -55,6 +56,8 @@ class RegionCommissionCreate extends Component
                     100 => (int)$this->ceramic_target
                 ];
             }
+
+            // dd($this->data_ceramic_region);
         } catch (Exception | Throwable $th) {
         }
 
@@ -75,11 +78,11 @@ class RegionCommissionCreate extends Component
     {
         $this->validate(
             [
-                'generate_month' => 'required',
-                'data_roof_region' => 'required',
+                'generate_month'   => 'required',
+                'data_roof_region' => 'nullable',
             ],
             [
-                'generate_month.required' => 'Bulan wajib diisi',
+                'generate_month.required'   => 'Bulan wajib diisi',
                 'data_roof_region.required' => 'Data wilayah & nominal arget wajib diisi',
             ]
         );
@@ -87,7 +90,7 @@ class RegionCommissionCreate extends Component
             $request = [
                 'date' => $this->generate_month,
                 'datas' => [
-                    'roof' => $this->data_roof_region,
+                    'roof'    => $this->data_roof_region,
                     'ceramic' => $this->data_ceramic_region,
                 ]
             ];
