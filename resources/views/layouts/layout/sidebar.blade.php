@@ -108,7 +108,7 @@
                 <div>Komisi Sales Atap</div>
             </a>
         </li>
-        <li class="menu-item {{ Request::is('*komisi/wilayah*') ? 'active' : '' }}">
+        <li class="menu-item {{ Request::is('*komisi/spv-bm*') ? 'active' : '' }}">
             <a href="{{ route('region.commission') }}" class="menu-link">
                 <i class="fa-regular fa-home-alt fa-fw me-2"></i>
                 <div>Komisi SPV/BM</div>

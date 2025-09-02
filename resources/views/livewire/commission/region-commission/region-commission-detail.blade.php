@@ -25,8 +25,8 @@
                                 <th rowspan="2" class="text-center">Depo</th>
                                 <th rowspan="2" class="text-center">BM/SPV</th>
                                 <th rowspan="2" class="text-center">NIK</th>
-                                @foreach ($target_percentage as $target_percentage_1)
-                                    <th rowspan="2" class="text-center">Target {{ $target_percentage_1 }}%</th>
+                                @foreach ($target_percentage_roof as $target_percentage_roof_1)
+                                    <th rowspan="2" class="text-center">Target {{ $target_percentage_roof_1 }}%</th>
                                 @endforeach
                                 <th rowspan="2" class="text-center">Penjualan</th>
                                 <th rowspan="2" class="text-center">Pencapaian</th>
@@ -52,8 +52,8 @@
                                         $targets = json_decode($result->targets, true);
                                         krsort($targets);
                                     @endphp
-                                    @foreach ($target_percentage as $target_percentage_2)
-                                        <td class="text-center">{{ isset($targets[$target_percentage_2]) ? "Rp. ". number_format($targets[$target_percentage_2], 0, ',', '.') : '-' }}</td>
+                                    @foreach ($target_percentage_roof as $target_percentage_roof_2)
+                                        <td class="text-center">{{ isset($targets[$target_percentage_roof_2]) ? "Rp. ". number_format($targets[$target_percentage_roof_2], 0, ',', '.') : '-' }}</td>
                                     @endforeach
                                     <td class="text-center">{{ "Rp. ". number_format($result?->total_income_tax, 0, ',', '.') }}</td>
                                     <td class="text-center">{{ $result?->percentage_target ? $result?->percentage_target."%" : 'Tidak Mencapai' }}</td>
@@ -94,8 +94,8 @@
                                 <th rowspan="2" class="text-center">Depo</th>
                                 <th rowspan="2" class="text-center">BM/SPV</th>
                                 <th rowspan="2" class="text-center">NIK</th>
-                                @foreach ($target_percentage as $target_percentage_3)
-                                    <th rowspan="2" class="text-center">Target {{ $target_percentage_3 }}%</th>
+                                @foreach ($target_percentage_ceramic as $target_percentage_ceramic_3)
+                                    <th rowspan="2" class="text-center">Target {{ $target_percentage_ceramic_3 }}%</th>
                                 @endforeach
                                 <th rowspan="2" class="text-center">Pencapaian</th>
                                 <th colspan="{{ count($payment_percentage) }}" class="text-center">Pembayaran</th>
@@ -120,9 +120,9 @@
                                         $targets = json_decode($result->targets, true);
                                         krsort($targets);
                                     @endphp
-                                    @foreach ($target_percentage as $target_percentage_4)
+                                    @foreach ($target_percentage_ceramic as $target_percentage_ceramic_4)
                                         {{-- @dd() --}}
-                                        <td class="text-center">{{ isset($targets[$target_percentage_4]) ? "Rp. ". number_format($targets[$target_percentage_4], 0, ',', '.') : '-' }}</td>
+                                        <td class="text-center">{{ isset($targets[$target_percentage_ceramic_4]) ? "Rp. ". number_format($targets[$target_percentage_ceramic_4], 0, ',', '.') : '-' }}</td>
                                     @endforeach
                                     <td class="text-center">{{ "Rp. ". number_format($result?->total_income_tax, 0, ',', '.') }}</td>
                                     <td class="text-center">{{ $result?->percentage_target ? $result?->percentage_target."%" : 'Tidak Mencapai' }}</td>
