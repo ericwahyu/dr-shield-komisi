@@ -1,10 +1,10 @@
-@section('title', 'Komisi Wilayah')
+@section('title', 'Komisi SPV/BM')
 <div>
     {{-- A good traveler has no fixed plans and is not intent upon arriving. --}}
      <div class="d-flex align-items-center">
         <a href="{{ route('region.commission') }}" class="btn btn-icon" style="margin-right: 15px"><i class="fa-solid fa-arrow-left"></i></a>
         <div>
-            <h3 class="fw-semibold mb-0">Buat Komisi Wilayah</h3>
+            <h3 class="fw-semibold mb-0">Buat Komisi SPV/BM</h3>
         </div>
         <div class="ms-auto">
             {{-- <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modal-export">Tambah <i class="fa-solid fa-circle-plus fa-fw ms-2"></i></button> --}}

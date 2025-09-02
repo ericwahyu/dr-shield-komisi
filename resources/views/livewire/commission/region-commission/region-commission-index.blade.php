@@ -1,9 +1,9 @@
-@section('title', 'Komisi Wilayah')
+@section('title', 'Komisi SPV/BM')
 <div>
     {{-- Care about people's approval and you will be their prisoner. --}}
     <div class="d-flex align-items-center">
         <div>
-            <h3 class="mb-0 fw-semibold">Komisi Atap</h3>
+            <h3 class="mb-0 fw-semibold">Komisi SPV/BM</h3>
         </div>
         <div class="ms-auto">
             {{-- <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modal-export">Tambah <i class="fa-solid fa-circle-plus fa-fw ms-2"></i></button> --}}

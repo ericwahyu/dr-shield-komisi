@@ -1,10 +1,10 @@
-@section('title', 'Detail Komisi Wilayah')
+@section('title', 'Detail Komisi SPV/BM')
 <div>
     {{-- Do your work, then step back. --}}
      <div class="d-flex align-items-center">
         <a href="{{ route('region.commission') }}" class="btn btn-icon" style="margin-right: 15px"><i class="fa-solid fa-arrow-left"></i></a>
         <div>
-            <h3 class="mb-0 fw-semibold">Detail Komisi Wilayah <b>{{ $month->format('F Y') }}</b></h3>
+            <h3 class="mb-0 fw-semibold">Detail Komisi SPV/BM <b>{{ $month->format('F Y') }}</b></h3>
         </div>
         <div class="ms-auto">
             <button class="btn btn-success" wire:click='exportData' >Export Data <i class="fa-solid fa-circle-plus fa-fw ms-2"></i></button>

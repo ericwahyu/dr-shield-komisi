@@ -80,6 +80,8 @@ class RegionCommissionService
                         ]
                     );
 
+                    // dd($region_commission);
+
                     $getpercentageTarget = $this->getpercentageTarget($region_commission);
                     $region_commission->update([
                         'percentage_target'     => $getpercentageTarget,
@@ -94,9 +96,18 @@ class RegionCommissionService
 
     private function totalIncomeTax($month, $sales_type, $depo)
     {
-        return Invoice::whereHas('user.userDetail', function ($query) use ($sales_type, $depo) {
-            $query->where('sales_type', $sales_type)->where('depo', $depo);
+        $total_income_tax = Invoice::whereHas('user', function ($query) use ($sales_type, $depo) {
+            $query->whereHas('userDetail', function ($query) use ($sales_type, $depo) {
+                    $query->where('sales_type', $sales_type)->where('depo', $depo);
+                    // $query->where('sales_type', 'roof')->where('depo', 'BDG');
+                })
+                ->where('status', 'active');
+                // ->where('name', 'Online');
         })->whereYear('date', Carbon::parse($month)->year)->whereMonth('date', Carbon::parse($month)->month)->whereNotNull('customer')->whereNotNull('id_customer')->sum('income_tax');
+
+        // dd($month, $sales_type, $depo, (int)$total_income_tax);
+
+        return (int)$total_income_tax;
     }
 
     private function getpercentageTarget($region_commission)
@@ -132,9 +143,10 @@ class RegionCommissionService
             $amount = InvoiceDetail::whereHas('invoice.user', function ($query) use ($sales_type, $depo) {
                 $query->whereHas('userDetail', function ($query) use ($sales_type, $depo) {
                     $query->where('sales_type', $sales_type)->where('depo', $depo);
-                    // $query->where('sales_type', 'roof')->where('depo', 'BDG');
-                });
-                // ->where('name', 'Floreta');
+                    // $query->where('sales_type', 'roof')->where('depo', 'SKB');
+                })
+                ->where('status', 'active');
+                // ->where('name', 'Yogi Permana');
             })->whereYear('date', Carbon::parse($month)->year)->whereMonth('date', Carbon::parse($month)->month)->where('percentage', $data)->where('version', 2)->sum('amount');
 
             $payments[$data] = [
