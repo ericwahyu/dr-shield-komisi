@@ -135,6 +135,15 @@
                 <div>Reset Data Faktur</div>
             </a>
         </li>
+        <li class="menu-header small text-uppercase">
+            <span class="menu-header-text" style="font-size: 15px;color: black;">PENGGUNA</span>
+        </li>
+        <li class="menu-item {{ Request::is('*pengaturan-pengguna*') ? 'active' : '' }}">
+            <a href="{{ route('user-index') }}" class="menu-link">
+                <i class="fa-regular fa-home-alt fa-fw me-2"></i>
+                <div>Pengguna</div>
+            </a>
+        </li>
         {{-- <li class="menu-item {{ Request::is('*perhitungan/aksesoris') ? 'active' : '' }}">
             <a href="{{ route('calculation.accesories') }}" class="menu-link">
                 <i class="fa-regular fa-home-alt fa-fw me-2"></i>

@@ -1,35 +1,38 @@
 <?php
 
-namespace App\Livewire\Setting\PercentageRegionCommission;
+namespace App\Livewire\User;
 
+use Exception;
+use Throwable;
 use Livewire\Component;
 use App\Models\Auth\User;
+use Illuminate\Support\Str;
 use Livewire\WithPagination;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Hash;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
-use App\Models\System\PercentageRegionCommission;
-use Exception;
-use Throwable;
 
-class PercentageRegionCommissionIndex extends Component
+class UserIndex extends Component
 {
-    use WithPagination, LivewireAlert;
+    use LivewireAlert, WithPagination;
+    protected $paginationTheme = 'bootstrap';
+    public $perPage = 10, $search;
 
-    public $type, $percentage_target, $percentage_commission;
+    public $id_data, $name, $email, $username, $password;
 
     public function render()
     {
-        $percentage_roofs = PercentageRegionCommission::where('type', 'roof')->orderBy('percentage_target', 'DESC')->get();
-        $percentage_ceramics = PercentageRegionCommission::where('type', 'ceramic')->orderBy('percentage_target', 'DESC')->get();
-        return view('livewire.setting.percentage-region-commission.percentage-region-commission-index', [
-            'percentage_roofs' => $percentage_roofs,
-            'percentage_ceramics' => $percentage_ceramics,
+        $users =  User::search($this->search)->whereNot('name', 'EWA');
+
+        return view('livewire.user.user-index', [
+            'user' => $users->role('admin')->paginate($this->perPage)
         ])->extends('layouts.layout.app')->section('content');
     }
 
     public function mount()
     {
+
     }
 
     public function hydrate()
@@ -40,29 +43,46 @@ class PercentageRegionCommissionIndex extends Component
 
     public function closeModal()
     {
-        $this->reset('type', 'percentage_target', 'percentage_commission');
+        $this->reset('id_data', 'name', 'email', 'username', 'password');
         $this->dispatch('closeModal');
     }
 
     public function saveData()
     {
         $this->validate([
-            'type'                  => 'required',
-            'percentage_target'     => 'required|numeric',
-            'percentage_commission' => 'required|numeric',
+            'name'     => 'required',
+            'email'    => 'required|email',
+            'username' => 'required|lowercase',
+            'password' => $this->id_data ? 'nullable' : 'required',
         ]);
+
+        $unique_user = User::where('email', Str::lower($this->email))->orWhere('username', Str::lower($this->username))->first();
+        if ($unique_user && $this->id_data == null) {
+            return $this->alert('warning', 'Pemberitahuan', [
+                'text' => 'Email atau Username sudah terpakai'
+            ]);
+        }
 
         try {
             DB::transaction(function () {
-                PercentageRegionCommission::updateOrCreate(
+                $get_user = User::updateOrCreate(
                     [
-                        'type'              => $this->type,
-                        'percentage_target' => $this->percentage_target,
+                        'id' => $this->id_data
                     ],
                     [
-                        'percentage_commission' => $this->percentage_commission,
+                        'name'     => $this->name,
+                        'email'    => Str::lower($this->email),
+                        'username' => Str::lower($this->username),
                     ]
                 );
+
+                if ($this->password) {
+                    $get_user->update([
+                        'password' => Hash::make($this->password)
+                    ]);
+                }
+
+                $get_user->assignRole('admin');
             });
         } catch (Exception | Throwable $th) {
             DB::rollback();
@@ -86,10 +106,11 @@ class PercentageRegionCommissionIndex extends Component
 
     public function edit($id)
     {
-        $get_data                    = PercentageRegionCommission::find($id);
-        $this->type                  = $get_data?->type;
-        $this->percentage_target     = $get_data?->percentage_target;
-        $this->percentage_commission = $get_data?->percentage_commission;
+        $get_data       = User::find($id);
+        $this->id_data  = $get_data?->id;
+        $this->name     = $get_data?->name;
+        $this->email    = $get_data?->email;
+        $this->username = $get_data?->username;
 
         $this->dispatch('openModal');
     }
@@ -114,7 +135,7 @@ class PercentageRegionCommissionIndex extends Component
     {
         try {
             DB::transaction(function () use ($data) {
-                $result = PercentageRegionCommission::find($data['inputAttributes']['id']);
+                $result = User::find($data['inputAttributes']['id']);
                 $result->delete();
             });
 

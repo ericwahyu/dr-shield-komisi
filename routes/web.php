@@ -20,6 +20,7 @@ use App\Livewire\Sales\SalesList\SalesListIndex;
 use App\Livewire\Sales\SalesList\SalesLowerLimit\SalesLowerLimitIndex;
 use App\Livewire\Setting\PercentageRegionCommission\PercentageRegionCommissionIndex;
 use App\Livewire\Setting\ResetFaktur\ResetFakturIndex;
+use App\Livewire\User\UserIndex;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Session;
@@ -69,6 +70,10 @@ Route::middleware('auth')->group(function () {
     Route::prefix('/pengaturan')->group(function () {
         Route::get('/reset-data-faktur', ResetFakturIndex::class)->name('factur-reset');
         Route::get('/persentase-komisi-spv-bm', PercentageRegionCommissionIndex::class)->name('percentage-region.commission');
+    });
+
+    Route::prefix('/pengaturan-pengguna')->group(function () {
+         Route::get('/', UserIndex::class)->name('user-index');
     });
 });
 
