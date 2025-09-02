@@ -123,6 +123,12 @@
                 <div>Target Aktual Atap</div>
             </a>
         </li>
+        <li class="menu-item {{ Request::is('*persentase-komisi-spv-bm') ? 'active' : '' }}">
+            <a href="{{ route('percentage-region.commission') }}" class="menu-link">
+                <i class="fa-regular fa-home-alt fa-fw me-2"></i>
+                <div>Pengaturan Komisi SPV/BM</div>
+            </a>
+        </li>
         <li class="menu-item {{ Request::is('*pengaturan/reset-data-faktur') ? 'active' : '' }}">
             <a href="{{ route('factur-reset') }}" class="menu-link">
                 <i class="fa-regular fa-home-alt fa-fw me-2"></i>

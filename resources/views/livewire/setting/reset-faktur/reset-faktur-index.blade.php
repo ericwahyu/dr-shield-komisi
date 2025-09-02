@@ -1,12 +1,13 @@
+@section('title', 'Reset Data')
 <div>
     {{-- The Master doesn't talk, he acts. --}}
     @include('livewire.setting.reset-faktur.reset-faktur-modal')
-     <div wire:loading.block wire:target="saveData">
+    <div wire:loading.block wire:target="saveData">
         @include('layouts.layout.loading-screen')
     </div>
     <div class="d-flex align-items-center">
         <div>
-            <h3 class="mb-0 fw-semibold">Data Reset Data</h3>
+            <h3 class="mb-0 fw-semibold">Reset Data</h3>
         </div>
         <div class="ms-auto">
             {{-- <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#modal-import">Import<i class="fa-solid fa-file-import fa-fw ms-2"></i></button> --}}

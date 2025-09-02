@@ -2,12 +2,13 @@
 
 namespace App\Services\Commission;
 
-use App\Models\Commission\RegionCommission;
-use App\Models\Invoice\Invoice;
-use App\Models\Invoice\InvoiceDetail;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Auth;
+use App\Models\Invoice\Invoice;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use App\Models\Invoice\InvoiceDetail;
+use App\Models\Commission\RegionCommission;
+use App\Models\System\PercentageRegionCommission;
 
 class RegionCommissionService
 {
@@ -19,19 +20,27 @@ class RegionCommissionService
     public function __construct()
     {
         //
-        $this->percentage = [
-            'roof' => [
-                100 => 0.30,
-                90  => 0.25,
-                80  => 0.2,
-                70  => 0.15,
-            ],
-            'ceramic' => [
-                100 => 0.35,
-                90  => 0.30,
-                80  => 0.25,
-                70  => 0.20,
-            ]
+        $percentage_roofs    = PercentageRegionCommission::where('type', 'roof')->orderBy('percentage_target', 'DESC')->pluck('percentage_commission', 'percentage_target')->toArray();
+        $percentage_ceramics = PercentageRegionCommission::where('type', 'ceramic')->orderBy('percentage_target', 'DESC')->pluck('percentage_commission', 'percentage_target')->toArray();
+
+        // $this->percentage    = [
+        //     'roof' => [
+        //         100 => 0.30,
+        //         90  => 0.25,
+        //         80  => 0.2,
+        //         70  => 0.15,
+        //     ],
+        //     'ceramic' => [
+        //         100 => 0.35,
+        //         90  => 0.30,
+        //         80  => 0.25,
+        //         70  => 0.20,
+        //     ]
+        // ];
+
+        $this->percentage    = [
+            'roof'    => $percentage_roofs,
+            'ceramic' => $percentage_ceramics
         ];
     }
 
@@ -70,8 +79,6 @@ class RegionCommissionService
                             'total_income_tax' => $this->totalIncomeTax($request['date'], $key_data, $key_type)
                         ]
                     );
-
-                    dd($region_commission);
 
                     $getpercentageTarget = $this->getpercentageTarget($region_commission);
                     $region_commission->update([

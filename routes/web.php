@@ -18,6 +18,7 @@ use App\Livewire\Invoice\RoofInvoice\RoofInvoiceIndex;
 use App\Livewire\Sales\SalesList;
 use App\Livewire\Sales\SalesList\SalesListIndex;
 use App\Livewire\Sales\SalesList\SalesLowerLimit\SalesLowerLimitIndex;
+use App\Livewire\Setting\PercentageRegionCommission\PercentageRegionCommissionIndex;
 use App\Livewire\Setting\ResetFaktur\ResetFakturIndex;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -60,13 +61,14 @@ Route::middleware('auth')->group(function () {
         Route::get('/atap-detail/{sales_id}/{month_commission}/{category}/1', RoofCommissionDetail::class)->name('roof.commission.detail.v1');
         Route::get('/atap-detail/{sales_id}/{month_commission}/{category}/2', RoofCommissionDetailV2::class)->name('roof.commission.detail.v2');
 
-        Route::get('/wilayah', RegionCommissionIndex::class)->name('region.commission');
-        Route::get('/wilayah-create', RegionCommissionCreate::class)->name('region.commission-create');
-        Route::get('/wilayah-detail/{month}', RegionCommissionDetail::class)->name('region.commission-detail');
+        Route::get('/spv-bm', RegionCommissionIndex::class)->name('region.commission');
+        Route::get('/spv-bm-create', RegionCommissionCreate::class)->name('region.commission-create');
+        Route::get('/spv-bm-detail/{month}', RegionCommissionDetail::class)->name('region.commission-detail');
     });
 
     Route::prefix('/pengaturan')->group(function () {
         Route::get('/reset-data-faktur', ResetFakturIndex::class)->name('factur-reset');
+        Route::get('/persentase-komisi-spv-bm', PercentageRegionCommissionIndex::class)->name('percentage-region.commission');
     });
 });
 

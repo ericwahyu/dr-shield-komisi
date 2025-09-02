@@ -58,11 +58,13 @@
                         <th class="text-center">Depo</th>
                         <th class="text-center">Tipe Sales</th>
                         <th class="text-center">Kode Sales</th>
+                        <th class="text-center">Status</th>
                         <th class="text-center" style="width: 10px;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse ($sales as $result)
+                        {{-- @dd($result) --}}
                         <tr>
                             <td class="text-center">{{ $sales?->currentPage() * $perPage - $perPage + $loop->iteration }}</td>
                             <td class="text-center">{{ $result?->name ? $result?->name : '-' }}</td>
@@ -78,8 +80,20 @@
                                 @endif
                             </td>
                             <td class="text-center">{{ $result?->userDetail?->sales_code ? $result?->userDetail?->sales_code : '-' }}</td>
+                            @if ($result->status == 'active')
+                                <td class="text-center"><span class="badge rounded-pill bg-success bg-glow">Aktif</span></td>
+                            @elseif ($result->status == 'non-active')
+                                <td class="text-center"><span class="badge rounded-pill bg-secondary bg-glow">Non Aktif</span></td>
+                            @else
+                                <td class="text-center"><span class="badge rounded-pill bg-facebook bg-glow">N/A</span></td>
+                            @endif
                             <td class="text-center">
-                                <button class="btn btn-danger btn-sm" wire:click="deleteConfirm('{{ $result?->id }}')" x-data="{ tooltip: 'Hapus' }" x-tooltip="tooltip"><i class="fa-solid fa-trash-alt fa-fw"></i></button>
+                                @if ($result->status == 'active')
+                                    <button class="btn btn-danger btn-sm" wire:click="deleteConfirm('{{ $result?->id }}')" x-data="{ tooltip: 'Nonaktifkan' }" x-tooltip="tooltip"><i class="fa-solid fa-trash-alt fa-fw"></i></button>
+                                @elseif ($result->status == 'non-active')
+                                    <button class="btn btn-success btn-sm" wire:click="activeConfirm('{{ $result?->id }}')" x-data="{ tooltip: 'Aktif' }" x-tooltip="tooltip"><i class="fa-solid fa-check fa-fw"></i></button>
+                                @else
+                                @endif
                                 <button class="btn btn-warning btn-sm" wire:click="edit('{{ $result?->id }}')" x-data="{ tooltip: 'Edit' }" x-tooltip="tooltip"><i class="fa-solid fa-pencil-alt fa-fw"></i></button>
                                 <a href="{{ route('sales.lower.limit', $result?->id) }}" class="btn btn-secondary btn-sm" x-data="{ tooltip: 'Setting Batas Bawah Target' }" x-tooltip="tooltip"><i class="fa-solid fa-gear fa-fw"></i></a>
                                 {{-- @if ($result?->userDetail?->sales_type  == 'roof')

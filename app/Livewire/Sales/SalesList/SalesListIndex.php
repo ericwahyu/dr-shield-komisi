@@ -77,7 +77,7 @@ class SalesListIndex extends Component
                         'id' => $this->id_data
                     ],
                     [
-                        'name' => $this->name,
+                        'name'   => $this->name,
                     ]
                 );
 
@@ -129,7 +129,18 @@ class SalesListIndex extends Component
         $this->confirm('Konfirmasi', [
             'inputAttributes'    => ['id' => $id],
             'onConfirmed'        => 'delete',
-            'text'               => 'Data yang dihapus tidak dapat di kembalikan lagi',
+            'text'               => 'Apakah Anda yakain akan menonaktifkan data sales tersebut',
+            'reverseButtons'     => 'true',
+            'confirmButtonColor' => '#24B464',
+        ]);
+    }
+
+    public function activeConfirm($id)
+    {
+        $this->confirm('Konfirmasi', [
+            'inputAttributes'    => ['id' => $id],
+            'onConfirmed'        => 'active',
+            'text'               => 'Apakah Anda yakain akan mengaktifkan data sales tersebut',
             'reverseButtons'     => 'true',
             'confirmButtonColor' => '#24B464',
         ]);
@@ -137,7 +148,7 @@ class SalesListIndex extends Component
 
     public function getListeners()
     {
-        return ['delete'];
+        return ['delete', 'active'];
     }
 
     public function delete($data)
@@ -145,7 +156,10 @@ class SalesListIndex extends Component
         try {
             DB::transaction(function () use ($data) {
                 $result = User::find($data['inputAttributes']['id']);
-                $result?->delete();
+                $result->update([
+                    'status' => 'non-active'
+                ]);
+                // $result?->delete();
             });
 
             DB::commit();
@@ -155,14 +169,43 @@ class SalesListIndex extends Component
             Log::error($e->getMessage());
 
             return $this->alert('error', 'Maaf', [
-                'text' => 'Terjadi Kesalahan Saat Menghapus Data Pelanggan!'
+                'text' => 'Terjadi Kesalahan Saat Menonaktifkan Data!'
             ]);
         }
 
         $this->closeModal();
 
         return $this->alert('success', 'Berhasil', [
-            'text' => 'Data Pelanggan Telah Dihapus !'
+            'text' => 'Data Berhasil Dinonaktifkan !'
+        ]);
+    }
+
+    public function active($data)
+    {
+        try {
+            DB::transaction(function () use ($data) {
+                $result = User::find($data['inputAttributes']['id']);
+                $result->update([
+                    'status' => 'active'
+                ]);
+                // $result?->delete();
+            });
+
+            DB::commit();
+        } catch (Throwable | Exception $e) {
+            DB::rollBack();
+
+            Log::error($e->getMessage());
+
+            return $this->alert('error', 'Maaf', [
+                'text' => 'Terjadi Kesalahan Saat Mengaktifkan Data!'
+            ]);
+        }
+
+        $this->closeModal();
+
+        return $this->alert('success', 'Berhasil', [
+            'text' => 'Data Berhasil Diaktifkan !'
         ]);
     }
 }

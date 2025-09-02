@@ -58,6 +58,15 @@ class User extends Authenticatable
         ];
     }
 
+    public static function boot()
+    {
+        parent::boot();
+        
+        static::creating(function ($model) {
+            $model->status = 'active';
+        });
+    }
+
     public function scopeSearch(Builder $query, $term): void
     {
         $term = '%'. $term .'%';

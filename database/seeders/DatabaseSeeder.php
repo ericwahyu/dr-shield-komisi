@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
             DueDateRuleSeeder::class,
             DueDateRuleCeramicSeeder::class,
             DueDateRuleRoofSeeder::class,
+            PercentageRegionCommissionSeeder::class,
         ]);
     }
 }
