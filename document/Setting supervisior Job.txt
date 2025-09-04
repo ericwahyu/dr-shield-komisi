@@ -1,0 +1,10 @@
+setingan supervisor job
+
+[program:komisi-drshieldapp-job]
+process_name=%(program_name)s
+command=php /var/www/html/drshieldapp/komisi.drshieldapp.com/artisan queue:work --sleep=3 --tries=3 --timeout=120
+autostart=true
+autorestart=true
+user=www-data
+redirect_stderr=true
+stdout_logfile=/var/log/supervisor/komisi-drshieldapp-job.log

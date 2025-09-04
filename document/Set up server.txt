@@ -1,0 +1,725 @@
+1. Install Apache2
+   - sudo apt install apache2 libapache2-mod-fcgid -y
+   - Aktivasi Ekstensi Apache2 :
+sudo a2enmod rewrite
+sudo a2enmod proxy
+sudo a2enmod proxy_http
+sudo a2enmod proxy_ajp
+sudo a2enmod rewrite
+sudo a2enmod deflate
+sudo a2enmod headers
+sudo a2enmod proxy_balancer
+sudo a2enmod proxy_connect
+sudo a2enmod proxy_html
+sudo a2enmod brotli
+   - nano /etc/apache2/apache2.conf
+   - find "<Directory /var/www/>"
+   - Change "Options Indexes FollowSymLinks" to "Options FollowSymLinks"
+   - systemctl restart apache2
+
+2. Enable Brotli
+   - nano /etc/apache2/apache2.conf
+   - Masukkan Ke Dalam File "apache2.conf" dibawah sendiri :
+      <IfModule mod_brotli.c>
+         AddOutputFilterByType BROTLI_COMPRESS text/html text/plain text/xml text/css text/javascript application/javascript application/x-javascript application/json application/xml application/xhtml+xml application/rss+xml application/atom+xml application/rdf+xml application/x-font-ttf application/x-font-opentype application/font-woff application/font-woff2 image/svg+xml image/jpeg image/png application/octet-stream
+         BrotliCompressionQuality 4
+         <IfModule mod_headers.c>
+            Header append Vary Accept-Encoding
+         </IfModule>
+      </IfModule>
+   - systemctl restart apache2
+
+3. Install PHP 8.4
+   - sudo add-apt-repository ppa:ondrej/php
+   - sudo apt update
+   - sudo apt install php8.4 php8.4-{cli,bz2,curl,mbstring,intl,common,mysql,zip,gd,xml,bcmath,fpm,imagick,ldap,soap,pgsql,pdo-pgsql,redis,sqlite3} libapache2-mod-php8.4
+   - sudo a2dismod php8.4
+   - sudo a2dismod mpm_prefork
+   - sudo a2dismod mpm_worker
+   - sudo a2enconf php8.4-fpm
+   - sudo a2enmod mpm_event
+   - sudo a2enmod actions fcgid alias proxy_fcgi
+   - systemctl restart apache2
+   - sudo service php8.4-fpm restart
+
+4. Increase Upload File Size in PHP
+   - nano /etc/php/8.4/fpm/php.ini
+   - Masukkan Ini Ke Dalam File "php.ini" :
+      - upload_max_filesize = 10M
+      - post_max_size = 10M
+      - max_execution_time = 300
+      - memory_limit = 1024M
+   - sudo service php8.4-fpm restart
+
+5. Enable JIT Compiler
+   - nano /etc/php/8.4/mods-available/opcache.ini
+   - Bersihkan Semua Isinya Lalu Paste Dibawah Ini :
+zend_extension=opcache.so
+opcache.enable=1
+opcache.enable_cli=1
+opcache.memory_consumption=512
+opcache.interned_strings_buffer=16
+opcache.max_accelerated_files=40000
+opcache.jit=tracing
+opcache.jit_buffer_size=128M
+opcache.validate_timestamps=1
+opcache.revalidate_freq=2
+opcache.file_update_protection=0
+opcache.max_wasted_percentage=5
+opcache.fast_shutdown=1
+opcache.opt_debug_level=0
+   - sudo service php8.4-fpm restart
+
+7. Install Composer
+   - curl -sS https://getcomposer.org/installer -o /tmp/composer-setup.php
+   - HASH=`curl -sS https://composer.github.io/installer.sig`
+   - php -r "if (hash_file('SHA384', '/tmp/composer-setup.php') === '$HASH') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"
+   - sudo php /tmp/composer-setup.php --install-dir=/usr/local/bin --filename=composer
+
+8. Install Mysql (https://dev.mysql.com/downloads/repo/apt/)
+   - wget https://dev.mysql.com/get/mysql-apt-config_0.8.34-1_all.deb
+   - dpkg -i mysql-apt-config_0.8.34-1_all.deb
+   - sudo apt install mysql-server
+   - sudo systemctl start mysql.service
+   - sudo mysql
+   - ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'ISIPASSWORDNYATERSERAH';
+   - ALTER USER 'root'@'localhost' IDENTIFIED WITH auth_socket;
+   - CREATE USER 'simetik'@'localhost' IDENTIFIED BY 'ISIPASSWORDNYATERSERAH';
+   - GRANT CREATE, ALTER, INSERT, UPDATE, DELETE, SELECT, INDEX, REFERENCES, DROP ON burningroom.* TO 'burningroom'@'localhost';
+   - FLUSH PRIVILEGES;
+   - exit;
+   - sudo mysql_secure_installation
+
+9. Konfigurasi MySQL
+   - nano /etc/mysql/mysql.cnf
+   - Masukkan Ini Dibawah Sendiri :
+[mysqld]
+# General Settings
+max_connections = 100
+wait_timeout = 3600
+interactive_timeout = 3600
+
+10. Konfigurasi SSH Agar Tidak Mudah Logout
+- sudo nano /etc/ssh/sshd_config
+ClientAliveInterval 120
+ClientAliveCountMax 720
+TCPKeepAlive yes
+- sudo systemctl restart ssh
+- sudo systemctl restart sshd
+
+11. Setup UFW Ubuntu
+- sudo ufw default deny incoming
+- sudo ufw default allow outgoing
+- sudo ufw allow 80/tcp
+- sudo ufw allow 443/tcp
+- sudo ufw allow 22/tcp
+- sudo ufw allow 3306/tcp
+- sudo ufw allow 5432/tcp
+- sudo ufw allow 6001/tcp
+- sudo ufw enable
+
+12. Login SSH Without Password
+- nano ~/.ssh/authorized_keys
+
+13. Install Node & NPM lewat NVM (sebelum melakukan cek "https://nodejs.org/en/download/package-manager")
+- curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+- \. "$HOME/.nvm/nvm.sh"
+- nvm install 22
+
+14. Ganti Timezone ke Jakarta
+- sudo timedatectl set-timezone Asia/Jakarta
+
+15. Install Supervisor
+- sudo apt update && sudo apt install supervisor
+- sudo systemctl start supervisor
+- nano /etc/supervisor/supervisord.conf
+
+[inet_http_server]
+port=*:9001
+username=sembwarang
+password=sakkarepmu
+
+- nano /etc/supervisor/conf.d/domain_website.conf (jadikan . menjadi _ untuk domain nya)
+[program:queue_DOMAINWEBSITEKAMUPAKAIHURUFKECIL]
+process_name=%(program_name)s_%(process_num)02d
+command=php /var/www/html/DOMAINWEBSITEKAMU/artisan queue:work --sleep=3 --tries=5 --max-time=3600
+autostart=true
+autorestart=true
+stopasgroup=true
+killasgroup=true
+user=root
+redirect_stderr=true
+stdout_logfile=/var/www/html/DOMAINWEBSITEKAMU/storage/logs/queue_worker.log
+stderr_logfile=/var/www/html/DOMAINWEBSITEKAMU/storage/logs/queue_worker_error.log
+stopwaitsecs=7200
+
+[program:reverb_DOMAINWEBSITEKAMUPAKAIHURUFKECIL]
+command=php /var/www/html/DOMAINWEBSITEKAMU/artisan reverb:start
+autostart=true
+autorestart=true
+stopasgroup=true
+killasgroup=true
+user=root
+redirect_stderr=true
+stdout_logfile=/var/www/html/DOMAINWEBSITEKAMU/storage/logs/reverb.log
+stderr_logfile=/var/www/html/DOMAINWEBSITEKAMU/storage/logs/reverb_error.log
+
+[program:octane_DOMAINWEBSITEKAMUPAKAIHURUFKECIL]
+command=php /var/www/html/DOMAINWEBSITEKAMU/artisan octane:start --server=frankenphp --host=127.0.0.1 --port=8000
+autostart=true
+autorestart=true
+stopasgroup=true
+killasgroup=true
+user=root
+redirect_stderr=true
+stdout_logfile=/var/www/html/DOMAINWEBSITEKAMU/storage/logs/octane.log
+stderr_logfile=/var/www/html/DOMAINWEBSITEKAMU/storage/logs/octane_error.log
+
+- sudo supervisorctl reread
+- sudo supervisorctl update
+- sudo supervisorctl start domain_website:* / sudo supervisorctl start all
+- sudo systemctl restart supervisor
+
+16. Fetch Update & Upgrade Software Ubuntu
+- sudo apt-get update && sudo apt-get upgrade
+
+17. Update File System Ubuntu
+- sudo apt-get dist-upgrade
+
+18. Clean Server
+- sudo apt clean && sudo apt autoclean && sudo apt autoremove
+- sudo find /var/log -type f -mtime +7 -delete
+
+19. Restart Server
+- sudo service ssh restart
+- sudo systemctl restart sshd
+- sudo systemctl restart ssh
+- systemctl restart apache2
+- sudo service php8.3-fpm restart
+- sudo service mysql restart
+- sudo systemctl restart supervisor
+
+20. Run Schedule Command for Laravel
+- crontab -e
+- * * * * * php /var/www/html/laravel-website/artisan schedule:run >> /dev/null 2>&1
+
+21. Conf Apache2 Untuk Website Laravel
+Define path /var/www/html/burningroom/burningroom.co.id
+Define domain burningroom.co.id
+
+<VirtualHost *:80>
+    ServerName www.${domain}
+    Redirect permanent / https://${domain}/
+</VirtualHost>
+
+<VirtualHost *:80>
+    ServerAdmin info@burningroom.co.id
+    ServerName ${domain}
+    ServerAlias www.${domain}
+    DocumentRoot ${path}/public
+
+    # Octane Configuration
+    ProxyPreserveHost On
+    RewriteEngine On
+    
+    # Handle WebSocket Connections
+    RewriteCond %{HTTP:Upgrade} =websocket [NC]
+    RewriteRule /(.*) ws://127.0.0.1:8000/$1 [P,L]
+    
+    # Proxy Configuration
+    ProxyPass / http://127.0.0.1:8000/
+    ProxyPassReverse / http://127.0.0.1:8000/
+    
+    # Set Forward Headers
+    RequestHeader set X-Forwarded-Proto "https"
+    RequestHeader set X-Forwarded-Host "%{HTTP_HOST}e"
+    RequestHeader set X-Forwarded-Port "443"
+    RequestHeader set X-Forwarded-For "%{REMOTE_ADDR}e"
+
+    <Directory "${path}">
+        Options Indexes FollowSymLinks Includes ExecCGI
+        AllowOverride All
+        Require all granted
+    </Directory>
+
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+    <IfModule mod_headers.c>
+        Header always edit Set-Cookie ^(.*)$ "$1; Secure; HttpOnly; SameSite=Lax"
+        Header always set X-Content-Type-Options "nosniff"
+        Header always set X-Frame-Options "SAMEORIGIN"
+        Header always set Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+        Header always set Permissions-Policy "camera=self, microphone=(), geolocation=self"
+        Header always set Referrer-Policy "strict-origin-when-cross-origin"
+        Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: blob: https:; font-src 'self' https: data:; connect-src 'self' https:; worker-src 'self' blob:; frame-src https:; frame-ancestors >"
+        Header always set Access-Control-Expose-Headers "Permissions-Policy"
+        Header always set Cross-Origin-Opener-Policy "same-origin"
+    </IfModule>
+
+    # Existing Reverb configuration
+    ProxyPass /reverb ws://127.0.0.1:8080/
+    ProxyPassReverse /reverb ws://127.0.0.1:8080/
+</VirtualHost>
+
+22. Install Fail2Ban
+- sudo apt install fail2ban
+- sudo cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
+- sudo nano /etc/fail2ban/jail.local
+  ignoreip = 127.0.0.1/8 ::1 158.140.167.25 brianalviano.duckdns.org
+- sudo systemctl restart fail2ban
+
+23. Apache2 Security
+- sudo nano /etc/apache2/conf-available/security.conf
+ServerTokens Prod
+ServerSignature Off
+TraceEnable Off
+- systemctl restart apache2
+
+24. Install PostgreSQL Versi 17
+- sudo apt update
+- sudo apt install -y postgresql-common
+- sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh
+- sudo apt install postgresql-17
+- sudo su - postgres
+- psql
+- ALTER USER postgres WITH PASSWORD 'password_aman';
+- CREATE DATABASE nama_database;
+- CREATE USER burningroom WITH PASSWORD 'password_aman';
+- GRANT ALL PRIVILEGES ON DATABASE nama_database TO burningroom;
+- \q
+- psql -h localhost -d nama_database -U burningroom
+
+25. Beri User Biasa Seperti User Root
+- sudo usermod -aG www-data NAMAUSERLOGIN
+- sudo pkill -KILL -u NAMAUSERLOGIN
+
+26. Buat Custom Command
+Jalankan di Command :
+nano ~/.bashrc
+
+Tambahkan Baris Baru di Nano :
+Contoh Nama Command : dockfrank
+alias dockfrank='docker exec -it IDCONTAINERDOCKERKAMU'
+
+Lalu Save, dan Jalankan Lagi di Command :
+source ~/.bashrc
+
+Contoh Pakai :
+dockfrank php artisan migrate:fresh --seed
+
+27. Ekspor Database MySQL
+- mysqldump -u USERNAMEMYSQL -p'PASSWORDMYSQL' NAMADATABASE > /var/www/backup-mysql/NAMADATABASE_$(date +%Y%m%d_%H%M%S).sql
+
+28. Impor Database Mysql
+- mysql -u USERNAMEMYSQL -p'PASSWORDMYSQL' NAMADATABASE < /var/www/backup-mysql/NAMADATABASE.sql
+
+29. Fix Increment ID Posgre
+- Login Posgre
+- \c NAMADATABASE
+- \d NAMATABLE
+- ALTER TABLE NAMATABLE ALTER COLUMN id DROP DEFAULT;
+- CREATE SEQUENCE NAMATABLE_id_seq;
+- ALTER TABLE NAMATABLE ALTER COLUMN id SET DEFAULT nextval('NAMATABLE_id_seq');
+- SELECT MAX(id) FROM NAMATABLE;
+- ALTER SEQUENCE NAMATABLE_id_seq RESTART WITH ANGKATERKINIDARIMAKSDITAMBAH1;
+- ALTER SEQUENCE NAMATABLE_id_seq OWNED BY migrations.id;
+- \d migrations;
+
+30. Ekspor Database PosgreSQL
+pg_dump -h 127.0.0.1 -p 5432 -U postgres -d DATABASENAME > DATABASENAME_$(date +%Y%m%d).sql
+
+31. Impor Database PosgreSQL
+psql -h 127.0.0.1 -p 5432 -U postgres -d DATABASENAME < DATABASENAME_20250314.sql
+
+32. Permission Folder
+chown -R www-data:www-data /var/www/html && chmod -R 775 /var/www/html
+
+33. Free SSL
+- sudo apt update
+- sudo apt install certbot python3-certbot-apache
+- sudo certbot --apache -d domain.com
+- sudo a2enmod ssl
+- sudo systemctl restart apache2
+
+34. Disable Ci/Cd
+-env:
+  CI_ENABLED: true
+
+jobs:
+  deploy:
+    # Tambahkan kondisi if
+    if: ${{ env.CI_ENABLED == 'true' }}
+
+35. Buat User Baru Dengan Restricted
+- sudo adduser NAMANAKNYA
+- sudo groupadd nama-project
+- sudo usermod -a -G nama-project NAMANAKNYA
+- sudo chown -R www-data:nama-project /var/www/html/nama-folder-project/
+- sudo chmod -R 775 /var/www/html/nama-folder-project/
+- mysql -u root -p
+   CREATE USER 'NAMANAKNYA'@'localhost' IDENTIFIED BY 'MASUKKANPASSWORDTERSERAH';
+   GRANT ALL PRIVILEGES ON nama_database_project.* TO 'NAMANAKNYA'@'localhost';
+   FLUSH PRIVILEGES;
+   EXIT;
+- sudo nano /home/NAMANAKNYA/.bashrc
+   alias nama-project='cd /var/www/html/nama-folder-project'
+   echo "=== PROJECT ACCESS ==="
+   echo "Web Path: /var/www/html/nama-folder-project"
+   echo "Database: Mysql / PosgreSQL"
+   echo "Database Name: nama_database_project"
+   echo "Database User: NAMANAKNYA"
+   echo "=============================="
+- sudo visudo
+   NAMANAKNYA ALL=(ALL) NOPASSWD: /bin/systemctl restart apache2
+   NAMANAKNYA ALL=(ALL) NOPASSWD: /bin/systemctl reload apache2
+   NAMANAKNYA ALL=(ALL) NOPASSWD: /bin/systemctl status apache2
+- sudo systemctl restart ssh
+
+36. Pull/Push Without Password Git
+- git config --global credential.helper store
+- Langsung coba push/pull menggunakan password
+- dan selesai, selanjutnya akan tanpa password
+
+37. Buat User Baru Setara Dengan Root
+- sudo adduser vino
+- usermod -aG sudo vino
+- visudo
+  - vino ALL=(ALL) NOPASSWD:ALL
+- su - vino
+- mkdir ~/.ssh
+- chmod 700 ~/.ssh
+- sudo cp /root/.ssh/authorized_keys ~/.ssh/
+- sudo chown vino:vino ~/.ssh/authorized_keys
+- chmod 600 ~/.ssh/authorized_keys
+
+38. Install FrankenPHP
+- curl https://frankenphp.dev/install.sh | sh
+- mv frankenphp /usr/local/bin/
+- sudo apt install caddy
+- cd /etc/systemd/system
+- nano namadomain.service, dengan beri port bebas dan jangan port yang sama dengan service yang lain.
+[Unit]
+Description=NAMA WEBSITE
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/html/folder-website
+ExecStart=/usr/bin/php artisan octane:frankenphp --host=0.0.0.0 --port=8081 --workers=auto
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=laravel-octane
+
+[Install]
+WantedBy=multi-user.target
+- sudo systemctl daemon-reload
+- sudo systemctl restart namadomain
+- cd /var/www/html/folder-website
+- nano Caddyfile
+athenatagaya.id, www.athenatagaya.id {
+	root * public/
+	encode zstd br gzip
+	php_server
+	file_server
+	tls info@burningroom.co.id
+}
+- caddy fmt --overwrite
+- composer require laravel/octane
+- php artisan octane:install --server=frankenphp
+- cd /etc/apache2/sites-available
+- nano websiteconfig.conf
+ServerAlias BLABALBALBAL
+
+ProxyPreserveHost On
+ProxyPass / http://127.0.0.1:8081/
+ProxyPassReverse / http://127.0.0.1:8081/
+
+DocumentRoot BLABLABLALBA
+- systemctl restart apache2
+
+39. Setup CI/CD Laravel dengan GitHub Actions
+- Buat direktori deployment:
+  sudo mkdir -p /opt/deployment
+
+- Buat update script:
+  sudo nano /opt/deployment/update.sh
+  
+#!/bin/bash
+
+# Simple Update Script - Git Pull + Build
+# Usage: ./update.sh PROJECT_PATH [BRANCH]
+# Example: ./update.sh client/athena/athenatagaya.id main
+
+set -e
+
+# Parameters
+PROJECT_PATH=$1
+BRANCH=${2:-main}
+
+# Validation
+if [ -z "$PROJECT_PATH" ]; then
+    echo "Usage: $0 PROJECT_PATH [BRANCH]"
+    echo "Examples:"
+    echo "  $0 client/athena/athenatagaya.id"
+    echo "  $0 client/athena/athenatagaya.id main"
+    echo "  $0 bizmate production"
+    exit 1
+fi
+
+# Configuration
+BASE_DIR="/var/www/html"
+FULL_PROJECT_PATH="$BASE_DIR/$PROJECT_PATH"
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+echo -e "${BLUE}🔄 Starting update for ${PROJECT_PATH}...${NC}"
+
+# Check if project directory exists
+if [ ! -d "$FULL_PROJECT_PATH" ]; then
+    echo -e "${RED}❌ Project directory not found: $FULL_PROJECT_PATH${NC}"
+    exit 1
+fi
+
+# Check if it's a git repository
+if [ ! -d "$FULL_PROJECT_PATH/.git" ]; then
+    echo -e "${RED}❌ Not a git repository: $FULL_PROJECT_PATH${NC}"
+    exit 1
+fi
+
+# Go to project directory
+cd "$FULL_PROJECT_PATH"
+echo -e "${BLUE}📍 Working in: $(pwd)${NC}"
+
+# Check current branch
+CURRENT_BRANCH=$(git branch --show-current)
+echo -e "${YELLOW}🌿 Current branch: $CURRENT_BRANCH${NC}"
+
+# Switch branch if different
+if [ "$CURRENT_BRANCH" != "$BRANCH" ]; then
+    echo -e "${YELLOW}🔄 Switching to branch: $BRANCH${NC}"
+    git checkout "$BRANCH"
+fi
+
+# Git pull latest changes
+echo -e "${YELLOW}📥 Pulling latest changes...${NC}"
+git pull origin "$BRANCH"
+
+# Check if there were any changes
+if [ $? -eq 0 ]; then
+    LATEST_COMMIT=$(git log -1 --pretty=format:"%h - %s (%an, %ar)")
+    echo -e "${GREEN}✅ Latest commit: $LATEST_COMMIT${NC}"
+else
+    echo -e "${RED}❌ Git pull failed!${NC}"
+    exit 1
+fi
+
+# Install/Update Composer dependencies
+echo -e "${YELLOW}📚 Installing Composer dependencies...${NC}"
+COMPOSER_ALLOW_SUPERUSER=1 composer install --optimize-autoloader --no-dev
+
+# Clear Laravel optimizations only
+echo -e "${YELLOW}🧹 Clearing Laravel optimizations...${NC}"
+php artisan optimize:clear
+
+# Install/Update Node dependencies and build assets
+if [ -f "package.json" ]; then
+    echo -e "${YELLOW}📦 Installing Node dependencies...${NC}"
+    echo -e "${YELLOW}🚀 Using Bun...${NC}"
+
+    # Set PATH untuk bun atau gunakan full path
+    export PATH="$HOME/.bun/bin:$PATH"
+
+    # Gunakan full path jika bun tidak ada di PATH
+    if command -v bun &> /dev/null; then
+        bun install
+        echo -e "${YELLOW}🏗️ Building assets with Bun...${NC}"
+        bun run build
+    elif [ -f "$HOME/.bun/bin/bun" ]; then
+        $HOME/.bun/bin/bun install
+        echo -e "${YELLOW}🏗️ Building assets with Bun...${NC}"
+        $HOME/.bun/bin/bun run build
+    else
+        echo -e "${RED}❌ Bun not found in PATH or $HOME/.bun/bin/bun${NC}"
+        exit 1
+    fi
+else
+    echo -e "${YELLOW}ℹ️ No package.json found, skipping asset build${NC}"
+fi
+
+# Reload PHP-FPM and Apache2
+echo -e "${YELLOW}♻️ Reloading services...${NC}"
+if systemctl is-active --quiet php8.4-fpm; then
+    sudo systemctl reload php8.4-fpm
+    echo -e "${GREEN}✅ PHP-FPM reloaded${NC}"
+fi
+
+if systemctl is-active --quiet apache2; then
+    sudo systemctl reload apache2
+    echo -e "${GREEN}✅ Apache2 reloaded${NC}"
+fi
+
+# Final status
+echo -e "${GREEN}🎉 Update completed successfully!${NC}"
+echo -e "${GREEN}Project: ${PROJECT_PATH}${NC}"
+echo -e "${GREEN}Branch: ${BRANCH}${NC}"
+echo -e "${GREEN}Path: ${FULL_PROJECT_PATH}${NC}"
+echo -e "${GREEN}Time: $(date '+%Y-%m-%d %H:%M:%S')${NC}"
+
+# Show current status
+echo -e "${BLUE}📊 Current Status:${NC}"
+echo -e "  Git Status: $(git status --porcelain | wc -l) uncommitted files"
+echo -e "  Last Commit: $(git log -1 --pretty=format:'%h - %s (%ar)')"
+echo -e "  Laravel Version: $(php artisan --version | head -1)"
+
+echo -e "${BLUE}✨ Update complete! Your application is now running the latest code.${NC}"
+    
+  sudo chmod +x /opt/deployment/update.sh
+  sudo ln -sf /opt/deployment/update.sh /usr/local/bin/update
+
+- Setup SSH untuk GitHub Actions:
+  - Enable password authentication:
+    sudo nano /etc/ssh/sshd_config
+    PasswordAuthentication yes
+    PermitRootLogin yes
+    sudo systemctl restart ssh
+
+- Setup GitHub Repository Secrets:
+  SERVER_HOST = IP_SERVER_ANDA
+  SERVER_USER = root
+  SERVER_PASSWORD = PASSWORD_ROOT
+  PROJECT_PATH = namafolder/nama-project (sesuai struktur folder setelah /var/www/html/)
+
+- Buat workflow file di repository:
+  .github/workflows/deploy.yml
+name: Deploy
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17.4
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: testing
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup PHP 8.4
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.4'
+        extensions: mbstring, dom, fileinfo, pgsql, zip, gd, curl, xml, bcmath, intl, soap, imagick
+        coverage: none
+
+    - name: Cache Composer packages
+      id: composer-cache
+      uses: actions/cache@v4
+      with:
+        path: vendor
+        key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-php-
+
+    - name: Install Composer dependencies
+      run: composer install --prefer-dist --no-progress --no-dev --optimize-autoloader
+      env:
+        COMPOSER_ALLOW_SUPERUSER: 1
+
+    - name: Setup Bun
+      uses: oven-sh/setup-bun@v1
+      with:
+        bun-version: latest
+
+    - name: Install Node dependencies and build assets
+      run: |
+        bun install
+        bun run build
+
+    - name: Prepare Laravel environment
+      run: |
+        php -r "file_exists('.env') || copy('.env.example', '.env');"
+        php artisan key:generate --ansi
+        chmod -R 755 storage bootstrap/cache
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+    - name: Deploy to VPS
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.SERVER_HOST }}
+        username: ${{ secrets.SERVER_USER }}
+        password: ${{ secrets.SERVER_PASSWORD }}
+        port: 22
+        timeout: 60s
+        command_timeout: 15m
+        script: |
+          echo "✅ SSH connection successful!"
+          echo "User: $(whoami)"
+          echo "Host: $(hostname)"
+          echo "Date: $(date)"
+          echo "Working directory: $(pwd)"
+          
+          # Check if update script exists and is executable
+          if [ -f "/opt/deployment/update.sh" ]; then
+            echo "✅ Update script found"
+            ls -la /opt/deployment/update.sh
+          else
+            echo "❌ Update script not found"
+            exit 1
+          fi
+          
+          # Test script execution
+          echo "🚀 Running update script..."
+          /opt/deployment/update.sh "${{ secrets.PROJECT_PATH }}" main
+
+    - name: Notify deployment status
+      if: always()
+      run: |
+        if [ "${{ job.status }}" == "success" ]; then
+          echo "✅ Deployment successful for Imun Plus"
+          echo "🌐 Site: https://imun-plus.burningroom.co.id"
+        else
+          echo "❌ Deployment failed for Imun Plus"
+        fi
+
+    - name: Create deployment notification
+      if: success()
+      run: |
+        echo "🚀 Deployment Summary:"
+        echo "- Project: Imun Plus"
+        echo "- Environment: Production"
+        echo "- Branch: ${{ github.ref_name }}"
+        echo "- Commit: ${{ github.sha }}"
+        echo "- Time: $(date '+%Y-%m-%d %H:%M:%S')"
+
+- Manual update command:
+  update client/imun/nama-project
