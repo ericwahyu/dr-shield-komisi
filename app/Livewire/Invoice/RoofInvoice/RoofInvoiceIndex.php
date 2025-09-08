@@ -66,6 +66,14 @@ class RoofInvoiceIndex extends Component
                 $query->where('sales_type', 'roof');
             })->select('id', 'name')->orderBy('name', 'ASC')->get(),
 
+            'list_primary' => User::role('sales')->whereHas('userDetail', function ($query) {
+                $query->where('sales_type', 'roof');
+            })->search($this->sales_primary)->get(),
+
+            'list_secondary' => User::role('sales')->whereHas('userDetail', function ($query) {
+                $query->where('sales_type', 'roof');
+            })->search($this->sales_secondary)->get(),
+
             'roof_invoices' => $roof_invoices,
         ])->extends('layouts.layout.app')->section('content');
     }
@@ -154,7 +162,7 @@ class RoofInvoiceIndex extends Component
 
         $unique_invoice = Invoice::where('invoice_number', $this->invoice_number)->first();
 
-        if ($unique_invoice) {
+        if ($unique_invoice && $this->id_data == null) {
             return $this->alert('warning', 'Maaf', [
                 'text' => 'Nomor Faktur sudah ada pada database!',
             ]);
@@ -295,6 +303,7 @@ class RoofInvoiceIndex extends Component
             $this->value_taxs[$category?->slug] = $this->get_invoice->paymentDetails()->where('category_id', $category?->id)->first()?->value_tax;
             $this->amounts[$category?->slug] = $this->get_invoice->paymentDetails()->where('category_id', $category?->id)->first()?->amount;
         }
+        $this->selectSecondary($this->sales_id);
 
         $this->dispatch('openModal');
     }
@@ -405,5 +414,45 @@ class RoofInvoiceIndex extends Component
             ->when($category, fn ($q) => $q->where('payment_details.category_id', $category?->id))
             ->where('payment_details.version', $version)
             ->sum('payment_details.income_tax');
+    }
+
+    // Sales utama
+    public $sales_primary;
+    public $selected_sales_primary;
+    public $open_sales_primary = false;
+
+    // Sales pendamping
+    public $sales_secondary;
+    public $selected_sales_secondary;
+    public $open_sales_secondary = false;
+
+    public function selectPrimary($id)
+    {
+        $this->selected_sales_primary = User::find($id);
+        $this->filter_sales = $this->selected_sales_primary?->id;
+        $this->sales_primary = $this->selected_sales_primary?->name;
+    }
+
+    public function clearPrimary()
+    {
+        $this->selected_sales_primary = null;
+        $this->filter_sales = null;
+        $this->sales_primary = '';
+    }
+
+    public function selectSecondary($id)
+    {
+        $this->selected_sales_secondary = User::find($id);
+        $this->sales_id = $this->selected_sales_secondary?->id;
+        $this->sales_secondary = $this->selected_sales_secondary?->name;
+        $this->sales_code = User::find($this->sales_id) ? User::find($this->sales_id)?->userDetail?->sales_code : null;
+    }
+
+    public function clearSecondary()
+    {
+        $this->selected_sales_secondary = null;
+        $this->sales_id = null;
+        $this->sales_code = null;
+        $this->sales_secondary = '';
     }
 }

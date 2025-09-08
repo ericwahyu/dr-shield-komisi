@@ -89,9 +89,9 @@
                             @endif
                             <td class="text-center">
                                 @if ($result->status == 'active')
-                                    <button class="btn btn-danger btn-sm" wire:click="deleteConfirm('{{ $result?->id }}')" x-data="{ tooltip: 'Nonaktifkan' }" x-tooltip="tooltip"><i class="fa-solid fa-trash-alt fa-fw"></i></button>
+                                    <button class="btn btn-danger btn-sm" wire:click="deleteConfirm('{{ $result?->id }}')" x-data="{ tooltip: 'Nonaktifkan' }" wire:key="{{ rand() }}" x-tooltip="tooltip"><i class="fa-solid fa-trash-alt fa-fw"></i></button>
                                 @elseif ($result->status == 'non-active')
-                                    <button class="btn btn-success btn-sm" wire:click="activeConfirm('{{ $result?->id }}')" x-data="{ tooltip: 'Aktif' }" x-tooltip="tooltip"><i class="fa-solid fa-check fa-fw"></i></button>
+                                    <button class="btn btn-success btn-sm" wire:click="activeConfirm('{{ $result?->id }}')" x-data="{ tooltip: 'Aktif' }" wire:key="{{ rand() }}" x-tooltip="tooltip"><i class="fa-solid fa-check fa-fw"></i></button>
                                 @else
                                 @endif
                                 <button class="btn btn-warning btn-sm" wire:click="edit('{{ $result?->id }}')" x-data="{ tooltip: 'Edit' }" x-tooltip="tooltip"><i class="fa-solid fa-pencil-alt fa-fw"></i></button>

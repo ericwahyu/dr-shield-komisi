@@ -9,7 +9,7 @@
                 <div class="row g-3">
                     <div class="col-12">
                         <div class="form-label">Pilih Kode <span class="text-danger">*</span></div>
-                         <select class="form-select @error('type') is-invalid @enderror" id="type" wire:model="type" aria-label="Default select example">
+                        <select class="form-select @error('type') is-invalid @enderror" id="type" wire:model="type" aria-label="Default select example" {{ $percentage_target ? 'disabled' : '' }}>
                             <option value=""selected style="display: none">-- Pilih kode  --</option>
                             <option value="roof" {{ $type == 'roof' ? "selected" : "" }}>Atap</option>
                             <option value="ceramic" {{ $type == 'ceramic' ? "selected" : "" }}>Keramik</option>
@@ -20,7 +20,7 @@
                     </div>
                     <div class="col-12">
                         <div class="form-label">Target Persentase Komisi<span class="text-danger">*</span></div>
-                        <input type="number" class="form-control @error('percentage_target') is-invalid @enderror" wire:model="percentage_target" placeholder="">
+                        <input type="number" class="form-control @error('percentage_target') is-invalid @enderror" wire:model="percentage_target" placeholder="" {{ $percentage_target ? 'disabled' : '' }} >
                         @error('percentage_target')
                             <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror

@@ -51,12 +51,20 @@ class SalesListIndex extends Component
         $this->dispatch('closeModal');
     }
 
-    public function updated()
+    public function updatedName()
+    {
+        $this->generateSalesCode();
+    }
+
+    public function updatedDepo()
+    {
+        $this->generateSalesCode();
+    }
+
+    protected function generateSalesCode()
     {
         if ($this->name && $this->depo) {
-            $this->sales_code = strtoupper($this->depo). ' - ' .explode(' ', $this->name)[0] ;
-        } else {
-            $this->sales_code = '';
+            $this->sales_code = strtoupper($this->depo). ' - ' . explode(' ', $this->name)[0];
         }
     }
 

@@ -9,12 +9,43 @@
                 <div class="row g-3">
                     <div class="col-8">
                         <div class="form-label">Nama Sales <span class="text-danger">*</span></div>
-                        <select class="form-select @error('sales_id') is-invalid @enderror" id="status" wire:model.live="sales_id" aria-label="Default select example">
+                        {{-- <select class="form-select @error('sales_id') is-invalid @enderror" id="status" wire:model.live="sales_id" aria-label="Default select example">
                             <option value=""selected style="display: none">-- Pilih Tipe Sales --</option>
                                 @foreach ($sales as $sales)
                                 <option value="{{ $sales?->id }}" {{ $sales_id == $sales?->id ? "selected" : "" }}>{{ Str::title($sales?->name) }}</option>
                                 @endforeach
-                        </select>
+                        </select> --}}
+                        <div class="position-relative">
+                            <div x-data="{ openSecondary: @entangle('open_sales_secondary') }" x-on:click.away="openSecondary = false">
+                                <div class="input-group">
+                                    <input type="text" class="form-control"
+                                        placeholder="Cari Sales Pendamping..."
+                                        wire:model.live="sales_secondary"
+                                        x-on:focus="openSecondary = true">
+
+                                    @if($selected_sales_secondary)
+                                        <button class="input-group-text btn" wire:click="clearSecondary">
+                                            <i class="fa-solid fa-times"></i>
+                                        </button>
+                                    @endif
+                                </div>
+
+                                <div x-show="openSecondary" class="dropdown-customer-results">
+                                    <ul class="list-unstyled mb-0">
+                                        @forelse ($list_secondary as $sales)
+                                            <li wire:key="secondary-{{ $sales->id }}"
+                                                wire:click="selectSecondary('{{ $sales->id }}')"
+                                                x-on:click="openSecondary = false"
+                                                class="dropdown-customer-item {{ $selected_sales_secondary?->id === $sales->id ? 'active' : '' }}">
+                                                {{ $sales->name }}
+                                            </li>
+                                        @empty
+                                            <li class="px-3 py-2 text-muted">Tidak ada hasil</li>
+                                        @endforelse
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
                         @error('sales_id')
                             <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror

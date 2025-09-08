@@ -16,7 +16,7 @@ class PercentageRegionCommissionIndex extends Component
 {
     use WithPagination, LivewireAlert;
 
-    public $type, $percentage_target, $percentage_commission;
+    public $id_data, $type, $percentage_target, $percentage_commission;
 
     public function render()
     {
@@ -51,6 +51,13 @@ class PercentageRegionCommissionIndex extends Component
             'percentage_target'     => 'required|numeric',
             'percentage_commission' => 'required|numeric',
         ]);
+
+        $unique = PercentageRegionCommission::where('type', $this->type)->where('percentage_target', $this->percentage_target)->first();
+        if ($unique && $this->id_data == null) {
+            return $this->alert('warning', 'Maaf', [
+                'text' => 'Kode dan persentase tersebut sudah tersedia',
+            ]);
+        }
 
         try {
             DB::transaction(function () {
@@ -87,6 +94,7 @@ class PercentageRegionCommissionIndex extends Component
     public function edit($id)
     {
         $get_data                    = PercentageRegionCommission::find($id);
+        $this->id_data               = $get_data?->id;
         $this->type                  = $get_data?->type;
         $this->percentage_target     = $get_data?->percentage_target;
         $this->percentage_commission = $get_data?->percentage_commission;

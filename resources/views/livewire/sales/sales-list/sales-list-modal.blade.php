@@ -41,7 +41,7 @@
                     </div>
                     <div class="col-6">
                         <div class="form-label">Kode Sales <span class="text-danger">*</span></div>
-                        <input type="text" class="form-control @error('sales_code') is-invalid @enderror" wire:model="sales_code" placeholder="Contoh : SBY - Eric">
+                        <input type="text" class="form-control @error('sales_code') is-invalid @enderror" wire:model.live="sales_code" placeholder="Contoh : SBY - Eric">
                         @error('sales_code')
                             <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror

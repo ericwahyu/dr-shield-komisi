@@ -1,4 +1,70 @@
 @section('title', 'Reset Data')
+@section('styles')
+    <style>
+        /* Wrapper dropdown */
+        .dropdown-customer-results {
+            position: absolute;
+            top: 100%;        /* muncul tepat di bawah input */
+            left: 0;
+            right: 0;
+            z-index: 1050;    /* di atas table bootstrap */
+            background: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+            margin-top: 2px;
+            max-height: 200px;
+            overflow-y: auto;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        /* Item dropdown */
+        .dropdown-customer-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .dropdown-customer-item:hover {
+            background: #f1f3f5;
+        }
+
+        /* Item aktif */
+        .dropdown-customer-item.active {
+            background: #e9ecef;
+            font-weight: 600;
+        }
+
+        .dropdown-sales-results {
+            position: absolute;
+            top: 100%;   /* tepat di bawah input */
+            left: 0;
+            right: 0;
+            z-index: 2000; /* lebih tinggi dari modal (1050) */
+            background: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+            margin-top: 2px;
+            max-height: 200px;
+            overflow-y: auto;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        /* Item dropdown */
+        .dropdown-sales-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        .dropdown-sales-item:hover {
+            background: #f8f9fa;
+        }
+        .dropdown-sales-item.active {
+            background: #e9ecef;
+            font-weight: bold;
+        }
+
+    </style>
+@endsection
 <div>
     {{-- The Master doesn't talk, he acts. --}}
     @include('livewire.setting.reset-faktur.reset-faktur-modal')

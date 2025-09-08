@@ -196,7 +196,7 @@ class RoofInvoiceDetailV2 extends Component
                 $invoice = $result;
                 $result?->delete();
 
-                $datas = array( 
+                $datas = array(
                     'version' => 2,
                     'invoice_detail_date' => Invoice::find($this->get_invoice?->id)->invoiceDetails()->where('id', $data['inputAttributes']['id'])->withTrashed()->first()?->date?->format('Y-m-d')
                 );

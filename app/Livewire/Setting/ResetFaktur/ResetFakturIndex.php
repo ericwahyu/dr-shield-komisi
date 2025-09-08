@@ -32,9 +32,13 @@ class ResetFakturIndex extends Component
         $data_resets = DataReset::search($this->search);
         return view('livewire.setting.reset-faktur.reset-faktur-index', [
             'reset_datas' => $data_resets->latest()->paginate($this->perPage),
-            'sales' => User::role('sales')->whereHas('userDetail', function ($query) {
-                $query->where('sales_type', 'roof');
-            })->select('id', 'name')->orderBy('name', 'ASC')->get(),
+            // 'sales' => User::role('sales')->whereHas('userDetail', function ($query) {
+            //     // $query->where('sales_type', 'roof');
+            // })->select('id', 'name')->orderBy('name', 'ASC')->get(),
+
+             'list_secondary' => User::role('sales')->whereHas('userDetail', function ($query) {
+                // $query->where('sales_type', 'roof');
+            })->search($this->sales_secondary)->get(),
         ])->extends('layouts.layout.app')->section('content');
     }
 
@@ -121,5 +125,24 @@ class ResetFakturIndex extends Component
         return $this->alert('success', 'Berhasil', [
             'text' => 'Data History Reset Telah Disimpan !'
         ]);
+    }
+
+     // Sales pendamping
+    public $sales_secondary;
+    public $selected_sales_secondary;
+    public $open_sales_secondary = false;
+
+     public function selectSecondary($id)
+    {
+        $this->selected_sales_secondary = User::find($id);
+        $this->sales_id = $this->selected_sales_secondary?->id;
+        $this->sales_secondary = $this->selected_sales_secondary?->name;
+    }
+
+    public function clearSecondary()
+    {
+        $this->selected_sales_secondary = null;
+        $this->sales_id = null;
+        $this->sales_secondary = '';
     }
 }

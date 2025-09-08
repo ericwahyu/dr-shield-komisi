@@ -126,4 +126,47 @@ class SalesLowerLimitV2Index extends Component
 
         $this->dispatch('openModal-v2');
     }
+
+    public function deleteConfirm($id)
+    {
+        $this->confirm('Konfirmasi', [
+            'inputAttributes'    => ['id' => $id],
+            'onConfirmed'        => 'delete',
+            'text'               => 'Data yang dihapus tidak dapat di kembalikan lagi',
+            'reverseButtons'     => 'true',
+            'confirmButtonColor' => '#24B464',
+        ]);
+    }
+
+    public function getListeners()
+    {
+        return ['delete'];
+    }
+
+    public function delete($data)
+    {
+        try {
+            DB::transaction(function () use ($data) {
+                $result = $this->get_user->lowerLimits()->where('version', 2)->where('id', $data['inputAttributes']['id'])->first();
+                $result?->delete();
+            });
+
+            DB::commit();
+        } catch (Throwable | Exception $e) {
+            DB::rollBack();
+
+            Log::error($e->getMessage());
+
+            return $this->alert('error', 'Maaf', [
+                'text' => 'Terjadi Kesalahan Saat Menghapus Data Batas Bawah Target!'
+            ]);
+        }
+
+        $this->closeModal();
+
+        return $this->alert('success', 'Berhasil', [
+            'text' => 'Data Batas Bawah Target Telah Dihapus !'
+        ]);
+    }
+
 }

@@ -49,6 +49,14 @@ class CeramicInvoiceIndex extends Component
                     $query->where('sales_type', 'ceramic');
                 })->get(),
 
+            'list_primary' => User::role('sales')->whereHas('userDetail', function ($query) {
+                $query->where('sales_type', 'ceramic');
+            })->search($this->sales_primary)->get(),
+
+            'list_secondary' => User::role('sales')->whereHas('userDetail', function ($query) {
+                $query->where('sales_type', 'ceramic');
+            })->search($this->sales_secondary)->get(),
+
             'ceramic_invoices' => $ceramic_invoices->where('type', 'ceramic')
                 ->when($this->filter_sales, function ($query) {
                     $query->where('user_id', $this->filter_sales);
@@ -337,5 +345,45 @@ class CeramicInvoiceIndex extends Component
             })->withSum(['paymentDetails' => function ($query) use ($version) {
                 $query->where('version', $version);
             }], 'income_tax')->get()->sum('payment_details_sum_income_tax');
+    }
+
+    // Sales utama
+    public $sales_primary;
+    public $selected_sales_primary;
+    public $open_sales_primary = false;
+
+    // Sales pendamping
+    public $sales_secondary;
+    public $selected_sales_secondary;
+    public $open_sales_secondary = false;
+
+    public function selectPrimary($id)
+    {
+        $this->selected_sales_primary = User::find($id);
+        $this->filter_sales = $this->selected_sales_primary?->id;
+        $this->sales_primary = $this->selected_sales_primary?->name;
+    }
+
+    public function clearPrimary()
+    {
+        $this->selected_sales_primary = null;
+        $this->filter_sales = null;
+        $this->sales_primary = '';
+    }
+
+    public function selectSecondary($id)
+    {
+        $this->selected_sales_secondary = User::find($id);
+        $this->sales_id = $this->selected_sales_secondary?->id;
+        $this->sales_secondary = $this->selected_sales_secondary?->name;
+        $this->sales_code = User::find($this->sales_id) ? User::find($this->sales_id)?->userDetail?->sales_code : null;
+    }
+
+    public function clearSecondary()
+    {
+        $this->selected_sales_secondary = null;
+        $this->sales_id = null;
+        $this->sales_code = null;
+        $this->sales_secondary = '';
     }
 }

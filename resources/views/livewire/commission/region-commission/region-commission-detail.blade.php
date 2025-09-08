@@ -97,6 +97,7 @@
                                 @foreach ($target_percentage_ceramic as $target_percentage_ceramic_3)
                                     <th rowspan="2" class="text-center">Target {{ $target_percentage_ceramic_3 }}%</th>
                                 @endforeach
+                                <th rowspan="2" class="text-center">Penjualan</th>
                                 <th rowspan="2" class="text-center">Pencapaian</th>
                                 <th colspan="{{ count($payment_percentage) }}" class="text-center">Pembayaran</th>
                                 <th rowspan="2" class="text-center">Komisi</th>

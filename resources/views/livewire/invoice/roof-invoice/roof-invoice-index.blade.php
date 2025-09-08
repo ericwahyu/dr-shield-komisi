@@ -1,4 +1,41 @@
 @section('title', 'Faktur Atap')
+@section('styles')
+    <style>
+        /* Wrapper dropdown */
+        .dropdown-customer-results {
+            position: absolute;
+            top: 100%;        /* muncul tepat di bawah input */
+            left: 0;
+            right: 0;
+            z-index: 1050;    /* di atas table bootstrap */
+            background: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+            margin-top: 2px;
+            max-height: 200px;
+            overflow-y: auto;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        /* Item dropdown */
+        .dropdown-customer-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .dropdown-customer-item:hover {
+            background: #f1f3f5;
+        }
+
+        /* Item aktif */
+        .dropdown-customer-item.active {
+            background: #e9ecef;
+            font-weight: 600;
+        }
+
+    </style>
+@endsection
 <div>
     {{-- Because she competes with no one, no one can compete with her. --}}
     @include('livewire.invoice.roof-invoice.roof-invoice-modal')
@@ -38,13 +75,36 @@
                         <div>
                             <input class="form-control" type="month" wire:model.live="filter_month" id="html5-date-input">
                         </div>
-                        <div>
-                            <select class="form-select @error('filter_sales') is-invalid @enderror" id="status" wire:model.live="filter_sales" aria-label="Default select example">
-                                <option value="" selected>-- Pilih Sales --</option>
-                                @foreach ($sales as $sales)
-                                    <option value="{{ $sales?->id }}" {{ $filter_sales == $sales?->id ? 'selected' : '' }}>{{ Str::title($sales?->name) }}</option>
-                                @endforeach
-                            </select>
+                        <div class="col-12 col-md-6 position-relative">
+                            <div x-data="{ openPrimary: @entangle('open_sales_primary') }" x-on:click.away="openPrimary = false">
+                                <div class="input-group">
+                                    <input type="text" class="form-control"
+                                        placeholder="Cari Sales ..."
+                                        wire:model.live="sales_primary"
+                                        x-on:focus="openPrimary = true">
+
+                                    @if($selected_sales_primary)
+                                        <button class="input-group-text btn" wire:click="clearPrimary">
+                                            <i class="fa-solid fa-times"></i>
+                                        </button>
+                                    @endif
+                                </div>
+
+                                <div x-show="openPrimary" class="dropdown-customer-results">
+                                    <ul class="list-unstyled mb-0">
+                                        @forelse ($list_primary as $sales)
+                                            <li wire:key="primary-{{ $sales->id }}"
+                                                wire:click="selectPrimary('{{ $sales->id }}')"
+                                                x-on:click="openPrimary = false"
+                                                class="dropdown-customer-item {{ $selected_sales_primary?->id === $sales->id ? 'active' : '' }}">
+                                                {{ $sales?->userDetail?->depo }} - {{ $sales->name }}
+                                            </li>
+                                        @empty
+                                            <li class="px-3 py-2 text-muted">Tidak ada hasil</li>
+                                        @endforelse
+                                    </ul>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -114,6 +174,10 @@
                     <tr>
                         <td class = "text-center" colspan="1">Dr Sonne</td>
                         <td class = "text-center" colspan="1"><b>{{ 'Rp. ' . number_format($this->sumIncomeTax(1, 'dr-sonne'), 0, ',', '.') }}</b></td>
+                    </tr>
+                    <tr>
+                        <td class = "text-center" colspan="1">Dr Houz</td>
+                        <td class = "text-center" colspan="1"><b>{{ 'Rp. ' . number_format($this->sumIncomeTax(1, 'dr-houz'), 0, ',', '.') }}</b></td>
                     </tr>
                     {{-- <tr>
                         <td class = "text-center" colspan="3" rowspan="2">Versi 2</td>
