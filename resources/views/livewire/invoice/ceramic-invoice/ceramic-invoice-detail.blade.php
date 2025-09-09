@@ -152,7 +152,7 @@
                         <div class="card mb-4">
                             <div class="card-header d-flex justify-content-between align-items-center">
                                 <h5 class="mb-0" style="text-align: center">Detail Pembayaran Faktur</h5>
-                                <button type="submit" class="btn btn-success waves-effect waves-light" data-bs-toggle="modal" data-bs-target="#modal">Tambah </button>
+                                <button type="submit" class="btn btn-success waves-effect waves-light" data-bs-toggle="modal" data-bs-target="#modal-v1">Tambah </button>
                             </div>
                             <div class="table-responsive scrollbar-x">
                                 <table class="table table-bordered">
@@ -223,11 +223,11 @@
 @push('scripts')
     <script>
         $(document).ready(function() {
-            Livewire.on("openModal", () => {
-                jQuery('#modal').modal('show');
+            Livewire.on("openModalV1", () => {
+                jQuery('#modal-v1').modal('show');
             });
             Livewire.on("closeModal", () => {
-                jQuery('#modal').modal('hide');
+                jQuery('#modal-v1').modal('hide');
             });
 
         });

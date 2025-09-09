@@ -1,4 +1,4 @@
-<div class="modal fade modal-lg" id="modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" wire:ignore.self>
+<div class="modal fade modal-lg" id="modal-v1" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" wire:ignore.self>
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
@@ -26,7 +26,7 @@
                     </div>
                     <div class="col-6">
                         <div class="form-label">Nominal Pembayaran <span class="text-danger">*</span></div>
-                        <input type="number" class="form-control @error('invoice_detail_amount') is-invalid @enderror" wire:model.live="invoice_detail_amount" min="1" placeholder="Contoh : 2000000">
+                        <input type="number" class="form-control @error('invoice_detail_amount') is-invalid @enderror" wire:model="invoice_detail_amount" min="1" placeholder="Contoh : 2002323232323">
                         {{-- <input type="text" class="form-control @error('invoice_detail_amount') is-invalid @enderror" wire:model.live="invoice_detail_amount" onkeyup="convertToRupiah(this)" placeholder="Contoh : 2000000"> --}}
                         @error('invoice_detail_amount')
                             <div class="invalid-feedback d-block">{{ $message }}</div>
@@ -34,7 +34,7 @@
                     </div>
                     <div class="col-6">
                         <div class="form-label">Persentase <span class="text-danger">*</span></div>
-                        <input type="number" class="form-control @error('percentage') is-invalid @enderror" wire:model.live="percentage" placeholder="Contoh : 100" disabled>
+                        <input type="number" class="form-control @error('percentage') is-invalid @enderror" wire:model="percentage" placeholder="Contoh : 100" disabled>
                         @error('percentage')
                             <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror

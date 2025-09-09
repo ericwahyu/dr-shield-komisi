@@ -132,12 +132,14 @@ class CeramicInvoiceDetail extends Component
     {
         $this->get_invoice_detail    = Invoice::find($this->get_invoice?->id)->invoiceDetails()->where('id', $id)->first();
         $this->id_data               = $this->get_invoice_detail?->id;
-        $this->type                  = $this->get_invoice_detail?->type;
+        $this->type                  = $this->get_invoice_detail?->invoice?->type;
         $this->invoice_detail_date   = $this->get_invoice_detail?->date?->format('Y-m-d');
         $this->invoice_detail_amount = $this->get_invoice_detail?->amount;
         $this->percentage            = $this->get_invoice_detail?->percentage;
 
-        $this->dispatch('openModal');
+        // dd($this->type, $this->invoice_detail_date);
+
+        $this->dispatch('openModalV1');
     }
 
     public function deleteConfirm($id)

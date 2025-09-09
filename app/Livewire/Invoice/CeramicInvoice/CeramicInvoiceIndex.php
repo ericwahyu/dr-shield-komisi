@@ -135,7 +135,7 @@ class CeramicInvoiceIndex extends Component
 
         $unique_invoice = Invoice::where('invoice_number', $this->invoice_number)->first();
 
-        if ($unique_invoice) {
+        if ($unique_invoice && $this->id_data == null) {
             return $this->alert('warning', 'Maaf', [
                 'text' => 'Nomor Faktur sudah ada pada database!'
             ]);
@@ -246,6 +246,8 @@ class CeramicInvoiceIndex extends Component
         $this->income_tax     = $this->get_invoice?->income_tax;
         $this->value_tax      = $this->get_invoice?->value_tax;
         $this->amount         = $this->get_invoice?->amount;
+
+        $this->selectSecondary($this->sales_id);
 
         $this->dispatch('openModal');
     }
