@@ -218,7 +218,7 @@ class RoofInvoiceIndex extends Component
                 ];
                 $this->_roofInvoice($invoice, $datas);
 
-                $categories = ['dr-shield', 'dr-sonne'];
+                $categories = ['dr-shield', 'dr-sonne', 'dr-houz'];
                 foreach ($categories as $key => $category) {
                     $get_category = Category::where('slug', $category)->where('version', 1)->first();
                     $datas = [

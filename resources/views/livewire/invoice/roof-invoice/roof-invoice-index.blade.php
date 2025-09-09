@@ -167,7 +167,7 @@
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td class = "text-center" colspan="3" rowspan="2">Versi 1</td>
+                        <td class = "text-center" colspan="3" rowspan="3">Versi 1</td>
                         <td class = "text-center" colspan="1">Dr Shield</td>
                         <td class = "text-center" colspan="1"><b>{{ 'Rp. ' . number_format($this->sumIncomeTax(1, 'dr-shield'), 0, ',', '.') }}</b></td>
                     </tr>
