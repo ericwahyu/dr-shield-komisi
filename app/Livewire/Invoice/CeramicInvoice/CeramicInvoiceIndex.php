@@ -84,6 +84,7 @@ class CeramicInvoiceIndex extends Component
 
     public function closeModal()
     {
+        $this->clearSecondary();
         $this->reset('get_invoice', 'id_data', 'sales_id', 'sales_code', 'date', 'invoice_number', 'customer', 'id_customer', 'due_date', 'income_tax', 'value_tax', 'amount', 'file_import');
         $this->dispatch('closeModal');
     }
