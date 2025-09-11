@@ -16,14 +16,15 @@ class CeramicInvoiceImport implements WithMultipleSheets
     */
     public function sheets(): array
     {
+        Log::info('Memulai proses import sheets');
         try {
             return [
                 'faktur'     => new CeramicInvoiceExecutionImport(),
                 'pembayaran' => new CeramicInvoiceDetailExecutionImport(),
             ];
         } catch (Exception | Throwable $th) {
-            Log::error($th->getMessage());
-            Log::error('Ada kesalahan saat import data faktur keramik');
+            Log::error('Error di sheets Keramik(): ' . $th->getMessage());
+            return [];
         }
     }
 }

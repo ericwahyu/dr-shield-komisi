@@ -3,6 +3,7 @@
 namespace App\Imports\Invoice\CeramicInvoice;
 
 use App\Jobs\Import\CeramicInvoice\CeramicInvoice as Job_Ceramic_invoice;
+use App\Jobs\Import\CeramicInvoice\CeramicInvoiceDispatcher;
 use App\Models\Auth\User;
 use App\Models\Commission\Commission;
 use App\Models\Invoice\DueDateRuleCeramic;
@@ -29,7 +30,8 @@ class CeramicInvoiceExecutionImport implements ToCollection
         //
         try {
             //code...
-            Job_Ceramic_invoice::dispatch($collections);
+            // Job_Ceramic_invoice::dispatch($collections);
+            CeramicInvoiceDispatcher::dispatch($collections);
         } catch (Exception | Throwable $th) {
             Log::error($th->getMessage());
             Log::error("Ada kesalahan saat import faktur keramik");

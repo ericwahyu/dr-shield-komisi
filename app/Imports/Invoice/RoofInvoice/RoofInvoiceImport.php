@@ -24,7 +24,7 @@ class RoofInvoiceImport implements WithMultipleSheets
                 'pembayaran' => new RoofInvoiceDetailExecutionImport(),
             ];
         } catch (Exception | Throwable $th) {
-            Log::error('Error di sheets(): ' . $th->getMessage());
+            Log::error('Error di sheets Atap(): ' . $th->getMessage());
             return [];
         }
     }

@@ -3,6 +3,7 @@
 namespace App\Imports\Invoice\CeramicInvoice;
 
 use App\Jobs\Import\CeramicInvoice\CeramicInvoiceDetail as Job_Ceramic_Invoice_Detail;
+use App\Jobs\Import\CeramicInvoice\CeramicInvoiceDetailDispatcher;
 use App\Models\Commission\Commission;
 use App\Models\Invoice\Invoice;
 use App\Models\Invoice\InvoiceDetail;
@@ -25,7 +26,8 @@ class CeramicInvoiceDetailExecutionImport implements ToCollection
         //
         try {
 
-            Job_Ceramic_Invoice_Detail::dispatch($collections);
+            // Job_Ceramic_Invoice_Detail::dispatch($collections);
+            CeramicInvoiceDetailDispatcher::dispatch($collections);
 
         } catch (\Throwable $th) {
             Log::error($th->getMessage());
