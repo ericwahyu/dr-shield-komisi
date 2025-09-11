@@ -54,6 +54,13 @@ class CeramicInvoiceDetail implements ShouldQueue
                 // $invoice_detail_v2 = $get_invoice?->invoiceDetails()->where('version', 2)->whereNull('category_id')->where('amount', (int)$collection[1])->where('date', Carbon::parse($collection[2])->toDateString())->first();
 
                 if (!$get_invoice || (int)$check_year < 2010) {
+                     $warning = [
+                        // 'get_user'        => !$get_user ? "Data sales tidak di temukan" : "Data sales ditemukan",
+                        'get_invoice'     => !$get_invoice ? "Data faktur tidak ditemukan" : "aman",
+                        'year_under_2010' => (int) $check_year < 2010 ? "Format tanggal salah" : "aman",
+                        'collections'     => $collection
+                    ];
+                    Log::warning('Gagal memasukkan Detail Faktur Keramik dengan no : ' . $collection[0], $warning);
                     continue;
                 }
 

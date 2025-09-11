@@ -59,7 +59,13 @@ class CeramicInvoice implements ShouldQueue
                 // dd($collection[7],  $collection[6], $get_user);
 
                 if (!$check_lower_limit || !$get_user || $unique_invoice || (int)$check_year < 2010) {
-                    Log::warning('Gagal memasukkan Faktur Ceramic dengan no : '.$collection[1]);
+                     $warning = [
+                        'get_user'        => !$get_user ? "Data sales tidak di temukan" : "Data sales ditemukan",
+                        'unique_invoice'  => $unique_invoice ? "Data faktur sudah ada" : "aman",
+                        'year_under_2010' => (int) $check_year < 2010 ? "Format tanggal salah" : "aman",
+                        'collections'     => $collection
+                    ];
+                    Log::warning('Gagal memasukkan Faktur Keramik dengan no : '.$collection[1], $warning);
                     continue;
                 }
 
