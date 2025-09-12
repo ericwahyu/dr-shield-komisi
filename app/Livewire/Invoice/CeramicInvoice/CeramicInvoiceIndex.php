@@ -339,15 +339,21 @@ class CeramicInvoiceIndex extends Component
 
     public function sumIncomeTax($version)
     {
-        return Invoice::search($this->search)->where('type', 'ceramic')
+        return Invoice::search($this->search)
+            ->where('type', 'ceramic')
             ->when($this->filter_sales, function ($query) {
                 $query->where('user_id', $this->filter_sales);
             })
             ->when($this->filter_month, function ($query) {
                 $query->whereYear('date', (int)Carbon::parse($this->filter_month)->format('Y'))->whereMonth('date', (int)Carbon::parse($this->filter_month)->format('m'));
-            })->withSum(['paymentDetails' => function ($query) use ($version) {
-                $query->where('version', $version);
-            }], 'income_tax')->get()->sum('payment_details_sum_income_tax');
+            })
+            ->join('payment_details', 'payment_details.invoice_id', '=', 'invoices.id')
+            ->whereNull('payment_details.category_id')
+            ->where('payment_details.version', $version)
+            ->sum('payment_details.income_tax');
+            // ->withSum(['paymentDetails' => function ($query) use ($version) {
+            //     $query->where('version', $version);
+            // }], 'income_tax')->get()->sum('payment_details_sum_income_tax');
     }
 
     // Sales utama
