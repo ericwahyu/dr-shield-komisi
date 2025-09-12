@@ -73,10 +73,10 @@ class RoofInvoice implements ShouldQueue
 
                 if (!$get_user || $unique_invoice || (int) $check_year < 2010) {
                     $warning = [
-                        'get_user'        => !$get_user ? "Data sales tidak di temukan" : "Data sales ditemukan",
-                        'unique_invoice'  => $unique_invoice ? "Data faktur sudah ada" : "aman",
-                        'year_under_2010' => (int) $check_year < 2010 ? "Format tanggal salah" : "aman",
-                        'collections'     => $collection
+                        'sales'       => !$get_user ? "Data sales tidak di temukan" : "Data sales ditemukan",
+                        'invoice'     => $unique_invoice ? "Data faktur sudah ada" : "aman",
+                        'tanggal'     => (int) $check_year < 2010 ? "Format tanggal salah" : "aman",
+                        'collections' => $collection
                     ];
                     Log::warning('Gagal memasukkan Faktur Atap dengan no : '.$collection[1], $warning);
 
