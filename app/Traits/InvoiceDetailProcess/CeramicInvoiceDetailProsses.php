@@ -44,7 +44,7 @@ trait CeramicInvoiceDetailProsses
                 [
                     'category_id' => null,
                     'version'     => $datas['version'],
-                    'amount'      => $datas['invoice_detail_amount'],
+                    'amount'      => (int)$datas['invoice_detail_amount'],
                     'date'        => $datas['invoice_detail_date'],
                     'percentage'  => $datas['percentage'],
                 ]
