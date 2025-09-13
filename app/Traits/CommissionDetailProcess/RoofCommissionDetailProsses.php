@@ -6,6 +6,7 @@ use App\Models\Commission\ActualTarget;
 use App\Models\Commission\Commission;
 use App\Models\Invoice\InvoiceDetail;
 use App\Models\System\Category;
+use App\Traits\GetSystemSetting;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\DB;
@@ -15,6 +16,8 @@ use Throwable;
 trait RoofCommissionDetailProsses
 {
     //
+    use GetSystemSetting;
+
     public function _roofCommissionDetail($invoice, $datas)
     {
         try {
@@ -210,8 +213,8 @@ trait RoofCommissionDetailProsses
                         if (in_array($category?->slug, ['dr-sonne']) || $category != null) {
                             $total_income = round((int)$total_income / floatval((int)$percentage_invoice_detail > 0 ? (int)$percentage_invoice_detail/100 : 1), 2);
                         } else {
-                            //  $total_income = round((int)$total_income / floatval($this->getSystemSetting()?->value_of_total_income) * ((int)$percentage_invoice_detail > 0 ? (int)$percentage_invoice_detail/100 : 1), 2);
-                            $total_income = round((int)$total_income * ((int)$percentage_invoice_detail > 0 ? (int)$percentage_invoice_detail/100 : 1), 2);
+                            $total_income = round((int)$total_income / floatval($this->getSystemSetting()?->value_of_total_income) * ((int)$percentage_invoice_detail > 0 ? (int)$percentage_invoice_detail/100 : 1), 2);
+                            // $total_income = round((int)$total_income * ((int)$percentage_invoice_detail > 0 ? (int)$percentage_invoice_detail/100 : 1), 2);
                          }
 
                         $get_commission->commissionDetails()->updateOrCreate(
