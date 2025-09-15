@@ -244,7 +244,8 @@ trait RoofCommissionDetailProsses
 
                     foreach ($get_commission?->commissionDetails()->get() as $key => $commission_detail) {
                         $commission_detail->update([
-                            'value_of_due_date' => $commission_detail?->percentage_of_due_date > 0 ? (int)($commission_detail?->total_income * ($percentage_value_commission/100)) : null
+                            // 'value_of_due_date' => $commission_detail?->percentage_of_due_date > 0 ? (int)($commission_detail?->total_income * ($percentage_value_commission/100)) : null
+                            'value_of_due_date' => $commission_detail?->percentage_of_due_date > 0 ? round((int)$commission_detail?->total_income * ($percentage_value_commission/100), 0) : null
                         ]);
                     }
                 }
