@@ -15,7 +15,18 @@
                         @enderror
                     </div>
                     <div class="col-12">
-                        <div class="form-label">Pilih Sales <span class="text-danger">*</span></div>
+                        <div class="form-label">Tipe</div>
+                        <select class="form-select @error('sales_type') is-invalid @enderror" id="status" wire:model.live="sales_type" aria-label="Default select example">
+                            <option value=""selected style="display: none">-- Pilih Tipe --</option>
+                            <option value="roof" {{ $sales_type == 'roof' ? "selected" : "" }}>Atap</option>
+                            <option value="ceramic" {{ $sales_type == 'ceramic' ? "selected" : "" }}>Keramik</option>
+                        </select>
+                        @error('sales_type')
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                        @enderror
+                    </div>
+                    <div class="col-12">
+                        <div class="form-label">Pilih Sales</div>
                         <div x-data="{ openSecondary: @entangle('open_sales_secondary') }"
                             x-on:click.away="openSecondary = false"
                             class="position-relative">
