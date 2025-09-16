@@ -47,7 +47,7 @@ class CeramicInvoice implements ShouldQueue
                 }
 
                 $get_user = User::where('name', 'ILIKE', "%". $collection[7] ."%")->whereHas('userDetail', function ($query) use ($collection) {
-                    $query->where('depo', 'ILIKE', "%". $collection[6] ."%");
+                    $query->where('depo', 'ILIKE', "%". $collection[6] ."%")->where('type_sales', 'ceramic');
                 })->first();
 
                 $check_lower_limit = $get_user?->lowerLimits()->whereNull('category_id')->first();

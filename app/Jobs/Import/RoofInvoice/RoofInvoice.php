@@ -64,7 +64,7 @@ class RoofInvoice implements ShouldQueue
                 }
 
                 $get_user = User::where('name', 'ILIKE', '%'.$collection[7].'%')->whereHas('userDetail', function ($query) use ($collection) {
-                    $query->where('depo', 'ILIKE', '%'.$collection[6].'%');
+                    $query->where('depo', 'ILIKE', '%'.$collection[6].'%')->where('type_sales', 'roof');
                 })->first();
 
                 $unique_invoice = Invoice::where('invoice_number', $collection[1])->first();

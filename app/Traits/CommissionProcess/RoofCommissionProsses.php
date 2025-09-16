@@ -229,7 +229,6 @@ trait RoofCommissionProsses
                     }
 
                 }
-
                 //fee intersif DR SONNE
                 if ($category != null && $get_commission?->status == 'reached') {
                     $this->feeIntensif($sum_income_tax, $get_commission);
