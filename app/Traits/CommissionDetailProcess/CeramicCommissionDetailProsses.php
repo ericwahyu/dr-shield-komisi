@@ -104,7 +104,6 @@ trait CeramicCommissionDetailProsses
 
     private function _ceramicCommissionDetailV2($invoice, $datas)
     {
-
         try {
             //code...
             $get_commission = Commission::where('user_id', $invoice?->user?->id)->where('year', (int)Carbon::parse($datas['invoice_detail_date'])?->format('Y'))->where('month', (int)Carbon::parse($datas['invoice_detail_date'])?->format('m'))->where('version', $datas['version'])->whereNull('category_id')->first();

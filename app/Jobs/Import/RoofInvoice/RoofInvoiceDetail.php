@@ -78,7 +78,7 @@ class RoofInvoiceDetail implements ShouldQueue
                         Log::warning('Gagal memasukkan Detail Faktur Atap dengan no : ' . $collection[0], $warning);
                         continue;
                     }
-                    Log::info('Berhasil memasukkan Detail Faktur Atap dengan no : '.$collection[1], ['collections' => $collection]);
+                    Log::info('Berhasil memasukkan Detail Faktur Atap dengan no : '.$collection[0], ['collections' => $collection]);
 
                     $this->invoiceDetailV1($get_invoice, $collection);
                     $this->invoiceDetailV2($get_invoice, $collection);

@@ -64,7 +64,7 @@ class CeramicInvoiceDetail implements ShouldQueue
                     Log::warning('Gagal memasukkan Detail Faktur Keramik dengan no : ' . $collection[0], $warning);
                     continue;
                 }
-                Log::info('Berhasil memasukkan Detail Faktur Keramik dengan no : '.$collection[1], ['collections' => $collection]);
+                Log::info('Berhasil memasukkan Detail Faktur Keramik dengan no : '.$collection[0], ['collections' => $collection]);
 
                 // version 1
                 $datas = array(
