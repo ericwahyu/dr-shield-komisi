@@ -24,16 +24,18 @@
                     </thead>
                     <tbody>
                         @forelse ($datas as $key => $result)
-                            <td class="text-center">{{ $loop->iteration }}</td>
-                            <td class="text-center">{{ $this->getUser($result)?->name ?? '-' }}</td>
-                            <td class="text-center">{{ $key }}</td>
-                            <td class="text-center">
-                                {{-- <button class="btn btn-danger btn-sm" wire:click="deleteConfirm('{{ $result?->id }}')" x-data="{ tooltip: 'Hapus' }" x-tooltip="tooltip"><i class="fa-solid fa-trash-alt fa-fw"></i></button>
-                                <button class="btn btn-warning btn-sm" wire:click="edit('{{ $result?->id }}')" x-data="{ tooltip: 'Edit' }" x-tooltip="tooltip"><i class="fa-solid fa-pencil-alt fa-fw"></i></button> --}}
-                                <a href="{{ route('region.commission-detail', "$key") }}" class="btn btn-info btn-sm" x-data="{ tooltip: 'Lihat Detail' }" x-tooltip="tooltip"><i class="fa-solid fa-circle-info fa-fw"></i></a>
-                                {{-- @if ($result?->userDetail?->sales_type  == 'roof')
-                                @endif --}}
-                            </td>
+                            <tr>
+                                <td class="text-center">{{ $loop->iteration }}</td>
+                                <td class="text-center">{{ $this->getUser($result)?->name ?? '-' }}</td>
+                                <td class="text-center">{{ $key }}</td>
+                                <td class="text-center">
+                                    {{-- <button class="btn btn-danger btn-sm" wire:click="deleteConfirm('{{ $result?->id }}')" x-data="{ tooltip: 'Hapus' }" x-tooltip="tooltip"><i class="fa-solid fa-trash-alt fa-fw"></i></button>
+                                    <button class="btn btn-warning btn-sm" wire:click="edit('{{ $result?->id }}')" x-data="{ tooltip: 'Edit' }" x-tooltip="tooltip"><i class="fa-solid fa-pencil-alt fa-fw"></i></button> --}}
+                                    <a href="{{ route('region.commission-detail', "$key") }}" class="btn btn-info btn-sm" x-data="{ tooltip: 'Lihat Detail' }" x-tooltip="tooltip"><i class="fa-solid fa-circle-info fa-fw"></i></a>
+                                    {{-- @if ($result?->userDetail?->sales_type  == 'roof')
+                                    @endif --}}
+                                </td>
+                            </tr>
                         @empty
                             <tr>
                                 <td colspan="10" class="text-center fw-bold">Belum Ada Data</td>
