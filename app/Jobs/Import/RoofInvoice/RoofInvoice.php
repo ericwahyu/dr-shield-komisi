@@ -82,6 +82,7 @@ class RoofInvoice implements ShouldQueue
 
                     continue;
                 }
+                Log::info('Berhasil memasukkan Faktur Atap dengan no : '.$collection[1], ['collections' => $collection]);
 
                 //amount
                 $collection[12] = $collection[12] == null ? (int) $collection[10] + (int) $collection[11] : (int) $collection[12];

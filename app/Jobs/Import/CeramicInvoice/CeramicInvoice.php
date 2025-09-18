@@ -68,6 +68,7 @@ class CeramicInvoice implements ShouldQueue
                     Log::warning('Gagal memasukkan Faktur Keramik dengan no : '.$collection[1], $warning);
                     continue;
                 }
+                Log::info('Berhasil memasukkan Faktur Keramik dengan no : '.$collection[1], ['collections' => $collection]);
 
                 DB::transaction(function () use ($get_user, $collection) {
                     $invoice = Invoice::create(

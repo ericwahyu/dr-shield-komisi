@@ -63,7 +63,8 @@ class RoofInvoiceDetail implements ShouldQueue
             foreach ($this->collections as $key => $collection) {
                 if ($key == 0) continue;
 
-                    $get_invoice = Invoice::where('invoice_number', $collection[0])->first();
+                    // $get_invoice = Invoice::where('invoice_number', $collection[0])->first();
+                    $get_invoice = Invoice::where('invoice_number', 'ILIKE', "%". $collection[0] ."%")->where('type', 'roof')->first();
 
                     $check_year = Carbon::parse($collection[2])->format('Y');
 
@@ -77,6 +78,7 @@ class RoofInvoiceDetail implements ShouldQueue
                         Log::warning('Gagal memasukkan Detail Faktur Atap dengan no : ' . $collection[0], $warning);
                         continue;
                     }
+                    Log::info('Berhasil memasukkan Detail Faktur Atap dengan no : '.$collection[1], ['collections' => $collection]);
 
                     $this->invoiceDetailV1($get_invoice, $collection);
                     $this->invoiceDetailV2($get_invoice, $collection);

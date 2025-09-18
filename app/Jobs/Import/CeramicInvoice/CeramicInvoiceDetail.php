@@ -46,7 +46,8 @@ class CeramicInvoiceDetail implements ShouldQueue
                     continue;
                 }
 
-                $get_invoice = Invoice::where('invoice_number', $collection[0])->first();
+                // $get_invoice = Invoice::where('invoice_number', $collection[0])->first();
+                $get_invoice = Invoice::where('invoice_number', 'ILIKE', "%". $collection[0] ."%")->where('type', 'ceramic')->first();
 
                 $check_year = Carbon::parse($collection[2])->format('Y');
 
@@ -63,6 +64,7 @@ class CeramicInvoiceDetail implements ShouldQueue
                     Log::warning('Gagal memasukkan Detail Faktur Keramik dengan no : ' . $collection[0], $warning);
                     continue;
                 }
+                Log::info('Berhasil memasukkan Detail Faktur Keramik dengan no : '.$collection[1], ['collections' => $collection]);
 
                 // version 1
                 $datas = array(
