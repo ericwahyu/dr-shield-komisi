@@ -6,6 +6,7 @@ use App\Models\Auth\User;
 use App\Models\Commission\Commission;
 use App\Models\Invoice\Invoice;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -32,8 +33,8 @@ class CeramicCommissionIndex extends Component
 
     public function mount()
     {
-        // $this->filter_month = Carbon::parse('2024-04-01')->format('Y-m');
-        $this->filter_month = Carbon::now()->format('Y-m');
+        $this->search = Cache::get('search_month_ceramic_1') ?? null;
+        $this->filter_month = Cache::get('filter_month_ceramic_1') ?? Carbon::now()->format('Y-m');
         $this->version      = 1;
     }
 
@@ -51,7 +52,8 @@ class CeramicCommissionIndex extends Component
 
     public function updated()
     {
-
+        Cache::put('search_month_ceramic_1', $this->search);
+        Cache::put('filter_month_ceramic_1', $this->filter_month);
     }
 
     public function commissionSales($user_id)

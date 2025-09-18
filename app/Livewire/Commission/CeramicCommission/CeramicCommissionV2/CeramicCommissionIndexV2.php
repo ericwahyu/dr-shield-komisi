@@ -5,6 +5,7 @@ namespace App\Livewire\Commission\CeramicCommission\CeramicCommissionV2;
 use App\Models\Auth\User;
 use App\Models\Commission\Commission;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -29,7 +30,8 @@ class CeramicCommissionIndexV2 extends Component
 
     public function mount()
     {
-        $this->filter_month = Carbon::now()->format('Y-m');
+        $this->search = Cache::get('search_month_ceramic_2') ?? null;
+        $this->filter_month = Cache::get('filter_month_ceramic_2') ?? Carbon::now()->format('Y-m');
         $this->version      = 2;
     }
 
@@ -47,7 +49,8 @@ class CeramicCommissionIndexV2 extends Component
 
     public function updated()
     {
-
+        Cache::put('search_month_ceramic_2', $this->search);
+        Cache::put('filter_month_ceramic_2', $this->filter_month);
     }
 
     public function commissionSales($user_id)
