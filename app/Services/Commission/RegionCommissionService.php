@@ -9,12 +9,15 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Invoice\InvoiceDetail;
 use App\Models\Commission\RegionCommission;
 use App\Models\System\PercentageRegionCommission;
+use App\Traits\GetSystemSetting;
 
 class RegionCommissionService
 {
     /**
      * Create a new class instance.
      */
+    use GetSystemSetting;
+
     public $percentage;
 
     public function __construct()
@@ -148,6 +151,8 @@ class RegionCommissionService
                 ->where('status', 'active');
                 // ->where('name', 'Yogi Permana');
             })->whereYear('date', Carbon::parse($month)->year)->whereMonth('date', Carbon::parse($month)->month)->where('percentage', $data)->where('version', 2)->sum('amount');
+
+            $amount = round($amount / floatval($this->getSystemSetting()?->value_of_total_income) , 0);
 
             $payments[$data] = [
                 'total_amount' => (int)$amount ? (int)$amount * $data / 100 : 0,
