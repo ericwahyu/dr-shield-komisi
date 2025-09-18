@@ -184,7 +184,7 @@ trait RoofCommissionProsses
                 $sum_income_tax = PaymentDetail::whereHas('invoice', function ($query) use ($invoice) {
                     $query->whereHas('user', function ($query) use ($invoice) {
                         $query->where('id', $invoice?->user?->id);
-                    })->whereYear('date', (int)$invoice?->date->format('Y'))->whereMonth('date', (int)$invoice?->date->format('m'))->where('type', 'roof');
+                    })->whereYear('date', (int)$invoice?->date->format('Y'))->whereMonth('date', (int)$invoice?->date->format('m'))->where('type', 'roof')->whereNotNull('customer')->whereNotNull('id_customer');
                 })->when($category != null, function ($query) use ($category) {
                     $query->where('category_id', $category?->id);
                 })->when($category == null, function ($query) use ($category) {

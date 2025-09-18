@@ -56,10 +56,14 @@ trait CeramicCommissionProsses
                     $query->where('id', $invoice?->user?->id);
                 })->whereYear('date', (int)$invoice?->date->format('Y'))->whereMonth('date', (int)$invoice?->date->format('m'))->where('type', 'ceramic')->sum('income_tax');
 
+                $sum_income_tax_2 = Invoice::whereHas('user', function ($query) use ($invoice) {
+                    $query->where('id', $invoice?->user?->id);
+                })->whereYear('date', (int)$invoice?->date->format('Y'))->whereMonth('date', (int)$invoice?->date->format('m'))->where('type', 'ceramic')->whereNotNull('customer')->whereNotNull('id_customer')->sum('income_tax');
+
                 if ($datas['version'] == 1) {
                     $this->_ceramicCommissionV1($get_commission, $sum_income_tax);
                 } elseif ($datas['version'] == 2) {
-                    $this->_ceramicCommissionV2($get_commission, $sum_income_tax);
+                    $this->_ceramicCommissionV2($get_commission, $sum_income_tax_2);
                 }
             }
         } catch (Exception | Throwable $th) {
