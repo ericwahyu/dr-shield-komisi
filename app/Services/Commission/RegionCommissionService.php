@@ -83,9 +83,8 @@ class RegionCommissionService
                         ]
                     );
 
-                    // dd($region_commission);
-
                     $getpercentageTarget = $this->getpercentageTarget($region_commission);
+                    // dd($this->getAmountInvoiceDetail($region_commission, $request['date'], $key_data, $key_type));
                     $region_commission->update([
                         'percentage_target'     => $getpercentageTarget,
                         'percentage_commission' => isset($this->percentage[$key_type][$getpercentageTarget]) ? $this->percentage[$key_type][$getpercentageTarget] : null,
@@ -176,12 +175,14 @@ class RegionCommissionService
 
             $amount = round($amount / floatval($this->getSystemSetting()?->value_of_total_income) , 0);
 
+            $getpercentageTarget   = $this->getpercentageTarget($region_commission);
+            $percentage_commission = isset($this->percentage[$sales_type][$getpercentageTarget]) ? $this->percentage[$sales_type][$getpercentageTarget] : null;
+
+            // dd($percentage_commission, $depo, $getpercentageTarget, $this->percentage);
             $payments[$data] = [
                 'total_amount' => (int)$amount ? (int)$amount * $data / 100 : 0,
-                'commission'   => ((int)$amount *  $data / 100) * ($region_commission?->percentage_commission / 100) ?? 0
+                'commission'   => ((int)$amount *  $data / 100) * ($percentage_commission / 100) ?? 0
             ];
-
-            // dd($data, $sales_type, $depo, (int)$amount, $payments);
 
             $value_commission += $payments[$data]['commission'];
         }
