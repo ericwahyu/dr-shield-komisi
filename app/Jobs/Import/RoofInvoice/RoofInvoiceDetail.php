@@ -51,26 +51,16 @@ class RoofInvoiceDetail implements ShouldQueue
         // Set memory limit lebih tinggi
         ini_set('memory_limit', '1024M');
         try {
-            // Process dalam chunks untuk data besar
-            // $chunks = $this->collections->chunk(50); // 50 items per chunk
-            // foreach ($chunks as $chunkIndex => $chunk) {
-            //     Log::info("Processing chunk {$chunkIndex}, memory: " . memory_get_usage(true) / 1024 / 1024 . " MB");
-
-
-            //     unset($chunk);
-            //     gc_collect_cycles();
-            // }
+            
             foreach ($this->collections as $key => $collection) {
                 if ($key == 0) continue;
 
-                    // $get_invoice = Invoice::where('invoice_number', $collection[0])->first();
                     $get_invoice = Invoice::where('invoice_number', 'ILIKE', "%". $collection[0] ."%")->where('type', 'roof')->first();
 
                     $check_year = Carbon::parse($collection[2])->format('Y');
 
                     if (!$get_invoice || (int)$check_year < 2010) {
                         $warning = [
-                                // 'get_user'        => !$get_user ? "Data sales tidak di temukan" : "Data sales ditemukan",
                                 'invoice'     => !$get_invoice ? "Data faktur tidak ditemukan" : "aman",
                                 'tanggal'     => (int) $check_year < 2010 ? "Format tanggal salah" : "aman",
                                 'collections' => $collection

@@ -56,8 +56,6 @@ class CeramicInvoice implements ShouldQueue
 
                 $check_year = Carbon::parse($collection[0])->format('Y');
 
-                // dd($collection[7],  $collection[6], $get_user);
-
                 if (!$get_user || $unique_invoice || (int)$check_year < 2010) {
                      $warning = [
                         'sales'       => !$get_user ? "Data sales tidak di temukan" : "aman",

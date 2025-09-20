@@ -28,7 +28,7 @@ class CeramicInvoiceDetailDispatcher implements ShouldQueue
     public function handle(): void
     {
         //
-        $chunks = $this->collections->chunk(200);
+        $chunks = $this->collections->chunk(100);
 
         foreach ($chunks as $chunk) {
             dispatch(new CeramicInvoiceDetail($chunk));
