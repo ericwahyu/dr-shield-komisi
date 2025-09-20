@@ -85,8 +85,6 @@ trait RoofCommissionProsses
                 $get_lower_limit_commission = $get_lower_limit_commission ?? null;
                 $get_commission?->update([
                     'total_sales'                 => $sum_income_tax,
-                    // 'percentage_value_commission' => $get_lower_limit_commission,
-                    // 'status'                      => $get_lower_limit_commission != null ? 'reached' : 'not-reach'
                 ]);
 
                 if ($get_commission?->percentage_value_commission != null) {

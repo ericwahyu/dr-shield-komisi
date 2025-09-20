@@ -51,7 +51,7 @@ class RoofInvoiceDetail implements ShouldQueue
         // Set memory limit lebih tinggi
         ini_set('memory_limit', '1024M');
         try {
-            
+
             foreach ($this->collections as $key => $collection) {
                 if ($key == 0) continue;
 
@@ -193,7 +193,6 @@ class RoofInvoiceDetail implements ShouldQueue
                 $datas = array(
                     'id_data'               => null,
                     'version'               => 2,
-                    // 'category_id'           => Category::where('type', 'roof')->where('slug', $collection[1] ?? 'dr-shield')->where('version', 2)->first()?->id,
                     'category_id'           => $category_id,
                     'invoice_detail_amount' => $collection[1],
                     'invoice_detail_date'   => Carbon::parse($collection[2])->toDateString(),

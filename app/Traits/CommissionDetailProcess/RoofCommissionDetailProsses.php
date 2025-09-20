@@ -69,25 +69,12 @@ trait RoofCommissionDetailProsses
 
                         try {
                             DB::transaction(function () use ($get_commission, $year_month_invoice_detail, $percentage_invoice_detail, $total_income, $category) {
-                                // if (in_array($category?->slug, ['dr-shield'])) {
-                                //     $total_income = round((int)$total_income / floatval($this->getSystemSetting()?->value_of_total_income) * ((int)$percentage_invoice_detail > 0 ? (int)$percentage_invoice_detail/100 : 1), 2);
-                                // } else {
-                                //     $total_income = round((int)$total_income / floatval((int)$percentage_invoice_detail > 0 ? (int)$percentage_invoice_detail/100 : 1), 2);
-                                // }
 
                                 if ((int)$percentage_invoice_detail > 0) {
                                     $total_income = round((int)$total_income / floatval($this->getSystemSetting()?->value_of_total_income) * ((int)$percentage_invoice_detail > 0 ? (int)$percentage_invoice_detail/100 : 1), 2);
                                 } else {
                                     $total_income = (int)$total_income;
                                 }
-
-                                // if ($get_commission?->percentage_value_commission != null) {
-                                //     foreach ($get_commission?->commissionDetails()->get() as $key => $commission_detail) {
-                                //         $commission_detail->update([
-                                //             'value_of_due_date' => intval($commission_detail?->total_income * ($get_commission?->percentage_value_commission/100))
-                                //         ]);
-                                //     }
-                                // }
 
                                 $get_commission->commissionDetails()->updateOrCreate(
                                      [
@@ -101,11 +88,6 @@ trait RoofCommissionDetailProsses
                                      ]
                                  );
 
-                                //  if ($get_commission->commissionDetails()->whereNot('percentage_of_due_date', 0)->sum('value_of_due_date') > 0) {
-                                //     $get_commission->update([
-                                //         'value_commission' => $get_commission->commissionDetails()->whereNot('percentage_of_due_date', 0)->sum('value_of_due_date')
-                                //     ]);
-                                // }
                             });
                         } catch (Exception | Throwable $th) {
                             DB::rollBack();
@@ -214,7 +196,6 @@ trait RoofCommissionDetailProsses
                             $total_income = round((int)$total_income / floatval((int)$percentage_invoice_detail > 0 ? (int)$percentage_invoice_detail/100 : 1), 2);
                         } else {
                             $total_income = round((int)$total_income / floatval($this->getSystemSetting()?->value_of_total_income) * ((int)$percentage_invoice_detail > 0 ? (int)$percentage_invoice_detail/100 : 1), 2);
-                            // $total_income = round((int)$total_income * ((int)$percentage_invoice_detail > 0 ? (int)$percentage_invoice_detail/100 : 1), 2);
                          }
 
                         $get_commission->commissionDetails()->updateOrCreate(
@@ -244,7 +225,6 @@ trait RoofCommissionDetailProsses
 
                     foreach ($get_commission?->commissionDetails()->get() as $key => $commission_detail) {
                         $commission_detail->update([
-                            // 'value_of_due_date' => $commission_detail?->percentage_of_due_date > 0 ? (int)($commission_detail?->total_income * ($percentage_value_commission/100)) : null
                             'value_of_due_date' => $commission_detail?->percentage_of_due_date > 0 ? round((int)$commission_detail?->total_income * ($percentage_value_commission/100), 0) : null
                         ]);
                     }

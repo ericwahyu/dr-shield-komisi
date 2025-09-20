@@ -55,7 +55,6 @@ trait CeramicCommissionDetailProsses
                 foreach ($invoice_details->distinct()->pluck('percentage')->toArray() as $key => $percentage_invoice_details) {
 
                     foreach ($invoice_details
-                    // ->selectRaw('YEAR(date) as year, MONTH(date) as month')->groupBy('year', 'month')
                     ->selectRaw('EXTRACT(YEAR FROM date) AS year, EXTRACT(MONTH FROM date) AS month')
                     ->distinct()
                     ->get()

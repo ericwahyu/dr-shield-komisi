@@ -118,10 +118,10 @@ trait CeramicCommissionProsses
             if ($get_commission?->percentage_value_commission != null) {
 
                 $value_salesman = array(
-                    70  => 0.5,
+                    70  => 0.4,
                     80  => 0.5,
-                    90  => 0.7,
-                    100 => 0.8,
+                    90  => 0.6,
+                    100 => 0.7,
                 );
 
                 $percentage_value_commission = $value_salesman[$get_commission?->percentage_value_commission] ?? 0;

@@ -50,7 +50,7 @@ class RoofInvoice implements ShouldQueue
 
         try {
             $categories = Category::where('type', 'roof')->get();
-             
+
             foreach ($this->collections as $key => $collection) {
                 if ($key == 0) {
                     continue;
@@ -113,41 +113,31 @@ class RoofInvoice implements ShouldQueue
                     $payment_details = [
                         'version_1' => [
                             'income_taxs' => [
-                                // 'dr-shield' => max(0, (int)$collection[10] - (int)$collection[13]),
                                 'dr-shield' => (int) $collection[10] - (int) $collection[13] - (int) $collection[16],
                                 'dr-sonne'  => (int) $collection[13],
-                                // 'dr-houz'   => (int) $collection[10] - (int) $collection[13] - ((int) $collection[10] - (int) $collection[13]),
                                 'dr-houz'   => (int) $collection[16],
                             ],
                             'value_taxs' => [
-                                // 'dr-shield' => max(0, (int)$collection[11] - (int)$collection[14]),
                                 'dr-shield' => (int) $collection[11] - (int) $collection[14] - (int) $collection[17],
                                 'dr-sonne'  => (int) $collection[14],
-                                // 'dr-houz'  => (int) $collection[11] - (int) $collection[14] - ((int) $collection[11] - (int) $collection[14]),
                                 'dr-houz'  => (int) $collection[17],
                             ],
                             'amounts' => [
-                                // 'dr-shield' => max(0, (int)$collection[12] - (int)$collection[15]),
                                 'dr-shield' => (int) $collection[12] - (int) $collection[15] - (int) $collection[18],
                                 'dr-sonne'  => (int) $collection[15],
-                                // 'dr-houz'  => (int) $collection[12] - (int) $collection[15] - ((int) $collection[12] - (int) $collection[15]),
                                 'dr-houz'  => (int) $collection[18],
                             ],
                         ],
                         'version_2' => [
                             'income_taxs' => [
-                                // 'dr-shield' => max(0, (int)$collection[10] - (int)$collection[13]),
                                 'dr-shield' => (int) $collection[10],
                                 'dr-sonne'  => (int) $collection[13],
-                                // 'dr-houz'   => (int)$collection[13],
                             ],
                             'value_taxs' => [
-                                // 'dr-shield' => max(0, (int)$collection[11] - (int)$collection[14]),
                                 'dr-shield' => (int) $collection[11],
                                 'dr-sonne'  => (int) $collection[14],
                             ],
                             'amounts' => [
-                                // 'dr-shield' => max(0, (int)$collection[12] - (int)$collection[15]),
                                 'dr-shield' => (int) $collection[12],
                                 'dr-sonne'  => (int) $collection[15],
                             ],

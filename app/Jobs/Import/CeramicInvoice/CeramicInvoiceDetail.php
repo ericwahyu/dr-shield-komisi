@@ -61,54 +61,56 @@ class CeramicInvoiceDetail implements ShouldQueue
                 }
                 Log::info('Berhasil memasukkan Detail Faktur Keramik dengan no : '.$collection[0], ['collections' => $collection]);
 
-                // version 1
-                $datas = array(
-                    'invoice_detail_date' => Carbon::parse($collection[2])->toDateString(),
-                    'version'             => 1,
-                );
+                DB::beginTransaction();
+                    // version 1
+                    $datas = array(
+                        'invoice_detail_date' => Carbon::parse($collection[2])->toDateString(),
+                        'version'             => 1,
+                    );
 
-                $percentage = $this->_percentageCeramicInvoiceDetail($get_invoice, $datas);
+                    $percentage = $this->_percentageCeramicInvoiceDetail($get_invoice, $datas);
 
-                $datas = array(
-                    'id_data'               => null,
-                    'version'               => 1,
-                    'invoice_detail_amount' => $collection[1],
-                    'invoice_detail_date'   => Carbon::parse($collection[2])->toDateString(),
-                    'percentage'            => $percentage,
-                );
+                    $datas = array(
+                        'id_data'               => null,
+                        'version'               => 1,
+                        'invoice_detail_amount' => $collection[1],
+                        'invoice_detail_date'   => Carbon::parse($collection[2])->toDateString(),
+                        'percentage'            => $percentage,
+                    );
 
-                $this->_ceramicInvoiceDetail($get_invoice, $datas);
+                    $this->_ceramicInvoiceDetail($get_invoice, $datas);
 
-                $datas = array(
-                    'version'             => 1,
-                    'invoice_detail_date' => Carbon::parse($collection[2])->toDateString()
-                );
-                $this->_ceramicCommissionDetail($get_invoice, $datas);
+                    $datas = array(
+                        'version'             => 1,
+                        'invoice_detail_date' => Carbon::parse($collection[2])->toDateString()
+                    );
+                    $this->_ceramicCommissionDetail($get_invoice, $datas);
 
-                //version 2
-                $datas = array(
-                    'invoice_detail_date' => Carbon::parse($collection[2])->toDateString(),
-                    'version'             => 2,
-                );
+                    //version 2
+                    $datas = array(
+                        'invoice_detail_date' => Carbon::parse($collection[2])->toDateString(),
+                        'version'             => 2,
+                    );
 
-                $percentage = $this->_percentageCeramicInvoiceDetail($get_invoice, $datas);
+                    $percentage = $this->_percentageCeramicInvoiceDetail($get_invoice, $datas);
 
-                $datas = array(
-                    'id_data'               => null,
-                    'version'               => 2,
-                    'invoice_detail_amount' => $collection[1],
-                    'invoice_detail_date'   => Carbon::parse($collection[2])->toDateString(),
-                    'percentage'            => $percentage,
-                );
+                    $datas = array(
+                        'id_data'               => null,
+                        'version'               => 2,
+                        'invoice_detail_amount' => $collection[1],
+                        'invoice_detail_date'   => Carbon::parse($collection[2])->toDateString(),
+                        'percentage'            => $percentage,
+                    );
 
-                $this->_ceramicInvoiceDetail($get_invoice, $datas);
+                    $this->_ceramicInvoiceDetail($get_invoice, $datas);
 
-                $datas = array(
-                    'version'             => 2,
-                    'income_tax'          => $get_invoice?->income_tax,
-                    'invoice_detail_date' => Carbon::parse($collection[2])->toDateString(),
-                );
-                $this->_ceramicCommissionDetail($get_invoice, $datas);
+                    $datas = array(
+                        'version'             => 2,
+                        'income_tax'          => $get_invoice?->income_tax,
+                        'invoice_detail_date' => Carbon::parse($collection[2])->toDateString(),
+                    );
+                    $this->_ceramicCommissionDetail($get_invoice, $datas);
+                DB::commit();
             }
         } catch (Exception | Throwable $th) {
             Log::error("Ada kesalahan saat import detail faktur keramik");
