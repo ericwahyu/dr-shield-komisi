@@ -29,11 +29,6 @@ trait RoofCommissionProsses
             ];
             Log::error("Ada kesalahan saat proses payment detail atap", $error);
             throw new \Exception($th->getMessage());
-            // throw new \Exception(json_encode([
-            //     'error_message' => $th->getMessage(),
-            //     'file'          => $th->getFile(),
-            //     'line'          => $th->getLine(),
-            // ]));
         }
     }
 

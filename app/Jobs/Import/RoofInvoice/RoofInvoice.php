@@ -50,14 +50,7 @@ class RoofInvoice implements ShouldQueue
 
         try {
             $categories = Category::where('type', 'roof')->get();
-             // Process dalam chunks untuk data besar
-            // $chunks = $this->collections->chunk(50); // 50 items per chunk
-            // foreach ($chunks as $chunkIndex => $chunk) {
-            //     Log::info("Processing chunk {$chunkIndex}, memory: " . memory_get_usage(true) / 1024 / 1024 . " MB");
-
-            //     unset($chunk);
-            //     gc_collect_cycles();
-            // }
+             
             foreach ($this->collections as $key => $collection) {
                 if ($key == 0) {
                     continue;

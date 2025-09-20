@@ -46,17 +46,12 @@ class CeramicInvoiceDetail implements ShouldQueue
                     continue;
                 }
 
-                // $get_invoice = Invoice::where('invoice_number', $collection[0])->first();
                 $get_invoice = Invoice::where('invoice_number', 'ILIKE', "%". $collection[0] ."%")->where('type', 'ceramic')->first();
 
                 $check_year = Carbon::parse($collection[2])->format('Y');
 
-                // $invoice_detail_v1 = $get_invoice?->invoiceDetails()->where('version', 1)->whereNull('category_id')->where('amount', (int)$collection[1])->where('date', Carbon::parse($collection[2])->toDateString())->first();
-                // $invoice_detail_v2 = $get_invoice?->invoiceDetails()->where('version', 2)->whereNull('category_id')->where('amount', (int)$collection[1])->where('date', Carbon::parse($collection[2])->toDateString())->first();
-
                 if (!$get_invoice || (int)$check_year < 2010) {
                      $warning = [
-                        // 'get_user'        => !$get_user ? "Data sales tidak di temukan" : "Data sales ditemukan",
                         'invoice'     => !$get_invoice ? "Data faktur tidak ditemukan" : "aman",
                         'tanggal'     => (int) $check_year < 2010 ? "Format tanggal salah" : "aman",
                         'collections' => $collection

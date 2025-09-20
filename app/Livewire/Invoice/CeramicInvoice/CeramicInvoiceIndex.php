@@ -63,9 +63,7 @@ class CeramicInvoiceIndex extends Component
                 })
                 ->when($this->filter_month, function ($query) {
                     $query->whereYear('date', (int)Carbon::parse($this->filter_month)->format('Y'))->whereMonth('date', (int)Carbon::parse($this->filter_month)->format('m'));
-                })->withSum(['paymentDetails' => function ($query) {
-                    $query->where('version', 1);
-                }], 'income_tax')
+                })
                 ->paginate($this->perPage),
         ])->extends('layouts.layout.app')->section('content');
     }
@@ -345,15 +343,14 @@ class CeramicInvoiceIndex extends Component
                 $query->where('user_id', $this->filter_sales);
             })
             ->when($this->filter_month, function ($query) {
-                $query->whereYear('date', (int)Carbon::parse($this->filter_month)->format('Y'))->whereMonth('date', (int)Carbon::parse($this->filter_month)->format('m'));
+                $month = Carbon::parse($this->filter_month);
+                $query->whereYear('date', $month->year)->whereMonth('date', $month->month);
             })
             ->join('payment_details', 'payment_details.invoice_id', '=', 'invoices.id')
             ->whereNull('payment_details.category_id')
             ->where('payment_details.version', $version)
             ->sum('payment_details.income_tax');
-            // ->withSum(['paymentDetails' => function ($query) use ($version) {
-            //     $query->where('version', $version);
-            // }], 'income_tax')->get()->sum('payment_details_sum_income_tax');
+            // ->sum('income_tax');
     }
 
     // Sales utama
