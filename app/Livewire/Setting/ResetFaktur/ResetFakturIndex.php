@@ -23,7 +23,7 @@ class ResetFakturIndex extends Component
 {
     use LivewireAlert, WithPagination;
     protected $paginationTheme = 'bootstrap';
-    public $perPage = 10, $search;
+    public $perPage = 50, $search;
 
     public $data_reset, $sales_id, $sales_type;
 
@@ -56,7 +56,8 @@ class ResetFakturIndex extends Component
 
     public function closeModal()
     {
-        $this->reset('data_reset');
+        $this->reset('data_reset', 'sales_id', 'sales_type');
+        $this->clearSecondary();
         $this->dispatch('closeModal');
     }
 
@@ -115,10 +116,11 @@ class ResetFakturIndex extends Component
                     });
                 })
                 ->when($this->sales_id != null, function ($query) {
-                    $query->whereHas('invoice.user', function ($query) {
-                        $query->where('user_id', $this->sales_id);
+                    $query->whereHas('invoice', function ($q) {
+                        $q->where('user_id', $this->sales_id);
                     });
-                })->forceDelete();
+                })
+                ->forceDelete();
 
                 Commission::where('year', Carbon::parse($this->data_reset)->year)->where('month', Carbon::parse($this->data_reset)->month)
                 ->when($this->sales_type != null, function ($query) {

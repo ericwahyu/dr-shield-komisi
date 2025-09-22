@@ -56,7 +56,7 @@ class RoofInvoice implements ShouldQueue
                     continue;
                 }
 
-                $get_user = User::where('name', 'ILIKE', '%'.$collection[7].'%')->whereHas('userDetail', function ($query) use ($collection) {
+                $get_user = User::where('name', $collection[7])->whereHas('userDetail', function ($query) use ($collection) {
                     $query->where('depo', 'ILIKE', '%'.$collection[6].'%')->where('sales_type', 'roof');
                 })->first();
 
