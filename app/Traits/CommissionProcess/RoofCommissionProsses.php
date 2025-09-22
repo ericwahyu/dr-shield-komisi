@@ -45,7 +45,7 @@ trait RoofCommissionProsses
                     'version'     => 1,
                     'month'       => $invoice?->date?->format('m'),
                     'year'        => $invoice?->date?->format('Y'),
-                    'total_sales' => $invoice?->paymentDetails()->where('category_id', $category?->id)->sum('amount'),
+                    'total_sales' => $invoice?->paymentDetails()->where('category_id', $category?->id)->sum('income_tax'),
                     'status'      => 'not-reach'
                 ]);
 
@@ -133,7 +133,7 @@ trait RoofCommissionProsses
                     'version'     => 2,
                     'month'       => $invoice?->date?->format('m'),
                     'year'        => $invoice?->date?->format('Y'),
-                    'total_sales' => $invoice?->paymentDetails()->where('category_id', $category?->id)->sum('amount'),
+                    'total_sales' => $invoice?->paymentDetails()->where('category_id', $category?->id)->sum('income_tax'),
                     'status'      => 'not-reach'
                 ]);
 
