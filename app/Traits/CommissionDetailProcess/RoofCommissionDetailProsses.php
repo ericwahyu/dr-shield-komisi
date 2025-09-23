@@ -196,7 +196,20 @@ trait RoofCommissionDetailProsses
                             $total_income = round((int)$total_income / floatval((int)$percentage_invoice_detail > 0 ? (int)$percentage_invoice_detail/100 : 1), 2);
                         } else {
                             $total_income = round((int)$total_income / floatval($this->getSystemSetting()?->value_of_total_income) * ((int)$percentage_invoice_detail > 0 ? (int)$percentage_invoice_detail/100 : 1), 2);
-                         }
+                        }
+
+                        $info = [
+                            'invoice' => $invoice,
+                            'category' => $category,
+                            'datas' => $datas,
+                            'get_commission' => $get_commission,
+                            'percentage_invoice_detail' => $percentage_invoice_detail,
+                            'year_month_invoice_detail' => $year_month_invoice_detail,
+                            'total_income' => $total_income
+
+                        ];
+
+                        // Log::info("tracking detail invoice : {$invoice?->invoice_number}", $info);
 
                         $get_commission->commissionDetails()->updateOrCreate(
                             [

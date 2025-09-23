@@ -56,6 +56,7 @@ class RoofInvoiceDetailV2 extends Component
     public function mount($id)
     {
         $this->get_invoice    = Invoice::find($id);
+        // dd($this->get_invoice?->user?->userDetail);
         $this->date           = $this->get_invoice?->date?->format('d M Y');
         $this->invoice_number = $this->get_invoice?->invoice_number;
         $this->sales_code     = $this->get_invoice?->user?->userDetail?->sales_code;
