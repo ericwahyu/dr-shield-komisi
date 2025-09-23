@@ -98,20 +98,11 @@ class RegionCommissionService
 
     private function totalIncomeTax($month, $sales_type, $depo)
     {
-        // $total_income_tax = Invoice::whereHas('user', function ($query) use ($sales_type, $depo) {
-        //     $query->whereHas('userDetail', function ($query) use ($sales_type, $depo) {
-        //             $query->where('sales_type', $sales_type)->where('depo', $depo);
-        //             // $query->where('sales_type', 'roof')->where('depo', 'BDG');
-        //         })
-        //         ->where('status', 'active');
-        //         // ->where('name', 'Online');
-        // })->whereYear('date', Carbon::parse($month)->year)->whereMonth('date', Carbon::parse($month)->month)->whereNotNull('customer')->whereNotNull('id_customer')->sum('income_tax');
-
         $total_income_tax = Invoice::join('users', 'invoices.user_id', '=', 'users.id')
             ->join('user_details', 'users.id', '=', 'user_details.user_id')
             ->where('user_details.sales_type', $sales_type)
             ->where('user_details.depo', $depo)
-            ->where('users.status', 'active')
+            // ->where('users.status', 'active')
             ->whereYear('invoices.date', Carbon::parse($month)->year)
             ->whereMonth('invoices.date', Carbon::parse($month)->month)
             ->whereNotNull('invoices.customer')
@@ -150,23 +141,13 @@ class RegionCommissionService
         $payments = []; $value_commission = 0;
 
         foreach ($datas as $key => $data) {
-            // if ($data == 100) continue;
-            // $amount = InvoiceDetail::whereHas('invoice.user', function ($query) use ($sales_type, $depo) {
-            //     $query->whereHas('userDetail', function ($query) use ($sales_type, $depo) {
-            //         $query->where('sales_type', $sales_type)->where('depo', $depo);
-            //         // $query->where('sales_type', 'roof')->where('depo', 'SKB');
-            //     })
-            //     ->where('status', 'active');
-            //     // ->where('name', 'Yogi Permana');
-            // })->whereYear('date', Carbon::parse($month)->year)->whereMonth('date', Carbon::parse($month)->month)->where('percentage', $data)->where('version', 2)->sum('amount');
-
             $amount = InvoiceDetail::query()
                 ->join('invoices', 'invoice_details.invoice_id', '=', 'invoices.id')
                 ->join('users', 'invoices.user_id', '=', 'users.id')
                 ->join('user_details', 'users.id', '=', 'user_details.user_id')
                 ->where('user_details.sales_type', $sales_type)
                 ->where('user_details.depo', $depo)
-                ->where('users.status', 'active')
+                // ->where('users.status', 'active')
                 ->whereYear('invoice_details.date', Carbon::parse($month)->year)
                 ->whereMonth('invoice_details.date', Carbon::parse($month)->month)
                 ->where('invoice_details.percentage', $data)
