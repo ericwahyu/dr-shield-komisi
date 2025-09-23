@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Commission\CeramicCommission;
 
+use App\Exports\Commission\CeramicCommission\CeramicCommissionVersion1;
+use App\Exports\Commission\CeramicCommission\CeramicCommissionVersion2;
 use App\Models\Auth\User;
 use App\Models\Commission\Commission;
 use App\Models\Invoice\Invoice;
@@ -10,6 +12,7 @@ use Illuminate\Support\Facades\Cache;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Maatwebsite\Excel\Facades\Excel;
 
 class CeramicCommissionIndex extends Component
 {
@@ -19,6 +22,8 @@ class CeramicCommissionIndex extends Component
 
     public $filter_month, $version;
     public $selectYear, $selectMonth;
+
+    public $export_version, $export_month;
 
     public function render()
     {
@@ -46,7 +51,7 @@ class CeramicCommissionIndex extends Component
 
     public function closeModal()
     {
-        $this->reset('');
+        // $this->reset('');
         $this->dispatch('closeModal');
     }
 
@@ -88,5 +93,24 @@ class CeramicCommissionIndex extends Component
         }
 
         return $get_commission?->value_commission;
+    }
+
+    public function exportData()
+    {
+        $this->validate([
+            'export_version' => 'required',
+            'export_month'   => 'required',
+        ]);
+
+        $export_month = $this->export_month;
+
+        $this->closeModal();
+
+        if ($this->export_version == 1) {
+            return Excel::download(new CeramicCommissionVersion1($export_month), 'Komisi Keramik V1-' . Carbon::parse($this->export_month)->format('Y-m') . '.xlsx');
+        } else if ($this->export_version == 2) {
+            return Excel::download(new CeramicCommissionVersion2($export_month), 'Komisi Keramik V2-' . Carbon::parse($this->export_month)->format('Y-m') . '.xlsx');
+        }
+
     }
 }
