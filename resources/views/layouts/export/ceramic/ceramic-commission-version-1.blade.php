@@ -17,6 +17,8 @@
             <th rowspan = "1" style = "font-weight: bold;border: 1.5px solid black;background-color: #eeeeee;text-align: center;text-transform: uppercase;width: 150px;">Hangus</th>
             <th rowspan = "1" style = "font-weight: bold;border: 1.5px solid black;background-color: #eeeeee;text-align: center;text-transform: uppercase;width: 150px;">Total Uang Masuk</th>
             <th rowspan = "1" style = "font-weight: bold;border: 1.5px solid black;background-color: #eeeeee;text-align: center;text-transform: uppercase;width: 150px;">Komisi</th>
+            <th style = "font-weight: bold;border: 1.5px solid black;background-color: #eeeeee;text-align: center;text-transform: uppercase;width: 150px;">Admin 10 %</th>
+            <th style = "font-weight: bold;border: 1.5px solid black;background-color: #eeeeee;text-align: center;text-transform: uppercase;width: 150px;">Sales 90 %</th>
             {{-- <th rowspan = "1" style = "font-weight: bold;border: 1.5px solid black;background-color: #eeeeee;text-align: center;text-transform: uppercase;width: 150px;">Total</th> --}}
         </tr>
     </thead>
@@ -60,6 +62,8 @@
                 <td rowspan="1" style="border: 1.5px solid black;text-align: center;vertical-align: middle;">{{ isset($service->getTime($result?->id)[0]) ? "Rp. ". number_format($service->getDetailCommission($result?->id, $service->getTime($result?->id)[0]['year'], $service->getTime($result?->id)[0]['month'], 0)?->total_income, 0, ',', '.') : '-' }}</td>
                 <td rowspan="{{ $column_detail }}" style="border: 1.5px solid black;text-align: center;vertical-align: middle;">{{ $service->getTotalIncome($result?->id, null, null, 100) + $service->getTotalIncome($result?->id, null, null, 50) > 0 ? "Rp. ". number_format($service->getTotalIncome($result?->id, null, null, 100) + $service->getTotalIncome($result?->id, null, null, 50), 0, ',', '.') : '-' }}</td>
                 <td rowspan="{{ $column_detail }}" style="border: 1.5px solid black;text-align: center;vertical-align: middle;">{{ $service->commissionSales($result?->id)?->value_commission ? "Rp. ". number_format($service->commissionSales($result?->id)?->value_commission ?? 0, 0, ',', '.') : '-' }}</td>
+                <td rowspan="{{ $column_detail }}" style="border: 1.5px solid black;text-align: center;vertical-align: middle;">{{ $service->commissionSales($result?->id)?->value_commission ? "Rp. ". number_format($service->commissionSales($result?->id)?->value_commission * (10/100) ?? 0, 0, ',', '.') : '-' }}</td>
+                <td rowspan="{{ $column_detail }}" style="border: 1.5px solid black;text-align: center;vertical-align: middle;">{{ $service->commissionSales($result?->id)?->value_commission ? "Rp. ". number_format($service->commissionSales($result?->id)?->value_commission * (90/100) ?? 0, 0, ',', '.') : '-' }}</td>
                 {{-- <td rowspan="{{ $row_span }}" style="border: 1.5px solid black;text-align: center;vertical-align: middle;">{{ "Rp ". number_format($total_commission, 0, ',', '.') }}</td> --}}
             </tr>
             @for ($i = 0; $i < $column_detail; $i++)
