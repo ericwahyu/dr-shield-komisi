@@ -4,7 +4,7 @@
     @include('livewire.user.user-modal')
     <div class="d-flex align-items-center">
         <div>
-            <h3 class="mb-0 fw-semibold">Daftar Sales</h3>
+            <h3 class="mb-0 fw-semibold">Daftar Pengguna</h3>
         </div>
         <div class="ms-auto">
             <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modal">Tambah <i class="fa-solid fa-circle-plus fa-fw ms-2"></i></button>
