@@ -18,6 +18,8 @@ class CeramicInvoiceImport implements WithMultipleSheets
     {
         Log::info('Memulai proses import sheets');
         try {
+            $this->ensureQueueWorkerRunning();
+            
             return [
                 'faktur'     => new CeramicInvoiceExecutionImport(),
                 'pembayaran' => new CeramicInvoiceDetailExecutionImport(),
@@ -25,6 +27,21 @@ class CeramicInvoiceImport implements WithMultipleSheets
         } catch (Exception | Throwable $th) {
             Log::error('Error di sheets Keramik(): ' . $th->getMessage());
             return [];
+        }
+    }
+    
+    private function ensureQueueWorkerRunning()
+    {
+        try {
+            $status = shell_exec('immortalctl status queue 2>/dev/null');
+            
+            if (strpos($status, 'Down') !== false || empty($status)) {
+                shell_exec('immortalctl start queue 2>/dev/null');
+                sleep(2);
+                Log::info('Queue worker restarted automatically from CeramicInvoice job');
+            }
+        } catch (Exception $e) {
+            Log::warning('Failed to check/start queue worker: ' . $e->getMessage());
         }
     }
 }
