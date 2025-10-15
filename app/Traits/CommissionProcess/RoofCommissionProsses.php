@@ -224,7 +224,8 @@ trait RoofCommissionProsses
                 }
                 //fee intersif DR SONNE
                 if ($category != null && $get_commission?->status == 'reached') {
-                    $this->feeIntensif($sum_income_tax, $get_commission);
+                    $lowerLimitTarget = User::find($invoice?->user?->id)->lowerLimits()->where('version', 2)->where('category_id', $category?->id)->where('target_payment', '<=', (int)$sum_income_tax)->orderBy('target_payment', 'desc')->first();
+                    $this->feeIntensif($sum_income_tax, $get_commission, $lowerLimitTarget);
                 }
             }
             DB::commit();
@@ -239,19 +240,37 @@ trait RoofCommissionProsses
         }
     }
 
-    private function feeIntensif($sum_income_tax, $get_commission)
+    private function feeIntensif($sum_income_tax, $get_commission, $lowerLimitTarget)
     {
-        if ($sum_income_tax >= 25000000 && $sum_income_tax <= 50000000) {
+        // if ($sum_income_tax >= 25000000 && $sum_income_tax <= 50000000) {
+        //     $get_commission->update([
+        //         'status'            => 'reached',
+        //         'add_on_commission' => 200000
+        //     ]);
+        // } elseif ($sum_income_tax > 50000000 && $sum_income_tax <= 100000000) {
+        //     $get_commission->update([
+        //         'status'            => 'reached',
+        //         'add_on_commission' => 300000
+        //     ]);
+        // } elseif ($sum_income_tax > 100000000) {
+        //     $get_commission->update([
+        //         'status'            => 'reached',
+        //         'add_on_commission' => 400000
+        //     ]);
+        // }
+
+        $targetPayment = $lowerLimitTarget?->target_payment;
+        if ($targetPayment >= 25000000 && $targetPayment < 50000000) {
             $get_commission->update([
                 'status'            => 'reached',
                 'add_on_commission' => 200000
             ]);
-        } elseif ($sum_income_tax >= 50000000 && $sum_income_tax <= 100000000) {
+        } elseif ($targetPayment >= 50000000 && $targetPayment < 100000000) {
             $get_commission->update([
                 'status'            => 'reached',
                 'add_on_commission' => 300000
             ]);
-        } elseif ($sum_income_tax >= 100000000) {
+        } elseif ($targetPayment >= 100000000) {
             $get_commission->update([
                 'status'            => 'reached',
                 'add_on_commission' => 400000
