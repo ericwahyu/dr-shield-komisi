@@ -157,7 +157,7 @@ trait CeramicCommissionDetailProsses
                         $value_salesman = array(
                             70  => 0.4,
                             80  => 0.5,
-                            90  => 0.6,
+                            90  => 0.5,
                             100 => 0.7,
                         );
 
