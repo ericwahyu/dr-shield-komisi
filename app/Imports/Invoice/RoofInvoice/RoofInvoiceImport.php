@@ -20,7 +20,7 @@ class RoofInvoiceImport implements WithMultipleSheets
 
         try {
             $this->ensureQueueWorkerRunning();
-            
+
             return [
                 'faktur'     => new RoofInvoiceExecutionImport(),
                 'pembayaran' => new RoofInvoiceDetailExecutionImport(),
@@ -30,14 +30,14 @@ class RoofInvoiceImport implements WithMultipleSheets
             return [];
         }
     }
-    
+
     private function ensureQueueWorkerRunning()
     {
         try {
-            $status = shell_exec('immortalctl status queue 2>/dev/null');
-            
+            $status = shell_exec('immortalctl status komisi-queue 2>/dev/null');
+
             if (strpos($status, 'Down') !== false || empty($status)) {
-                shell_exec('immortalctl start queue 2>/dev/null');
+                shell_exec('immortalctl start komisi-queue 2>/dev/null');
                 sleep(2);
                 Log::info('Queue worker restarted automatically from RoofInvoice job');
             }
