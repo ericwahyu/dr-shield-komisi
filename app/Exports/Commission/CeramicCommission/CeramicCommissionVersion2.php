@@ -22,7 +22,7 @@ class CeramicCommissionVersion2 implements FromView
     {
         $sales = User::role('sales')->whereHas('userDetail', function ($query) {
                         $query->where('sales_type', 'ceramic');
-                    })->get();
+                    })->get()->sortBy(fn ($user) => $user->userDetail->depo);
 
         return view('layouts.export.ceramic.ceramic-commission-version-1', [
             // 'categories' => $categories,
