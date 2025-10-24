@@ -26,7 +26,7 @@ class RoofCommissionVersion2 implements FromView
         $categories = [null, 'dr-sonne'];
         $sales      = User::role('sales')->whereHas('userDetail', function ($query) {
                         $query->where('sales_type', 'roof');
-                    })->get();
+                    })->get()->sortBy(fn ($user) => $user->userDetail->depo);
 
         return view('layouts.export.roof-commission-version-2', [
             'categories' => $categories,
