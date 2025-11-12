@@ -46,7 +46,7 @@ class RoofInvoice implements ShouldQueue
     {
         //
          // Set memory limit lebih tinggi
-        ini_set('memory_limit', '1024M');
+        // ini_set('memory_limit', '1024M');
 
         try {
             $categories = Category::where('type', 'roof')->get();

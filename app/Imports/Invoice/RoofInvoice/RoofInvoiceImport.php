@@ -19,7 +19,7 @@ class RoofInvoiceImport implements WithMultipleSheets
         Log::info('Memulai proses import sheets');
 
         try {
-            $this->ensureQueueWorkerRunning();
+            // $this->ensureQueueWorkerRunning();
 
             return [
                 'faktur'     => new RoofInvoiceExecutionImport(),
