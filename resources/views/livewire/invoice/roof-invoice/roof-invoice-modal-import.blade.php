@@ -33,6 +33,9 @@
                         @error('file_faktur')
                             <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror
+                        <div wire:loading wire:target="file_faktur" class="text-primary mt-1">
+                            <small><i class="fa fa-spinner fa-spin"></i> Uploading faktur...</small>
+                        </div>
                     </div>
 
                     <div class="col-12">
@@ -43,6 +46,15 @@
                         @error('file_pembayaran')
                             <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror
+                        <div wire:loading wire:target="file_pembayaran" class="text-primary mt-1">
+                            <small><i class="fa fa-spinner fa-spin"></i> Uploading pembayaran...</small>
+                        </div>
+                        @if ($file_pembayaran)
+                            <div class="text-success mt-1">
+                                <small><i class="fa fa-check"></i> File pembayaran ter-upload:
+                                    {{ $file_pembayaran->getClientOriginalName() }}</small>
+                            </div>
+                        @endif
                     </div>
 
                     <!-- Info -->

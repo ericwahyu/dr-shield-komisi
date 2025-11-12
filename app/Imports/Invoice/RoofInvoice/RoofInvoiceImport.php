@@ -3,6 +3,7 @@
 namespace App\Imports\Invoice\RoofInvoice;
 
 use Exception;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\ToCollection;
@@ -10,7 +11,7 @@ use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Throwable;
 
-class RoofInvoiceImport implements WithMultipleSheets, WithChunkReading
+class RoofInvoiceImport implements WithMultipleSheets, WithChunkReading, ShouldQueue
 {
     /**
      * @param Collection $collection
@@ -21,7 +22,7 @@ class RoofInvoiceImport implements WithMultipleSheets, WithChunkReading
         ini_set('max_execution_time', '600'); // 10 menit
         ini_set('memory_limit', '512M');
         set_time_limit(600);
-        
+
         Log::info('Memulai proses import sheets');
 
         try {

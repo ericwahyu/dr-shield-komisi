@@ -46,9 +46,9 @@ class RoofInvoiceIndex extends Component
     public $amounts = [];
 
     public $file_import;
-    
+
     public $file_faktur; // CSV file untuk sheet faktur
-    
+
     public $file_pembayaran; // CSV file untuk sheet pembayaran (optional)
 
     public $categories;
@@ -380,12 +380,19 @@ class RoofInvoiceIndex extends Component
 
     public function importInvoiceData()
     {
+        // Debug: Log semua file yang di-upload
+        Log::info("Debug upload files", [
+            'file_import' => $this->file_import ? 'EXISTS' : 'NULL',
+            'file_faktur' => $this->file_faktur ? 'EXISTS' : 'NULL',
+            'file_pembayaran' => $this->file_pembayaran ? 'EXISTS' : 'NULL',
+        ]);
+
         // Check format - Excel or CSV
         $is_excel = $this->file_import && (
-            $this->file_import->getClientOriginalExtension() === 'xlsx' || 
+            $this->file_import->getClientOriginalExtension() === 'xlsx' ||
             $this->file_import->getClientOriginalExtension() === 'xls'
         );
-        
+
         if ($is_excel) {
             // Excel: hanya perlu 1 file (multi-sheet)
             $this->validate([
@@ -403,20 +410,85 @@ class RoofInvoiceIndex extends Component
         ini_set('memory_limit', '512M');
         ini_set('max_execution_time', '600');
         set_time_limit(600); // 10 menit
-        
+
         Log::info("User " . auth()->user()->name . " memulai import Faktur Atap");
-        
+
         try {
             if ($is_excel) {
-                // Import Excel dengan multiple sheets
-                Excel::import(new RoofInvoiceImport, $this->file_import);
+                // Simpan file ke storage dengan cara manual (copy dari temp)
+                $directory = storage_path('app' . DIRECTORY_SEPARATOR . 'imports' . DIRECTORY_SEPARATOR . 'roof-invoice');
+                if (!file_exists($directory)) {
+                    mkdir($directory, 0755, true);
+                }
+
+                $filename = uniqid() . '_' . time() . '.' . $this->file_import->getClientOriginalExtension();
+                $fullPath = $directory . DIRECTORY_SEPARATOR . $filename;
+
+                // Copy file dari temporary location
+                copy($this->file_import->getRealPath(), $fullPath);
+
+                // Log untuk debugging
+                Log::info("File Excel disimpan", [
+                    'full_path' => $fullPath,
+                    'file_exists' => file_exists($fullPath) ? 'YES' : 'NO',
+                    'file_size' => file_exists($fullPath) ? filesize($fullPath) : 0
+                ]);
+
+                // Import Excel dengan queue menggunakan full path (tanpa disk name)
+                Excel::queueImport(new RoofInvoiceImport, $fullPath);
             } else {
-                // Import CSV terpisah
-                Excel::import(new RoofInvoiceCSVImport($this->file_faktur, $this->file_pembayaran), $this->file_faktur);
+                // Simpan file CSV ke storage dengan cara manual (copy dari temp)
+                $directory = storage_path('app' . DIRECTORY_SEPARATOR . 'imports' . DIRECTORY_SEPARATOR . 'roof-invoice');
+                if (!file_exists($directory)) {
+                    mkdir($directory, 0755, true);
+                }
+
+                $fakturFilename = 'faktur_' . uniqid() . '_' . time() . '.csv';
+                $fakturFullPath = $directory . DIRECTORY_SEPARATOR . $fakturFilename;
+
+                // Copy file faktur dari temporary location
+                copy($this->file_faktur->getRealPath(), $fakturFullPath);
+
+                // Debug logging untuk file_pembayaran
+                Log::info("Debug file_pembayaran", [
+                    'is_null' => $this->file_pembayaran === null ? 'YES' : 'NO',
+                    'type' => gettype($this->file_pembayaran),
+                    'has_method_getRealPath' => $this->file_pembayaran && method_exists($this->file_pembayaran, 'getRealPath') ? 'YES' : 'NO'
+                ]);
+
+                $pembayaranFullPath = null;
+                if ($this->file_pembayaran) {
+                    $pembayaranFilename = 'pembayaran_' . uniqid() . '_' . time() . '.csv';
+                    $pembayaranFullPath = $directory . DIRECTORY_SEPARATOR . $pembayaranFilename;
+
+                    // Copy file pembayaran dari temporary location
+                    copy($this->file_pembayaran->getRealPath(), $pembayaranFullPath);
+
+                    Log::info("File pembayaran berhasil disimpan", [
+                        'path' => $pembayaranFullPath,
+                        'size' => filesize($pembayaranFullPath)
+                    ]);
+                }
+
+                // Log untuk debugging
+                Log::info("File CSV disimpan", [
+                    'faktur_full_path' => $fakturFullPath,
+                    'faktur_exists' => file_exists($fakturFullPath) ? 'YES' : 'NO',
+                    'faktur_size' => file_exists($fakturFullPath) ? filesize($fakturFullPath) : 0,
+                    'pembayaran_full_path' => $pembayaranFullPath,
+                    'pembayaran_exists' => $pembayaranFullPath ? (file_exists($pembayaranFullPath) ? 'YES' : 'NO') : 'N/A',
+                    'pembayaran_size' => $pembayaranFullPath && file_exists($pembayaranFullPath) ? filesize($pembayaranFullPath) : 0
+                ]);
+
+                // Import CSV dengan queue menggunakan full path (tanpa disk name)
+                Excel::queueImport(
+                    new RoofInvoiceCSVImport($fakturFullPath, $pembayaranFullPath),
+                    $fakturFullPath
+                );
             }
-            
-            Log::info("Import Faktur Atap selesai untuk user " . auth()->user()->name);
-            
+
+            Log::info("Import Faktur Atap dijadwalkan (queued) untuk user " . auth()->user()->name);
+
         } catch (Exception|Throwable $th) {
             Log::error('GAGAL Import data faktur atap: ' . $th->getMessage(), [
                 'user' => auth()->user()->name,
@@ -432,8 +504,8 @@ class RoofInvoiceIndex extends Component
 
         $this->closeModal();
 
-        return $this->alert('success', 'Berhasil', [
-            'text' => 'Data Faktur Atap sedang diproses di background, silahkan tunggu beberapa saat dan refresh halaman',
+        return $this->alert('success', 'Import Dijadwalkan', [
+            'text' => 'Data sedang diproses di background. Cek log atau refresh halaman beberapa saat lagi.',
         ]);
     }
 

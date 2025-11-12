@@ -2,6 +2,7 @@
 
 namespace App\Imports\Invoice\RoofInvoice;
 
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\ToCollection;
@@ -9,26 +10,27 @@ use Maatwebsite\Excel\Concerns\WithCustomCsvSettings;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Illuminate\Support\Collection;
 
-class RoofInvoiceCSVImport implements ToCollection, WithChunkReading, WithCustomCsvSettings, WithHeadingRow
+class RoofInvoiceCSVImport implements ToCollection, WithChunkReading, WithCustomCsvSettings, WithHeadingRow, ShouldQueue
 {
-    protected $file_faktur;
-    protected $file_pembayaran;
+    protected $file_faktur_path;
+    protected $file_pembayaran_path;
 
-    public function __construct($file_faktur, $file_pembayaran = null)
+    public function __construct($file_faktur_path, $file_pembayaran_path = null)
     {
         // Set memory dan time limit
         ini_set('memory_limit', '512M');
         ini_set('max_execution_time', '600');
 
-        $this->file_faktur = $file_faktur;
-        $this->file_pembayaran = $file_pembayaran;
+        // Store file paths (string) not file objects
+        $this->file_faktur_path = $file_faktur_path;
+        $this->file_pembayaran_path = $file_pembayaran_path;
     }
 
     public function collection(Collection $rows)
     {
         // Process faktur rows - convert heading row format ke index array
         $execution_import = new RoofInvoiceExecutionImport();
-        
+
         // Convert dari heading row ke array biasa dengan index
         $converted_rows = new Collection();
         foreach ($rows as $row) {
@@ -36,7 +38,7 @@ class RoofInvoiceCSVImport implements ToCollection, WithChunkReading, WithCustom
             if ($row->filter()->isEmpty()) {
                 continue;
             }
-            
+
             // Convert to indexed array sesuai urutan kolom
             $converted_rows->push([
                 $row['tanggal'] ?? $row['Tanggal'] ?? null,                    // [0] Tanggal
@@ -60,12 +62,12 @@ class RoofInvoiceCSVImport implements ToCollection, WithChunkReading, WithCustom
                 $this->cleanNumber($row['total_houz'] ?? $row['Total Houz'] ?? 0),        // [18] Total Houz
             ]);
         }
-        
+
         $execution_import->collection($converted_rows);
-        
+
         // Process pembayaran if file provided
-        if ($this->file_pembayaran) {
-            Log::info("Memulai import data pembayaran dari CSV...");
+        if ($this->file_pembayaran_path) {
+            Log::info("Memulai queue import data pembayaran dari CSV...");
             $this->processPembayaran();
         }
     }
@@ -73,13 +75,23 @@ class RoofInvoiceCSVImport implements ToCollection, WithChunkReading, WithCustom
     protected function processPembayaran()
     {
         try {
-            // Import pembayaran secara langsung (tidak pakai queue)
+            Log::info("Memulai queue import data pembayaran dari CSV", [
+                'file_path' => $this->file_pembayaran_path,
+                'file_exists' => file_exists($this->file_pembayaran_path) ? 'YES' : 'NO',
+                'file_size' => file_exists($this->file_pembayaran_path) ? filesize($this->file_pembayaran_path) : 0,
+                'current_working_directory' => getcwd()
+            ]);
+
+            // Import pembayaran dengan queue untuk reliability
             $pembayaran_import = new RoofInvoiceDetailCSVImport();
-            \Maatwebsite\Excel\Facades\Excel::import($pembayaran_import, $this->file_pembayaran);
-            
-            Log::info("Data pembayaran berhasil diproses");
+            \Maatwebsite\Excel\Facades\Excel::queueImport(
+                $pembayaran_import,
+                $this->file_pembayaran_path
+            );
+
+            Log::info("Data pembayaran dijadwalkan untuk diproses");
         } catch (\Exception $e) {
-            Log::error("Gagal memproses data pembayaran: " . $e->getMessage());
+            Log::error("Gagal menjadwalkan proses data pembayaran: " . $e->getMessage());
         }
     }
 
@@ -100,7 +112,7 @@ class RoofInvoiceCSVImport implements ToCollection, WithChunkReading, WithCustom
             'input_encoding' => 'UTF-8'
         ];
     }
-    
+
     /**
      * Specify the heading row is row 1 (first row)
      */
@@ -108,7 +120,7 @@ class RoofInvoiceCSVImport implements ToCollection, WithChunkReading, WithCustom
     {
         return 1;
     }
-    
+
     /**
      * Clean number format from Indonesian to standard
      * Example: "14.983.783,78" -> 14983783.78
@@ -118,16 +130,16 @@ class RoofInvoiceCSVImport implements ToCollection, WithChunkReading, WithCustom
         if (empty($value)) {
             return 0;
         }
-        
+
         // Remove spaces
         $value = trim($value);
-        
+
         // Remove dots (thousands separator)
         $value = str_replace('.', '', $value);
-        
+
         // Replace comma with dot (decimal separator)
         $value = str_replace(',', '.', $value);
-        
+
         // Convert to float
         return (float) $value;
     }

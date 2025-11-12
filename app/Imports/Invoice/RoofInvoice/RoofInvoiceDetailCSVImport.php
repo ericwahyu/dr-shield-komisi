@@ -9,6 +9,7 @@ use App\Traits\GetSystemSetting;
 use App\Traits\InvoiceDetailProcess\RoofInvoiceDetailProsses;
 use Carbon\Carbon;
 use Exception;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -18,7 +19,7 @@ use Maatwebsite\Excel\Concerns\WithCustomCsvSettings;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Throwable;
 
-class RoofInvoiceDetailCSVImport implements ToCollection, WithChunkReading, WithCustomCsvSettings, WithHeadingRow
+class RoofInvoiceDetailCSVImport implements ToCollection, WithChunkReading, WithCustomCsvSettings, WithHeadingRow, ShouldQueue
 {
     use GetSystemSetting, RoofInvoiceDetailProsses, RoofCommissionDetailProsses;
 
@@ -142,7 +143,7 @@ class RoofInvoiceDetailCSVImport implements ToCollection, WithChunkReading, With
 
                 $next_category = $categories[$key + 1] ?? null;
                 $check_next_value_payment = 0;
-                
+
                 if ($next_category) {
                     $check_next_value_payment = $get_invoice?->paymentDetails()
                         ->where('category_id', $next_category->id)

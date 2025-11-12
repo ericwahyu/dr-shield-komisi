@@ -11,6 +11,7 @@ use App\Traits\InvoiceProcess\RoofInvoiceProsses;
 use App\Traits\PaymentDetailProsses\RoofPaymentDetailProsses;
 use Carbon\Carbon;
 use Exception;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -20,7 +21,7 @@ use Maatwebsite\Excel\Concerns\WithBatchInserts;
 use Maatwebsite\Excel\Concerns\WithCustomCsvSettings;
 use Throwable;
 
-class RoofInvoiceExecutionImport implements ToCollection, WithChunkReading, WithCustomCsvSettings
+class RoofInvoiceExecutionImport implements ToCollection, WithChunkReading, WithCustomCsvSettings, ShouldQueue
 {
     use GetSystemSetting, RoofCommissionProsses, RoofInvoiceProsses, RoofPaymentDetailProsses;
 
