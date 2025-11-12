@@ -17,20 +17,11 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\ToCollection;
-use Maatwebsite\Excel\Concerns\WithChunkReading;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Throwable;
 
-class RoofInvoiceExecutionImport implements ToCollection, WithChunkReading, ShouldQueue
+class RoofInvoiceExecutionImport implements ToCollection
 {
     use GetSystemSetting, CommissionProcess;
-    /**
-     * Set a reasonable chunk size to limit memory usage per chunk.
-     */
-    public function chunkSize(): int
-    {
-        return 50; // adjusted to match user's setting
-    }
     /**
      * @param Collection $collection
      */
@@ -38,11 +29,9 @@ class RoofInvoiceExecutionImport implements ToCollection, WithChunkReading, Shou
     {
         //
         try {
-            // Process the chunk directly instead of dispatching another job.
-            // The import is already queued with WithChunkReading + ShouldQueue,
-            // so handling the chunk here avoids nested dispatch/serialization overhead.
-            $job = new Job_Roof_Invoice($collections);
-            $job->handle();
+            //code...
+            // Job_Roof_Invoice::dispatch($collections);
+            RoofInvoiceDispatcher::dispatch($collections);
         } catch (Exception | Throwable $th) {
             Log::error($th->getMessage());
             Log::error("Ada kesalahan saat import faktur atap");
