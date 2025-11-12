@@ -7,9 +7,10 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Throwable;
 
-class RoofInvoiceImport implements WithMultipleSheets
+class RoofInvoiceImport implements WithMultipleSheets, ShouldQueue
 {
     /**
      * @param Collection $collection

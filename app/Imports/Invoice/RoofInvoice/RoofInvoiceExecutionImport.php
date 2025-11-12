@@ -17,11 +17,20 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\ToCollection;
+use Maatwebsite\Excel\Concerns\WithChunkReading;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Throwable;
 
-class RoofInvoiceExecutionImport implements ToCollection
+class RoofInvoiceExecutionImport implements ToCollection, WithChunkReading, ShouldQueue
 {
     use GetSystemSetting, CommissionProcess;
+    /**
+     * Set a reasonable chunk size to limit memory usage per chunk.
+     */
+    public function chunkSize(): int
+    {
+        return 250; // adjust if needed (e.g., 100, 250, 500)
+    }
     /**
      * @param Collection $collection
      */
