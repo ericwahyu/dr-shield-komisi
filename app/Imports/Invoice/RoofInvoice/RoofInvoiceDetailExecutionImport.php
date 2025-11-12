@@ -17,11 +17,26 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\ToCollection;
+use Maatwebsite\Excel\Concerns\WithCustomCsvSettings;
 use Throwable;
 
-class RoofInvoiceDetailExecutionImport implements ToCollection
+class RoofInvoiceDetailExecutionImport implements ToCollection, WithCustomCsvSettings
 {
     use GetSystemSetting, CommissionProcess;
+
+    /**
+     * Configure CSV settings untuk semicolon delimiter
+     */
+    public function getCsvSettings(): array
+    {
+        return [
+            'delimiter' => ';',
+            'enclosure' => '"',
+            'escape' => '\\',
+            'input_encoding' => 'UTF-8'
+        ];
+    }
+
     /**
      * @param Collection $collection
      */

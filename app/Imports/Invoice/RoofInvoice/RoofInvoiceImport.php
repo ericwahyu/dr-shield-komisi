@@ -7,20 +7,24 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
+use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Throwable;
 
-class RoofInvoiceImport implements WithMultipleSheets
+class RoofInvoiceImport implements WithMultipleSheets, WithChunkReading
 {
     /**
      * @param Collection $collection
      */
     public function sheets(): array
     {
+        // Set limits untuk file besar
+        ini_set('max_execution_time', '600'); // 10 menit
+        ini_set('memory_limit', '512M');
+        set_time_limit(600);
+        
         Log::info('Memulai proses import sheets');
 
         try {
-            // $this->ensureQueueWorkerRunning();
-
             return [
                 'faktur'     => new RoofInvoiceExecutionImport(),
                 'pembayaran' => new RoofInvoiceDetailExecutionImport(),
@@ -29,6 +33,14 @@ class RoofInvoiceImport implements WithMultipleSheets
             Log::error('Error di sheets Atap(): ' . $th->getMessage());
             return [];
         }
+    }
+
+    /**
+     * Chunk reading untuk menghemat memory
+     */
+    public function chunkSize(): int
+    {
+        return 50; // Process 50 rows per chunk - balance between speed and memory
     }
 
     private function ensureQueueWorkerRunning()

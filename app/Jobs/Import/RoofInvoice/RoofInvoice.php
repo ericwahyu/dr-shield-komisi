@@ -23,10 +23,11 @@ class RoofInvoice implements ShouldQueue
     use Queueable;
 
     public $tries = 5;                    // Max retry attempts
-    public $timeout = 1200;                // 10 menit timeout
+    public $timeout = 1200;                // 20 menit timeout
     public $maxExceptions = 3;            // Max exceptions before fail
     public $backoff = [60, 180, 300];     // Delay between retries (1min, 3min, 5min)
     public $failOnTimeout = true;         // Fail jika timeout
+    public $deleteWhenMissingModels = true; // Delete job if models not found
 
     protected $collections;
 
@@ -37,6 +38,8 @@ class RoofInvoice implements ShouldQueue
     {
         //
         $this->collections = $collections;
+        // Explicitly set the queue
+        $this->onQueue('imports');
     }
 
     /**
@@ -45,8 +48,12 @@ class RoofInvoice implements ShouldQueue
     public function handle(): void
     {
         //
-         // Set memory limit lebih tinggi
-        // ini_set('memory_limit', '1024M');
+        // Set memory limit lebih tinggi untuk job
+        ini_set('memory_limit', '1024M');
+
+        // Force garbage collection
+        gc_enable();
+
         try {
             $categories = Category::where('type', 'roof')->get();
 
@@ -191,6 +198,11 @@ class RoofInvoice implements ShouldQueue
                         $this->_roofCommission($invoice, $get_category, $datas);
                     }
                 });
+
+                // Force garbage collection setiap 10 record untuk bebaskan memory
+                if ($key % 10 == 0) {
+                    gc_collect_cycles();
+                }
             }
         } catch (Exception|Throwable $th) {
             DB::rollBack();

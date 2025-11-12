@@ -3,6 +3,7 @@
 namespace App\Livewire\Invoice\RoofInvoice;
 
 use App\Imports\Invoice\RoofInvoice\RoofInvoiceImport;
+use App\Imports\Invoice\RoofInvoice\RoofInvoiceCSVImport;
 use App\Models\Auth\User;
 use App\Models\Invoice\Invoice;
 use App\Models\System\Category;
@@ -45,6 +46,10 @@ class RoofInvoiceIndex extends Component
     public $amounts = [];
 
     public $file_import;
+    
+    public $file_faktur; // CSV file untuk sheet faktur
+    
+    public $file_pembayaran; // CSV file untuk sheet pembayaran (optional)
 
     public $categories;
 
@@ -107,7 +112,7 @@ class RoofInvoiceIndex extends Component
     public function closeModal()
     {
         $this->clearSecondary();
-        $this->reset('get_invoice', 'id_data', 'sales_id', 'sales_code', 'date', 'invoice_number', 'customer', 'id_customer', 'due_date', 'income_taxs', 'value_taxs', 'amounts', 'income_tax', 'value_tax', 'amount', 'file_import');
+        $this->reset('get_invoice', 'id_data', 'sales_id', 'sales_code', 'date', 'invoice_number', 'customer', 'id_customer', 'due_date', 'income_taxs', 'value_taxs', 'amounts', 'income_tax', 'value_tax', 'amount', 'file_import', 'file_faktur', 'file_pembayaran');
         $this->dispatch('closeModal');
     }
 
@@ -375,26 +380,60 @@ class RoofInvoiceIndex extends Component
 
     public function importInvoiceData()
     {
-        $this->validate([
-            'file_import' => 'required|file|mimes:xlsx',
-        ]);
+        // Check format - Excel or CSV
+        $is_excel = $this->file_import && (
+            $this->file_import->getClientOriginalExtension() === 'xlsx' || 
+            $this->file_import->getClientOriginalExtension() === 'xls'
+        );
+        
+        if ($is_excel) {
+            // Excel: hanya perlu 1 file (multi-sheet)
+            $this->validate([
+                'file_import' => 'required|file|mimes:xlsx,xls',
+            ]);
+        } else {
+            // CSV: perlu 2 file terpisah (faktur + pembayaran)
+            $this->validate([
+                'file_faktur' => 'required|file|mimes:csv',
+                'file_pembayaran' => 'nullable|file|mimes:csv', // Optional jika hanya import faktur
+            ]);
+        }
 
+        // Set memory limit dan time limit tinggi
+        ini_set('memory_limit', '512M');
+        ini_set('max_execution_time', '600');
+        set_time_limit(600); // 10 menit
+        
+        Log::info("User " . auth()->user()->name . " memulai import Faktur Atap");
+        
         try {
-            Excel::import(new RoofInvoiceImport, $this->file_import);
+            if ($is_excel) {
+                // Import Excel dengan multiple sheets
+                Excel::import(new RoofInvoiceImport, $this->file_import);
+            } else {
+                // Import CSV terpisah
+                Excel::import(new RoofInvoiceCSVImport($this->file_faktur, $this->file_pembayaran), $this->file_faktur);
+            }
+            
+            Log::info("Import Faktur Atap selesai untuk user " . auth()->user()->name);
+            
         } catch (Exception|Throwable $th) {
-            Log::error($th->getMessage());
-            Log::error('Ada kesalahan saat Import data faktur atap');
+            Log::error('GAGAL Import data faktur atap: ' . $th->getMessage(), [
+                'user' => auth()->user()->name,
+                'error_line' => $th->getLine(),
+                'error_file' => $th->getFile()
+            ]);
             $this->closeModal();
 
             return $this->alert('error', 'Gagal', [
-                'text' => 'Ada kesalahan saat Import data faktur atap !',
+                'text' => 'Ada kesalahan saat Import: ' . $th->getMessage(),
             ]);
         }
 
         $this->closeModal();
 
         return $this->alert('success', 'Berhasil', [
-            'text' => 'Data Faktur Atap berhasil disimpan !, silahkan tunggu beberapa saat',
+            'text' => 'Data Faktur Atap sedang diproses di background, silahkan tunggu beberapa saat dan refresh halaman',
         ]);
     }
 
