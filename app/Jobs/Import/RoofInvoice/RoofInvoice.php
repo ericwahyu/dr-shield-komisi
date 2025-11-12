@@ -48,6 +48,16 @@ class RoofInvoice implements ShouldQueue
          // Set memory limit lebih tinggi
         // ini_set('memory_limit', '1024M');
 
+        // log starting memory for this job
+        try {
+            Log::info('RoofInvoice job starting', [
+                'memory_start' => memory_get_usage(true) / 1024 / 1024 . ' MB',
+                'collections_count' => is_countable($this->collections) ? count($this->collections) : null,
+            ]);
+        } catch (Throwable $e) {
+            // ignore logging failures
+        }
+
         try {
             $categories = Category::where('type', 'roof')->get();
 
@@ -204,6 +214,20 @@ class RoofInvoice implements ShouldQueue
             ];
             Log::error('Ada kesalahan saat import faktur atap', $error);
             throw $th;
+        }
+
+        // free references and trigger GC to release memory sooner
+        try {
+            if (isset($this->collections)) {
+                unset($this->collections);
+            }
+            gc_collect_cycles();
+            Log::info('RoofInvoice job finished', [
+                'memory_end' => memory_get_usage(true) / 1024 / 1024 . ' MB',
+                'memory_peak' => memory_get_peak_usage(true) / 1024 / 1024 . ' MB',
+            ]);
+        } catch (Throwable $e) {
+            // ignore
         }
 
         Log::info('Import Roof Invoice berhasil');

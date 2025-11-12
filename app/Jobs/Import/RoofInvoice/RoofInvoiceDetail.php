@@ -49,7 +49,7 @@ class RoofInvoiceDetail implements ShouldQueue
     {
         //
         // Set memory limit lebih tinggi
-        ini_set('memory_limit', '1024M');
+        // ini_set('memory_limit', '1024M');
         try {
 
             foreach ($this->collections as $key => $collection) {

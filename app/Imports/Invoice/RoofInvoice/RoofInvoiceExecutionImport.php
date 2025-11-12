@@ -29,7 +29,7 @@ class RoofInvoiceExecutionImport implements ToCollection, WithChunkReading, Shou
      */
     public function chunkSize(): int
     {
-        return 250; // adjust if needed (e.g., 100, 250, 500)
+        return 50; // adjusted to match user's setting
     }
     /**
      * @param Collection $collection
@@ -38,9 +38,11 @@ class RoofInvoiceExecutionImport implements ToCollection, WithChunkReading, Shou
     {
         //
         try {
-            //code...
-            // Job_Roof_Invoice::dispatch($collections);
-            RoofInvoiceDispatcher::dispatch($collections);
+            // Process the chunk directly instead of dispatching another job.
+            // The import is already queued with WithChunkReading + ShouldQueue,
+            // so handling the chunk here avoids nested dispatch/serialization overhead.
+            $job = new Job_Roof_Invoice($collections);
+            $job->handle();
         } catch (Exception | Throwable $th) {
             Log::error($th->getMessage());
             Log::error("Ada kesalahan saat import faktur atap");
