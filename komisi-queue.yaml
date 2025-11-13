@@ -1,11 +1,11 @@
-cmd: /usr/local/bin/php /home/drshield/projects/dr-shield-komisi/artisan queue:work --sleep=3 --tries=3 --timeout=120
+cmd: /usr/local/bin/php /home/drshield/projects/dr-shield-komisi/artisan queue:work --sleep=3 --tries=3 --timeout=300
 cwd: /home/drshield/projects/dr-shield-komisi
 log:
-    file: /home/drshield/projects/dr-shield-komisi/storage/logs/queue.log
-    age: 86400
-    num: 3
-    size: 20
-    timestamp: true
+  file: /home/drshield/projects/dr-shield-komisi/storage/logs/queue.log
+  age: 86400
+  num: 3
+  size: 20
+  timestamp: true
 retries: 3
 wait: 5
 require_all: true
