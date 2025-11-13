@@ -60,11 +60,6 @@ class RoofInvoiceExecutionImport implements ToCollection, WithChunkReading, With
         $categories = Category::where('type', 'roof')->get();
 
         foreach ($collections as $key => $collection) {
-            // Skip header row
-            if ($key == 0) {
-                continue;
-            }
-
             try {
                 $this->processRow($collection, $categories);
                 $successRows++;
