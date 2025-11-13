@@ -50,9 +50,9 @@ class RoofInvoiceDetailCSVImport implements ToCollection, WithChunkReading, With
                 try {
                     // Convert heading row ke indexed array
                     $collection = [
-                        $row['no_faktur'] ?? $row['No faktur'] ?? null,    // [0] No faktur
-                        $this->cleanNumber($row['nominal'] ?? $row['nominal'] ?? 0), // [1] nominal
-                        $row['tanggal'] ?? $row['tanggal'] ?? null,        // [2] tanggal
+                        $row['no_faktur'] ?? $row['No faktur'] ?? null,
+                        $this->cleanNumber($row['nominal'] ?? $row['nominal'] ?? 0),
+                        $row['tanggal'] ?? $row['tanggal'] ?? null,
                     ];
 
                     $this->processDetailRow($collection);
@@ -254,10 +254,6 @@ class RoofInvoiceDetailCSVImport implements ToCollection, WithChunkReading, With
         return 1;
     }
 
-    /**
-     * Clean number format from Indonesian to standard
-     * Example: "246.400," -> 246400
-     */
     private function cleanNumber($value)
     {
         if (empty($value)) {
