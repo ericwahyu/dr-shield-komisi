@@ -180,7 +180,8 @@ class RoofInvoiceDetail implements ShouldQueue
 
             $sum_value_invoice = (int)$value_invoice_of_dr_shield + (int)$value_invoice_of_dr_sonne;
 
-            if ((int)$sum_value_invoice + $collection[1] < (int)$sum_payment + 10000) {
+            // Gunakan abs() untuk menangani angka negatif dengan benar
+            if (abs((int)$sum_value_invoice + $collection[1]) < abs((int)$sum_payment) + 10000) {
                 //version 2
                 $datas = array(
                     'version'             => 2,

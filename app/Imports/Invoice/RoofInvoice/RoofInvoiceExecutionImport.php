@@ -138,26 +138,38 @@ class RoofInvoiceExecutionImport implements ToCollection, WithChunkReading, With
                 'invoice_number' => $collection[1],
                 'customer'       => $collection[2],
                 'id_customer'    => $collection[8],
-                'income_tax'     => (int) $collection[10] - (int) $collection[13] + (int) $collection[13],
-                'value_tax'      => (int) $collection[11] - (int) $collection[14] + (int) $collection[14],
-                'amount'         => (int) $collection[12] - (int) $collection[15] + (int) $collection[15],
+                'income_tax'     => (int) $collection[10],
+                'value_tax'      => (int) $collection[11],
+                'amount'         => (int) $collection[12],
                 'due_date'       => $collection[9] ?? 30,
             ]);
+
+            // Hitung Dr Shield V1 dengan logika: Total All - Sonne - Houz
+            $dr_shield_income_tax_v1 = $collection[10] - $collection[13] - $collection[16];
+            $dr_shield_value_tax_v1 = $collection[11] - $collection[14] - $collection[17];
+            $dr_shield_amount_v1 = $collection[12] - $collection[15] - $collection[18];
+
+            // Jika income_tax Dr Shield V1 <= 0, set semua nilai Dr Shield V1 ke 0
+            if ($dr_shield_income_tax_v1 <= 0) {
+                $dr_shield_income_tax_v1 = 0;
+                $dr_shield_value_tax_v1 = 0;
+                $dr_shield_amount_v1 = 0;
+            }
 
             $payment_details = [
                 'version_1' => [
                     'income_taxs' => [
-                        'dr-shield' => (int) $collection[10] - (int) $collection[13] - (int) $collection[16],
+                        'dr-shield' => (int) $dr_shield_income_tax_v1,
                         'dr-sonne'  => (int) $collection[13],
                         'dr-houz'   => (int) $collection[16],
                     ],
                     'value_taxs' => [
-                        'dr-shield' => (int) $collection[11] - (int) $collection[14] - (int) $collection[17],
+                        'dr-shield' => (int) $dr_shield_value_tax_v1,
                         'dr-sonne'  => (int) $collection[14],
                         'dr-houz'  => (int) $collection[17],
                     ],
                     'amounts' => [
-                        'dr-shield' => (int) $collection[12] - (int) $collection[15] - (int) $collection[18],
+                        'dr-shield' => (int) $dr_shield_amount_v1,
                         'dr-sonne'  => (int) $collection[15],
                         'dr-houz'  => (int) $collection[18],
                     ],
