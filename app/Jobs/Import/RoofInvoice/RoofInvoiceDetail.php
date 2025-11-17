@@ -180,6 +180,19 @@ class RoofInvoiceDetail implements ShouldQueue
 
             $sum_value_invoice = (int)$value_invoice_of_dr_shield + (int)$value_invoice_of_dr_sonne;
 
+            // Log untuk debugging
+            Log::info('Version 2 Check (Job)', [
+                'invoice_number' => $get_invoice->invoice_number,
+                'sum_value_invoice' => $sum_value_invoice,
+                'collection_amount' => $collection[1],
+                'sum_payment' => $sum_payment,
+                'value_payment_dr_shield' => $value_payment_of_dr_shield,
+                'value_payment_dr_sonne' => $value_payment_of_dr_sonne,
+                'left_side' => abs((int)$sum_value_invoice + $collection[1]),
+                'right_side' => abs((int)$sum_payment) + 10000,
+                'condition_result' => abs((int)$sum_value_invoice + $collection[1]) < abs((int)$sum_payment) + 10000
+            ]);
+
             // Gunakan abs() untuk menangani angka negatif dengan benar
             if (abs((int)$sum_value_invoice + $collection[1]) < abs((int)$sum_payment) + 10000) {
                 //version 2
