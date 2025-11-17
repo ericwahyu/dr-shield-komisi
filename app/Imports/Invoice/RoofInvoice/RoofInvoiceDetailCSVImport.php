@@ -186,6 +186,11 @@ class RoofInvoiceDetailCSVImport implements ToCollection, WithChunkReading, With
 
     private function invoiceDetailV2($get_invoice, $collection)
     {
+        Log::info('=== MASUK invoiceDetailV2 ===', [
+            'invoice_number' => $get_invoice->invoice_number,
+            'payment_amount' => $collection[1]
+        ]);
+
         try {
             $dr_shield_category = Category::where('type', 'roof')->where('slug', 'dr-shield')->where('version', 2)->first();
 
@@ -242,8 +247,20 @@ class RoofInvoiceDetailCSVImport implements ToCollection, WithChunkReading, With
                     'invoice_detail_date' => Carbon::parse($collection[2])->toDateString()
                 );
                 $this->_roofCommissionDetail($get_invoice, $datas);
+
+                Log::info('=== SELESAI invoiceDetailV2 - DATA TERSIMPAN ===', [
+                    'invoice_number' => $get_invoice->invoice_number
+                ]);
+            } else {
+                Log::warning('=== invoiceDetailV2 - KONDISI TIDAK TERPENUHI ===', [
+                    'invoice_number' => $get_invoice->invoice_number
+                ]);
             }
         } catch (Exception | Throwable $th) {
+            Log::error('=== ERROR di invoiceDetailV2 ===', [
+                'invoice_number' => $get_invoice->invoice_number,
+                'error' => $th->getMessage()
+            ]);
             throw $th;
         }
     }
