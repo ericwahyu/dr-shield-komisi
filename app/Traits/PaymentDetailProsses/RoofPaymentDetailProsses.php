@@ -56,7 +56,7 @@ trait RoofPaymentDetailProsses
 
             foreach ($categories as $key => $category) {
                 $category = $category == null ? 'dr-shield' : $category;
-                
+
                 $payment_detail_data = [
                     'category_id' => Category::where('slug', $category)->where('version', 2)->first()?->id,
                     'version'     => 2,
@@ -64,13 +64,13 @@ trait RoofPaymentDetailProsses
                     'value_tax'   => isset($datas['value_taxs'][$category]) ? (int)number_format($datas['value_taxs'][$category], 0, ',', '') : null,
                     'amount'      => isset($datas['amounts'][$category]) ? (int)number_format($datas['amounts'][$category], 0, ',', '') : null,
                 ];
-                
+
                 Log::info('Saving Payment Detail V2', [
                     'invoice_number' => $invoice->invoice_number,
                     'category' => $category,
                     'data' => $payment_detail_data
                 ]);
-                
+
                 $invoice->paymentDetails()->updateOrCreate(
                     [
                         'category_id' => Category::where('slug', $category)->where('version', 2)->first()?->id
