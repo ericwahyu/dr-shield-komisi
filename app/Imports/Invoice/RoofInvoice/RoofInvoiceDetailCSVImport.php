@@ -73,7 +73,7 @@ class RoofInvoiceDetailCSVImport implements ToCollection, WithChunkReading, With
                 }
             }
 
-            Log::info("Import detail pembayaran selesai", [
+            Log::info("Import detail pembayaran selesai - debug 17/10/2025", [
                 'total' => $totalRows,
                 'processed' => $processedRows,
                 'success' => $successRows,
