@@ -163,11 +163,6 @@ class RoofInvoiceDetail implements ShouldQueue
 
     private function invoiceDetailV2($get_invoice, $collection)
     {
-        Log::info('=== MASUK invoiceDetailV2 (Job) ===', [
-            'invoice_number' => $get_invoice->invoice_number,
-            'payment_amount' => $collection[1]
-        ]);
-
         try {
             $dr_shield_category = Category::where('type', 'roof')->where('slug', 'dr-shield')->where('version', 2)->first();
 
@@ -185,25 +180,7 @@ class RoofInvoiceDetail implements ShouldQueue
 
             $sum_value_invoice = (int)$value_invoice_of_dr_shield + (int)$value_invoice_of_dr_sonne;
 
-            // Hitung sisa payment yang belum terisi
-            $remaining_payment = abs((int)$sum_payment) - abs((int)$sum_value_invoice);
-
-            // Log untuk debugging
-            Log::info('Version 2 Check (Job)', [
-                'invoice_number' => $get_invoice->invoice_number,
-                'sum_value_invoice' => $sum_value_invoice,
-                'collection_amount' => $collection[1],
-                'sum_payment' => $sum_payment,
-                'remaining_payment' => $remaining_payment,
-                'value_payment_dr_shield' => $value_payment_of_dr_shield,
-                'value_payment_dr_sonne' => $value_payment_of_dr_sonne,
-                'left_side' => abs((int)$sum_value_invoice + $collection[1]),
-                'right_side' => abs((int)$sum_payment) + 10000,
-                'condition_result' => abs((int)$collection[1]) <= $remaining_payment + 10000
-            ]);
-
-            // Gunakan kondisi: apakah pembayaran baru masih bisa masuk (tidak melebihi sisa payment)
-            if ($remaining_payment > 0 && abs((int)$collection[1]) <= $remaining_payment + 10000) {
+            if ((int)$sum_value_invoice + $collection[1] < (int)$sum_payment + 10000) {
                 //version 2
                 $datas = array(
                     'version'             => 2,
@@ -228,20 +205,8 @@ class RoofInvoiceDetail implements ShouldQueue
                     'invoice_detail_date' => Carbon::parse($collection[2])->toDateString()
                 );
                 $this->_roofCommissionDetail($get_invoice, $datas);
-
-                Log::info('=== SELESAI invoiceDetailV2 (Job) - DATA TERSIMPAN ===', [
-                    'invoice_number' => $get_invoice->invoice_number
-                ]);
-            } else {
-                Log::warning('=== invoiceDetailV2 (Job) - KONDISI TIDAK TERPENUHI ===', [
-                    'invoice_number' => $get_invoice->invoice_number
-                ]);
             }
         } catch (Exception | Throwable $th) {
-            Log::error('=== ERROR di invoiceDetailV2 (Job) ===', [
-                'invoice_number' => $get_invoice->invoice_number,
-                'error' => $th->getMessage()
-            ]);
             throw $th;
         }
     }
