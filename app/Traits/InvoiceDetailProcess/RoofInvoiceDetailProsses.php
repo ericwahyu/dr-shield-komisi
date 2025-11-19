@@ -45,7 +45,7 @@ trait RoofInvoiceDetailProsses
                 [
                     'category_id' => $datas['category_id'],
                     'version'     => $datas['version'],
-                    'amount'      => (int)$datas['invoice_detail_amount'],
+                    'amount'      => $datas['invoice_detail_amount'],
                     'date'        => $datas['invoice_detail_date'],
                     'percentage'  => $datas['percentage'],
                 ]

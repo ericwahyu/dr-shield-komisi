@@ -116,21 +116,31 @@ class RoofInvoiceExecutionImport implements ToCollection, WithChunkReading, With
         }
 
         // Calculate amounts
-        $collection[12] = $collection[12] ?? (int) $collection[10] + (int) $collection[11];
-        $collection[15] = $collection[15] ?? (int) $collection[13] + (int) $collection[14];
-        $collection[18] = $collection[18] ?? (int) $collection[16] + (int) $collection[17];
+        $collection[12] = $collection[12] ?? $collection[10] + $collection[11];
+        $collection[15] = $collection[15] ?? $collection[13] + $collection[14];
+        $collection[18] = $collection[18] ?? $collection[16] + $collection[17];
 
         // Calculate income_tax
-        $collection[10] = $collection[10] ?? (int) $collection[12] / 1.11;
-        $collection[13] = $collection[13] ?? (int) $collection[15] / 1.11;
-        $collection[16] = $collection[16] ?? (int) $collection[18] / 1.11;
+        $collection[10] = $collection[10] ?? $collection[12] / 1.11;
+        $collection[13] = $collection[13] ?? $collection[15] / 1.11;
+        $collection[16] = $collection[16] ?? $collection[18] / 1.11;
 
         // Calculate value_tax
-        $collection[11] = $collection[11] ?? (int) $collection[10] * 0.11;
-        $collection[14] = $collection[14] ?? (int) $collection[13] * 0.11;
-        $collection[17] = $collection[17] ?? (int) $collection[16] * 0.11;
+        $collection[11] = $collection[11] ?? $collection[10] * 0.11;
+        $collection[14] = $collection[14] ?? $collection[13] * 0.11;
+        $collection[17] = $collection[17] ?? $collection[16] * 0.11;
 
         DB::transaction(function () use ($collection, $get_user, $categories) {
+            Log::info("Creating invoice with values", [
+                'invoice_number' => $collection[1],
+                'income_tax' => $collection[10],
+                'value_tax' => $collection[11],
+                'amount' => $collection[12],
+                'type_income_tax' => gettype($collection[10]),
+                'type_value_tax' => gettype($collection[11]),
+                'type_amount' => gettype($collection[12])
+            ]);
+
             $invoice = Invoice::create([
                 'user_id'        => $get_user?->id,
                 'type'           => 'roof',
@@ -138,9 +148,9 @@ class RoofInvoiceExecutionImport implements ToCollection, WithChunkReading, With
                 'invoice_number' => $collection[1],
                 'customer'       => $collection[2],
                 'id_customer'    => $collection[8],
-                'income_tax'     => (int) $collection[10],
-                'value_tax'      => (int) $collection[11],
-                'amount'         => (int) $collection[12],
+                'income_tax'     => $collection[10],
+                'value_tax'      => $collection[11],
+                'amount'         => $collection[12],
                 'due_date'       => $collection[9] ?? 30,
             ]);
 
@@ -159,33 +169,33 @@ class RoofInvoiceExecutionImport implements ToCollection, WithChunkReading, With
             $payment_details = [
                 'version_1' => [
                     'income_taxs' => [
-                        'dr-shield' => (int) $dr_shield_income_tax_v1,
-                        'dr-sonne'  => (int) $collection[13],
-                        'dr-houz'   => (int) $collection[16],
+                        'dr-shield' => $dr_shield_income_tax_v1,
+                        'dr-sonne'  => $collection[13],
+                        'dr-houz'   => $collection[16],
                     ],
                     'value_taxs' => [
-                        'dr-shield' => (int) $dr_shield_value_tax_v1,
-                        'dr-sonne'  => (int) $collection[14],
-                        'dr-houz'  => (int) $collection[17],
+                        'dr-shield' => $dr_shield_value_tax_v1,
+                        'dr-sonne'  => $collection[14],
+                        'dr-houz'  => $collection[17],
                     ],
                     'amounts' => [
-                        'dr-shield' => (int) $dr_shield_amount_v1,
-                        'dr-sonne'  => (int) $collection[15],
-                        'dr-houz'  => (int) $collection[18],
+                        'dr-shield' => $dr_shield_amount_v1,
+                        'dr-sonne'  => $collection[15],
+                        'dr-houz'  => $collection[18],
                     ],
                 ],
                 'version_2' => [
                     'income_taxs' => [
-                        'dr-shield' => (int) $collection[10],
-                        'dr-sonne'  => (int) $collection[13],
+                        'dr-shield' => $collection[10],
+                        'dr-sonne'  => $collection[13],
                     ],
                     'value_taxs' => [
-                        'dr-shield' => (int) $collection[11],
-                        'dr-sonne'  => (int) $collection[14],
+                        'dr-shield' => $collection[11],
+                        'dr-sonne'  => $collection[14],
                     ],
                     'amounts' => [
-                        'dr-shield' => (int) $collection[12],
-                        'dr-sonne'  => (int) $collection[15],
+                        'dr-shield' => $collection[12],
+                        'dr-sonne'  => $collection[15],
                     ],
                 ],
             ];

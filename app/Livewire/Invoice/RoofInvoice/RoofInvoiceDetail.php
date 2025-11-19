@@ -38,8 +38,8 @@ class RoofInvoiceDetail extends Component
     public function render()
     {
         foreach ($this->categories as $key => $category) {
-            $this->payment_amounts[$category?->slug]   = "Rp. ". number_format((int)$this->get_invoice->invoiceDetails()->where('version', 1)->where('category_id', $category?->id)->sum('amount'), 0, ',', '.');
-            $this->remaining_amounts[$category?->slug] = "Rp. ". number_format((int)$this->amounts[$category?->slug] - (int)$this->get_invoice->invoiceDetails()->where('version', 1)->where('category_id', $category?->id)->sum('amount'), 0, ',', '.');
+            $this->payment_amounts[$category?->slug]   = "Rp. ". number_format((float) $this->get_invoice->invoiceDetails()->where('version', 1)->where('category_id', $category?->id)->sum('amount'), 2, ',', '.');
+            $this->remaining_amounts[$category?->slug] = "Rp. ". number_format($this->amounts[$category?->slug] - (float) $this->get_invoice->invoiceDetails()->where('version', 1)->where('category_id', $category?->id)->sum('amount'), 2, ',', '.');
         }
 
         return view('livewire.invoice.roof-invoice.roof-invoice-detail', [
@@ -56,15 +56,15 @@ class RoofInvoiceDetail extends Component
         $this->due_date       = $this->get_invoice?->due_date. " Hari";
         $this->customer       = $this->get_invoice?->customer;
         $this->id_customer    = $this->get_invoice?->id_customer;
-        $this->income_tax     = "Rp. ". number_format($this->get_invoice?->income_tax, 0, ',', '.');
-        $this->value_tax      = "Rp. ". number_format($this->get_invoice?->value_tax, 0, ',', '.');
-        $this->amount         = "Rp. ". number_format($this->get_invoice?->amount, 0, ',', '.');
+        $this->income_tax     = "Rp. ". number_format($this->get_invoice?->income_tax, 2, ',', '.');
+        $this->value_tax      = "Rp. ". number_format($this->get_invoice?->value_tax, 2, ',', '.');
+        $this->amount         = "Rp. ". number_format($this->get_invoice?->amount, 2, ',', '.');
 
         $this->due_date_roof_rules = $this->get_invoice->dueDateRules()->where('version', 1)->get();
 
         $this->categories = Category::where('type', 'roof')->where('version', 1)->get();
         foreach ($this->categories as $key => $category) {
-            $this->amounts[$category?->slug] = $this->get_invoice?->paymentDetails()->where('version', 1)->where('category_id', $category?->id)->first()?->amount;
+            $this->amounts[$category?->slug] = (float) $this->get_invoice?->paymentDetails()->where('version', 1)->where('category_id', $category?->id)->first()?->amount;
         }
     }
 

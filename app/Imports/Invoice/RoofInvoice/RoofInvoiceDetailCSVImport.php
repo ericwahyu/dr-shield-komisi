@@ -124,18 +124,18 @@ class RoofInvoiceDetailCSVImport implements ToCollection, WithChunkReading, With
         try {
             $categories = Category::where('type', 'roof')->where('version', 1)->get();
 
-            $payment = (int) $collection[1];
+            $payment = $collection[1];
 
             foreach ($categories as $key => $category) {
-                $value_payment_detail = $get_invoice?->paymentDetails()->where('category_id', $category?->id)->sum('amount');
+                $value_payment_detail = (float) $get_invoice?->paymentDetails()->where('category_id', $category?->id)->sum('amount');
 
-                $value_invoice_detail = $get_invoice?->invoiceDetails()->where('category_id', $category?->id)->sum('amount');
+                $value_invoice_detail = (float) $get_invoice?->invoiceDetails()->where('category_id', $category?->id)->sum('amount');
 
                 $get_category = $category;
 
-                $remaining_price = (int) $value_payment_detail - (int) $value_invoice_detail;
+                $remaining_price = $value_payment_detail - $value_invoice_detail;
 
-                if ((int) $value_invoice_detail >= (int) $value_payment_detail) {
+                if ($value_invoice_detail >= $value_payment_detail) {
                     continue;
                 }
 
@@ -145,7 +145,7 @@ class RoofInvoiceDetailCSVImport implements ToCollection, WithChunkReading, With
                 $check_next_value_payment = 0;
 
                 if ($next_category) {
-                    $check_next_value_payment = $get_invoice?->paymentDetails()
+                    $check_next_value_payment = (float) $get_invoice?->paymentDetails()
                         ->where('category_id', $next_category->id)
                         ->sum('amount');
                 }
@@ -162,11 +162,21 @@ class RoofInvoiceDetailCSVImport implements ToCollection, WithChunkReading, With
                 );
                 $percentage = $this->_percentageRoofInvoiceDetail($get_invoice, $datas);
 
+                Log::info('V1 Creating invoice detail', [
+                    'invoice_number' => $get_invoice->invoice_number,
+                    'category' => $get_category->slug,
+                    'remaining_price' => $remaining_price,
+                    'payment' => $payment,
+                    'check_next' => $check_next_value_payment,
+                    'invoice_amount' => $invoice_amount,
+                    'type' => gettype($invoice_amount),
+                ]);
+
                 $datas = array(
                     'id_data'               => null,
                     'version'               => 1,
                     'category_id'           => $get_category?->id,
-                    'invoice_detail_amount' => (int) $invoice_amount,
+                    'invoice_detail_amount' => $invoice_amount,
                     'invoice_detail_date'   => Carbon::parse($collection[2])->toDateString(),
                     'percentage'            => $percentage,
                 );
@@ -262,13 +272,23 @@ class RoofInvoiceDetailCSVImport implements ToCollection, WithChunkReading, With
         // Remove spaces
         $value = trim($value);
 
+        // Check if value is negative (wrapped in parentheses)
+        $isNegative = false;
+        if (str_starts_with($value, '(') && str_ends_with($value, ')')) {
+            $isNegative = true;
+            $value = trim($value, '()');
+        }
+
         // Remove dots (thousands separator)
         $value = str_replace('.', '', $value);
 
-        // Remove comma (decimal separator, tapi untuk nominal biasanya tidak ada desimal)
-        $value = str_replace(',', '', $value);
+        // Replace comma with dot (decimal separator)
+        $value = str_replace(',', '.', $value);
 
-        // Convert to int
-        return (int) $value;
+        // Convert to float (keep decimal places)
+        $result = floatval($value);
+
+        // Apply negative sign if needed
+        return $isNegative ? -$result : $result;
     }
 }

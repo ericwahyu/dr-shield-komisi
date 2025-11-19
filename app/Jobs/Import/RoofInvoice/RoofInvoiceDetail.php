@@ -105,22 +105,20 @@ class RoofInvoiceDetail implements ShouldQueue
     private function invoiceDetailV1($get_invoice, $collection)
     {
         try {
-            // $categories = Category::where('type', 'roof')->where('version', 1)->pluck('slug')->toArray();
             $categories = Category::where('type', 'roof')->where('version', 1)->get();
 
-            $payment = (int) $collection[1];
+            $payment = $collection[1];
 
             foreach ($categories as $key => $category) {
+                $value_payment_detail = (float) $get_invoice?->paymentDetails()->where('category_id', $category?->id)->sum('amount');
 
-                $value_payment_detail = $get_invoice?->paymentDetails()->where('category_id', $category?->id)->sum('amount');
-
-                $value_invoice_detail = $get_invoice?->invoiceDetails()->where('category_id', $category?->id)->sum('amount');
+                $value_invoice_detail = (float) $get_invoice?->invoiceDetails()->where('category_id', $category?->id)->sum('amount');
 
                 $get_category = $category;
 
-                $remaining_price = (int)$value_payment_detail - (int)$value_invoice_detail;
+                $remaining_price = $value_payment_detail - $value_invoice_detail;
 
-                if ((int)$value_invoice_detail >= (int)$value_payment_detail) {
+                if ($value_invoice_detail >= $value_payment_detail) {
                     continue;
                 }
 
@@ -143,7 +141,7 @@ class RoofInvoiceDetail implements ShouldQueue
                         'id_data'               => null,
                         'version'               => 1,
                         'category_id'           => $get_category?->id,
-                        'invoice_detail_amount' => (int)$invoice_amount,
+                        'invoice_detail_amount' => $invoice_amount,
                         'invoice_detail_date'   => Carbon::parse($collection[2])->toDateString(),
                         'percentage'            => $percentage,
                     );

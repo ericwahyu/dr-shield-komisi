@@ -127,13 +127,23 @@ class RoofInvoiceCSVImport implements ToCollection, WithChunkReading, WithCustom
         // Remove spaces
         $value = trim($value);
 
+        // Check if value is negative (wrapped in parentheses)
+        $isNegative = false;
+        if (str_starts_with($value, '(') && str_ends_with($value, ')')) {
+            $isNegative = true;
+            $value = trim($value, '()');
+        }
+
         // Remove dots (thousands separator)
         $value = str_replace('.', '', $value);
 
         // Replace comma with dot (decimal separator)
         $value = str_replace(',', '.', $value);
 
-        // Convert to float
-        return (float) $value;
+        // Convert to float (keep decimal places)
+        $result = floatval($value);
+
+        // Apply negative sign if needed
+        return $isNegative ? -$result : $result;
     }
 }
